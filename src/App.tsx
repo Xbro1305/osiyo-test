@@ -149,6 +149,7 @@ const TRANSLATIONS = {
     "login.passcode": "Passcode",
     "login.signIn": "Sign in",
     "login.invalid": "Invalid login or passcode",
+    "login.defaultHint": "Default super-admin: admin / admin",
     // ===== Roles =====
     "role.admin": "super admin",
     "role.dept_admin": "dept admin",
@@ -370,6 +371,7 @@ const TRANSLATIONS = {
     "login.passcode": "Parol",
     "login.signIn": "Kirish",
     "login.invalid": "Login yoki parol notoʻgʻri",
+    "login.defaultHint": "Standart super-admin: admin / admin",
     "role.admin": "super admin",
     "role.dept_admin": "boʻlim admini",
     "role.operator": "operator",
@@ -1251,12 +1253,8 @@ const storage = {
       }
     }
     if (key === "config:lists") {
-      try {
-        await apiFetch("/lists", { method: "POST", body: JSON.stringify(val) });
-        return true;
-      } catch {
-        return false;
-      }
+      await apiFetch("/lists", { method: "POST", body: JSON.stringify(val) });
+      return true;
     }
     if (key.startsWith("app:")) {
       if (key === "app:prefs") {
@@ -1268,37 +1266,25 @@ const storage = {
         }
       }
       const ck = key.slice("app:".length);
-      try {
-        await apiFetch(`/config/${encodeURIComponent(ck)}`, {
-          method: "POST",
-          body: JSON.stringify(val),
-        });
-        return true;
-      } catch {
-        return false;
-      }
+      await apiFetch(`/config/${encodeURIComponent(ck)}`, {
+        method: "POST",
+        body: JSON.stringify(val),
+      });
+      return true;
     }
     const { prefix } = splitKey(key);
     if (prefix.startsWith("rec_")) {
       const station = prefix.slice("rec_".length, -1);
-      try {
-        await apiFetch(recPath(station), {
-          method: "POST",
-          body: JSON.stringify(val),
-        });
-        return true;
-      } catch {
-        return false;
-      }
+      await apiFetch(recPath(station), {
+        method: "POST",
+        body: JSON.stringify(val),
+      });
+      return true;
     }
     const path = PREFIX_TO_PATH[prefix];
     if (!path) return false;
-    try {
-      await apiFetch(path, { method: "POST", body: JSON.stringify(val) });
-      return true;
-    } catch {
-      return false;
-    }
+    await apiFetch(path, { method: "POST", body: JSON.stringify(val) });
+    return true;
   },
 
   async list(prefix: string): Promise<string[]> {
@@ -1351,23 +1337,19 @@ const storage = {
     const { prefix, id } = splitKey(key);
     if (prefix.startsWith("rec_")) {
       const station = prefix.slice("rec_".length, -1);
-      try {
-        await apiFetch(`${recPath(station)}/${encodeURIComponent(id)}`, {
-          method: "DELETE",
-        });
-        return true;
-      } catch {
-        return false;
-      }
+      // We deliberately let apiFetch errors propagate so callers know the
+      // delete didn't take effect. Previously this was silently swallowed,
+      // making backend delete failures look like "the record came back from
+      // polling 15 seconds later". Now the caller can show a real error.
+      await apiFetch(`${recPath(station)}/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      return true;
     }
     const path = PREFIX_TO_PATH[prefix];
     if (!path) return false;
-    try {
-      await apiFetch(`${path}/${encodeURIComponent(id)}`, { method: "DELETE" });
-      return true;
-    } catch {
-      return false;
-    }
+    await apiFetch(`${path}/${encodeURIComponent(id)}`, { method: "DELETE" });
+    return true;
   },
 
   // ============== Auth helpers (API mode only) ==============
@@ -1542,7 +1524,16 @@ const PAGES = {
  * - admin: yes to everything
  * - dept_admin: yes to anything in their department
  * - operator: yes only to their own station's page
- * - guest: only if pageKey is in user.allowedPages (and the dept is in allowedDepartments)
+ * - guest: pageKey's department must be in allowedDepartments. AND
+ *          either allowedPages is empty (= no per-page restriction → all
+ *          pages in allowed departments are visible) OR allowedPages
+ *          explicitly contains this pageKey.
+ *
+ * The "empty allowedPages = full access within allowed depts" rule is the
+ * fix for an earlier bug where assigning a guest to a department but not
+ * also ticking individual pages produced an empty department screen.
+ * Treating allowedPages as an OPTIONAL fine-grained whitelist matches what
+ * admins actually expect: "I gave them this department, they see it."
  */
 function canViewPage(user: User | null, pageKey: string) {
   if (!user || !pageKey) return false;
@@ -1561,6 +1552,9 @@ function canViewPage(user: User | null, pageKey: string) {
     const allowedDepts = user.allowedDepartments || [];
     if (!allowedDepts.includes(deptId)) return false;
     const allowedPages = user.allowedPages || [];
+    // Empty allowedPages = "no per-page restriction" — allow everything in
+    // allowed departments. Non-empty allowedPages = explicit whitelist.
+    if (allowedPages.length === 0) return true;
     return allowedPages.includes(pageKey);
   }
   return false;
@@ -2304,18 +2298,46 @@ function AppInner() {
       deletedBy: user?.id || "unknown",
       deletedByName: user?.name || "Unknown",
     };
-    // Remove from the original storage location so it disappears from active lists.
-    const originalKey = type.startsWith("rec_")
-      ? `${type}:${item.id}`
-      : `${type}:${item.id}`;
-    await storage.delete(originalKey);
-    // Save to trash collection.
-    await storage.set(`trash:${trashId}`, trashEntry);
-    setTrash((prev) => [...prev, trashEntry]);
+    // Originally we always built `${type}:${item.id}`. The two ternary branches
+    // were identical, so the ternary served no purpose — collapsed.
+    const originalKey = `${type}:${item.id}`;
+
+    // 1) Delete from the source collection. If this fails, we MUST stop —
+    //    otherwise we'd remove the row from local state but not from the
+    //    backend, and 15 seconds later the polling refresh would re-add it,
+    //    making it look like delete is broken. Surface the error to the user.
+    try {
+      await storage.delete(originalKey);
+    } catch (err) {
+      console.error("Delete failed on backend:", err);
+      alert(
+        `Couldn't delete this item. The server returned an error: ${err && err.message ? err.message : "unknown"}.\nThe item will reappear on the next refresh.`,
+      );
+      throw err;
+    }
+
+    // 2) Save a copy to the trash bin. If this fails, the original is already
+    //    gone (step 1 succeeded), so we can't roll back cleanly — but we
+    //    should still warn the user that restore won't be possible for this
+    //    particular item. The deletion itself is still valid.
+    try {
+      await storage.set(`trash:${trashId}`, trashEntry);
+      setTrash((prev) => [...prev, trashEntry]);
+    } catch (err) {
+      console.error(
+        "Trash bin save failed (item is deleted but not recoverable):",
+        err,
+      );
+      // Don't re-throw — the delete succeeded, that's the main goal.
+      // Just log and let the UI continue.
+    }
   }
 
   // The following are the public delete functions used throughout the app.
-  // They no longer hard-delete — they move to trash instead.
+  // They no longer hard-delete — they move to trash instead. All of them only
+  // update local state if the backend delete actually succeeded; otherwise
+  // the item stays visible (and an error alert is shown) so the user knows
+  // the deletion didn't take effect.
   async function deleteUser(id) {
     const item = users.find((u) => u.id === id);
     if (!item) return;
@@ -2323,29 +2345,49 @@ function AppInner() {
       alert("The default super-admin can't be deleted.");
       return;
     }
-    await softDeleteItem("user", item);
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    try {
+      await softDeleteItem("user", item);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch {
+      /* error already shown */
+    }
   }
   async function deleteDesign(id) {
     const item = designs.find((d) => d.id === id);
     if (!item) return;
-    await softDeleteItem("design", item);
-    setDesigns((prev) => prev.filter((d) => d.id !== id));
+    try {
+      await softDeleteItem("design", item);
+      setDesigns((prev) => prev.filter((d) => d.id !== id));
+    } catch {
+      /* error already shown */
+    }
   }
   async function deleteMachine(id) {
     const item = machines.find((m) => m.id === id);
     if (!item) return;
-    await softDeleteItem("machine", item);
-    setMachines((prev) => prev.filter((m) => m.id !== id));
+    try {
+      await softDeleteItem("machine", item);
+      setMachines((prev) => prev.filter((m) => m.id !== id));
+    } catch {
+      /* error already shown */
+    }
   }
   async function deleteRecord(stationKey, id) {
     const item = (records[stationKey] || []).find((r) => r.id === id);
     if (!item) return;
-    await softDeleteItem(`rec_${stationKey}`, item);
-    setRecords((prev) => ({
-      ...prev,
-      [stationKey]: (prev[stationKey] || []).filter((r) => r.id !== id),
-    }));
+    try {
+      await softDeleteItem(`rec_${stationKey}`, item);
+      // Only remove from local state if the backend delete actually succeeded.
+      // softDeleteItem now throws on backend failure.
+      setRecords((prev) => ({
+        ...prev,
+        [stationKey]: (prev[stationKey] || []).filter((r) => r.id !== id),
+      }));
+    } catch {
+      // Error already shown to the user by softDeleteItem.
+      // Don't touch local state — this keeps the UI honest about what's
+      // really in the database.
+    }
   }
 
   // Restore a trash entry back to its original collection.
@@ -2758,6 +2800,9 @@ function LoginScreen({
           >
             <LogIn size={18} /> {busy ? "…" : t("login.signIn")}
           </button>
+          <div className={`text-xs ${th.textMuted} text-center mt-3`}>
+            {t("login.defaultHint")}
+          </div>
         </div>
       </div>
     </div>
@@ -4532,15 +4577,18 @@ function UserForm({
         </Field>
       )}
 
-      {/* Guest: pick specific pages within each allowed department.
-          Without this, guests would see EVERY page in their allowed depts (which you didn't want).
-          A guest must have BOTH the department in allowedDepartments AND each individual page in allowedPages. */}
+      {/* Guest: optionally restrict to specific pages within each allowed department.
+          By default (no boxes ticked), the guest can see ALL pages in their
+          allowed departments. Ticking pages here turns the section into an
+          explicit whitelist — only ticked pages are visible. Untick all to
+          go back to the "all pages" default. */}
       {f.role === "guest" && (f.allowedDepartments || []).length > 0 && (
-        <Field label="Allowed pages within each department *">
+        <Field label="Allowed pages within each department (optional)">
           <div className="space-y-3">
             <div className="text-xs text-slate-500 -mt-1">
-              Tick exactly which pages this guest can see. They will not see the
-              pages you don't tick.
+              Leave everything unchecked to give the guest access to ALL pages
+              in their assigned departments. Check specific pages only if you
+              want to restrict access to a subset.
             </div>
             {(f.allowedDepartments || []).map((deptId) => {
               const dept = DEPARTMENTS.find((d) => d.id === deptId);
@@ -8694,7 +8742,7 @@ function computeGrayUsage(inputRecs = [], grayOutRecs = []) {
 }
 
 function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
-  const { records, lists, saveRecord, deleteRecord, askConfirm } = ctx;
+  const { records, lists, saveRecord, deleteRecord, askConfirm, user } = ctx;
   const data = records.gray_store || [];
   const inputRecs = records.input || [];
   const grayOutRecs = records.gray_out || [];
@@ -8707,6 +8755,8 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
     fabricType: "",
   });
   const [selected, setSelected] = useState(new Set());
+
+  const isSuperAdmin = user?.role === "admin";
 
   // Shared: how much has been consumed from each gray entry (by SING&DES + outgoing combined).
   const usage = useMemo(
@@ -8760,16 +8810,33 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
     };
   });
 
-  // When a SING&DES Input record consumes from a gray entry, we shouldn't allow
-  // deleting that entry without breaking the chain. Block deletion if used.
   function handleDelete(id) {
     const u = usage[id];
-    if (u && (u.rolls > 0 || u.meters > 0)) {
+    const hasUsage = u && (u.rolls > 0 || u.meters > 0);
+
+    if (hasUsage && !isSuperAdmin) {
       alert(
-        "Can't delete this entry — fabric has already been consumed from it (by SING&DES or as outgoing). Remove the related records first.",
+        "Can't delete this entry — fabric has already been consumed from it " +
+          "(by SING&DES or as outgoing). Remove the related records first, or " +
+          "ask a super-admin to force-delete it.",
       );
       return;
     }
+
+    if (hasUsage && isSuperAdmin) {
+      // Force-delete path. Make the consequences crystal clear.
+      askConfirm(
+        `Force delete this gray fabric entry?\n\n` +
+          `It has been consumed: ${u.rolls} rolls / ${u.meters.toLocaleString()} m.\n` +
+          `Records that reference this entry (in SING&DES / outgoing) will be ` +
+          `orphaned but will keep their data. The entry itself goes to trash and ` +
+          `can be restored from there.`,
+        () => deleteRecord("gray_store", id),
+      );
+      return;
+    }
+
+    // Normal path: no usage, plain confirm.
     askConfirm("Move this gray fabric entry to trash?", () =>
       deleteRecord("gray_store", id),
     );
