@@ -149,7 +149,6 @@ const TRANSLATIONS = {
     "login.passcode": "Passcode",
     "login.signIn": "Sign in",
     "login.invalid": "Invalid login or passcode",
-    "login.defaultHint": "Default super-admin: admin / admin",
     // ===== Roles =====
     "role.admin": "super admin",
     "role.dept_admin": "dept admin",
@@ -371,7 +370,6 @@ const TRANSLATIONS = {
     "login.passcode": "Parol",
     "login.signIn": "Kirish",
     "login.invalid": "Login yoki parol notoʻgʻri",
-    "login.defaultHint": "Standart super-admin: admin / admin",
     "role.admin": "super admin",
     "role.dept_admin": "boʻlim admini",
     "role.operator": "operator",
@@ -2760,9 +2758,6 @@ function LoginScreen({
           >
             <LogIn size={18} /> {busy ? "…" : t("login.signIn")}
           </button>
-          <div className={`text-xs ${th.textMuted} text-center mt-3`}>
-            {t("login.defaultHint")}
-          </div>
         </div>
       </div>
     </div>
