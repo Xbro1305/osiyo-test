@@ -2591,8 +2591,16 @@ function AppInner() {
               </button>
               <button
                 onClick={() => {
-                  confirmDlg.onConfirm();
+                  // IMPORTANT: capture the callback FIRST and close the dialog BEFORE
+                  // running it. If we ran the callback first and then closed (the old
+                  // order), and the callback called askConfirm() to chain a second
+                  // dialog, React would batch both setConfirmDlg() calls in the same
+                  // event handler — and the close-to-null setter would win, wiping
+                  // out the newly-opened second dialog. That's exactly why "delete"
+                  // appeared to silently fail on pages that double-confirmed.
+                  const cb = confirmDlg.onConfirm;
                   setConfirmDlg(null);
+                  cb();
                 }}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
               >
@@ -8810,6 +8818,15 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
     };
   });
 
+  // When a SING&DES Input record consumes from a gray entry, deleting that
+  // entry would break the chain (orphaned references). For most users this
+  // is correctly blocked. Super-admins, however, get a force-delete option
+  // with an extra-strong confirm — useful when cleaning up bad/stale data.
+  //
+  // Note: DataTable already shows a generic "Delete this record?" confirm
+  // before calling onDelete (which is this function). For the simple case
+  // we skip the second confirm; for the force-delete case we still show a
+  // stronger second confirm because the consequences are bigger.
   function handleDelete(id) {
     const u = usage[id];
     const hasUsage = u && (u.rolls > 0 || u.meters > 0);
@@ -8824,7 +8841,8 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
     }
 
     if (hasUsage && isSuperAdmin) {
-      // Force-delete path. Make the consequences crystal clear.
+      // Force-delete path. Make the consequences crystal clear with a stronger
+      // second confirm. (DataTable's first confirm already happened above.)
       askConfirm(
         `Force delete this gray fabric entry?\n\n` +
           `It has been consumed: ${u.rolls} rolls / ${u.meters.toLocaleString()} m.\n` +
@@ -8836,10 +8854,8 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
       return;
     }
 
-    // Normal path: no usage, plain confirm.
-    askConfirm("Move this gray fabric entry to trash?", () =>
-      deleteRecord("gray_store", id),
-    );
+    // Simple case: no usage. DataTable already confirmed; just delete.
+    deleteRecord("gray_store", id);
   }
 
   return (
