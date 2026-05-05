@@ -2287,7 +2287,11 @@ function AppInner() {
   // Only super-admin can permanently purge or restore; auto-purge happens >30 days.
   // `type` identifies the original collection: 'rec_<station>', 'customer', 'design', 'user', etc.
   async function softDeleteItem(type, item) {
-    if (!item || !item.id) return;
+    console.log("[softDeleteItem] type:", type, "item.id:", item?.id);
+    if (!item || !item.id) {
+      console.warn("[softDeleteItem] no item or no id, returning");
+      return;
+    }
     const trashId = `${type}_${item.id}_${Date.now()}`;
     const trashEntry = {
       id: trashId,
@@ -2298,38 +2302,31 @@ function AppInner() {
       deletedBy: user?.id || "unknown",
       deletedByName: user?.name || "Unknown",
     };
-    // Originally we always built `${type}:${item.id}`. The two ternary branches
-    // were identical, so the ternary served no purpose — collapsed.
     const originalKey = `${type}:${item.id}`;
+    console.log("[softDeleteItem] originalKey to delete:", originalKey);
 
-    // 1) Delete from the source collection. If this fails, we MUST stop —
-    //    otherwise we'd remove the row from local state but not from the
-    //    backend, and 15 seconds later the polling refresh would re-add it,
-    //    making it look like delete is broken. Surface the error to the user.
+    // 1) Delete from the source collection.
     try {
       await storage.delete(originalKey);
+      console.log("[softDeleteItem] backend delete succeeded");
     } catch (err) {
-      console.error("Delete failed on backend:", err);
+      console.error("[softDeleteItem] backend delete FAILED:", err);
       alert(
         `Couldn't delete this item. The server returned an error: ${err && err.message ? err.message : "unknown"}.\nThe item will reappear on the next refresh.`,
       );
       throw err;
     }
 
-    // 2) Save a copy to the trash bin. If this fails, the original is already
-    //    gone (step 1 succeeded), so we can't roll back cleanly — but we
-    //    should still warn the user that restore won't be possible for this
-    //    particular item. The deletion itself is still valid.
+    // 2) Save a copy to the trash bin.
     try {
       await storage.set(`trash:${trashId}`, trashEntry);
       setTrash((prev) => [...prev, trashEntry]);
+      console.log("[softDeleteItem] trash entry saved");
     } catch (err) {
       console.error(
-        "Trash bin save failed (item is deleted but not recoverable):",
+        "[softDeleteItem] trash save failed (item is deleted but not recoverable):",
         err,
       );
-      // Don't re-throw — the delete succeeded, that's the main goal.
-      // Just log and let the UI continue.
     }
   }
 
@@ -2373,8 +2370,13 @@ function AppInner() {
     }
   }
   async function deleteRecord(stationKey, id) {
+    console.log("[deleteRecord] stationKey:", stationKey, "id:", id);
     const item = (records[stationKey] || []).find((r) => r.id === id);
-    if (!item) return;
+    if (!item) {
+      console.warn("[deleteRecord] item not found in local records!");
+      return;
+    }
+    console.log("[deleteRecord] item found, calling softDeleteItem");
     try {
       await softDeleteItem(`rec_${stationKey}`, item);
       // Only remove from local state if the backend delete actually succeeded.
@@ -2383,7 +2385,9 @@ function AppInner() {
         ...prev,
         [stationKey]: (prev[stationKey] || []).filter((r) => r.id !== id),
       }));
-    } catch {
+      console.log("[deleteRecord] removed from local state");
+    } catch (err) {
+      console.error("[deleteRecord] softDeleteItem threw:", err);
       // Error already shown to the user by softDeleteItem.
       // Don't touch local state — this keeps the UI honest about what's
       // really in the database.
@@ -8828,10 +8832,22 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
   // we skip the second confirm; for the force-delete case we still show a
   // stronger second confirm because the consequences are bigger.
   function handleDelete(id) {
+    console.log("[GrayStore handleDelete] called with id:", id);
     const u = usage[id];
     const hasUsage = u && (u.rolls > 0 || u.meters > 0);
+    console.log(
+      "[GrayStore handleDelete] usage:",
+      u,
+      "hasUsage:",
+      hasUsage,
+      "isSuperAdmin:",
+      isSuperAdmin,
+    );
 
     if (hasUsage && !isSuperAdmin) {
+      console.log(
+        "[GrayStore handleDelete] BLOCKED: has usage, not super-admin",
+      );
       alert(
         "Can't delete this entry — fabric has already been consumed from it " +
           "(by SING&DES or as outgoing). Remove the related records first, or " +
@@ -8841,6 +8857,9 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
     }
 
     if (hasUsage && isSuperAdmin) {
+      console.log(
+        "[GrayStore handleDelete] FORCE-DELETE path: showing strong confirm",
+      );
       // Force-delete path. Make the consequences crystal clear with a stronger
       // second confirm. (DataTable's first confirm already happened above.)
       askConfirm(
@@ -8849,12 +8868,18 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
           `Records that reference this entry (in SING&DES / outgoing) will be ` +
           `orphaned but will keep their data. The entry itself goes to trash and ` +
           `can be restored from there.`,
-        () => deleteRecord("gray_store", id),
+        () => {
+          console.log(
+            "[GrayStore handleDelete] force-delete confirmed, calling deleteRecord",
+          );
+          deleteRecord("gray_store", id);
+        },
       );
       return;
     }
 
     // Simple case: no usage. DataTable already confirmed; just delete.
+    console.log("[GrayStore handleDelete] simple delete: calling deleteRecord");
     deleteRecord("gray_store", id);
   }
 
