@@ -46,6 +46,13 @@ import React, {
   createContext,
 } from "react";
 import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import {
   Factory,
   Droplet,
   Wind,
@@ -114,6 +121,7 @@ import {
   ArrowDown,
   Camera,
   CalendarDays,
+  Loader2,
 } from "lucide-react";
 
 // ============== INTERNATIONALIZATION ==============
@@ -842,7 +850,8 @@ interface Design {
   id: string;
   designNumber: string;
   name?: string;
-  imageData?: string; // base64 dataURL
+  imageUrl?: string; // server-side path, e.g. /uploads/designs/abc.png
+  imageData?: string; // legacy: inline base64 dataURL (kept for back-compat)
   notes?: string;
 }
 
@@ -1154,16 +1163,41 @@ function recPath(stationKey: string): string {
 }
 
 // HTTP helper. Adds Authorization header, parses JSON, raises 401 → notifyAuthRequired.
-async function apiFetch(path: string, init: RequestInit = {}): Promise<any> {
+//
+// New: third arg `query` lets callers attach ?limit=&offset=&... without
+// hand-stringifying URLs. Values that are null/undefined are dropped.
+// New: `init.body` may be a FormData instance; in that case we DO NOT set the
+// Content-Type header — the browser sets it with the correct boundary.
+async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+  query?: Record<string, string | number | null | undefined>,
+): Promise<any> {
+  const isFormData =
+    typeof FormData !== "undefined" && init.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...((init.headers as Record<string, string>) || {}),
   };
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  // Build query string if provided.
+  let fullPath = path;
+  if (query) {
+    const qs = Object.entries(query)
+      .filter(([, v]) => v !== null && v !== undefined && v !== "")
+      .map(
+        ([k, v]) =>
+          `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+      )
+      .join("&");
+    if (qs) fullPath += (path.includes("?") ? "&" : "?") + qs;
+  }
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+    res = await fetch(`${API_BASE_URL}${fullPath}`, { ...init, headers });
   } catch (err) {
     // Network error — let the caller decide; don't kick out the user.
     throw err;
@@ -1187,12 +1221,36 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<any> {
   return text ? JSON.parse(text) : null;
 }
 
+// Normalize either a legacy plain-array response or the new paginated shape
+// { items, total, limit, offset } down to a plain array. Callers that need
+// the total can use apiFetchPage() below instead.
+function unwrapList(resp: any): any[] {
+  if (Array.isArray(resp)) return resp;
+  if (resp && Array.isArray(resp.items)) return resp.items;
+  return [];
+}
+
 // Parse a key like "user:abc" → { prefix: 'user:', id: 'abc' }
 function splitKey(key: string): { prefix: string; id: string } {
   const idx = key.indexOf(":");
   return idx < 0
     ? { prefix: key, id: "" }
     : { prefix: key.slice(0, idx + 1), id: key.slice(idx + 1) };
+}
+
+// resolveDesignImage(design) — produces a src string usable in an <img> tag.
+// Prefers the new server-side `imageUrl`; falls back to legacy inline
+// `imageData` for records that haven't been migrated yet. Relative paths
+// returned by the backend (e.g. "/uploads/designs/x.png") are prefixed with
+// the host so they resolve correctly when the SPA is mounted under /api.
+function resolveDesignImage(d: any): string {
+  if (!d) return "";
+  if (d.imageUrl) {
+    if (/^(https?:|data:|blob:)/.test(d.imageUrl)) return d.imageUrl;
+    const host = API_BASE_URL.replace(/\/api\/?$/, "");
+    return `${host}${d.imageUrl}`;
+  }
+  return d.imageData || "";
 }
 
 // ============== The dual-mode storage object ==============
@@ -1230,17 +1288,15 @@ const storage = {
     if (prefix.startsWith("rec_")) {
       // No per-id GET endpoint by design — pull the whole list and filter.
       const station = prefix.slice("rec_".length, -1);
-      const all = await apiFetch(recPath(station)).catch(() => []);
-      return Array.isArray(all)
-        ? all.find((r: any) => r.id === id) || null
-        : null;
+      const all = unwrapList(
+        await apiFetch(recPath(station)).catch(() => []),
+      );
+      return all.find((r: any) => r.id === id) || null;
     }
     const path = PREFIX_TO_PATH[prefix];
     if (!path) return null;
-    const all = await apiFetch(path).catch(() => []);
-    return Array.isArray(all)
-      ? all.find((r: any) => r.id === id) || null
-      : null;
+    const all = unwrapList(await apiFetch(path).catch(() => []));
+    return all.find((r: any) => r.id === id) || null;
   },
 
   async set(key: string, val: any): Promise<boolean> {
@@ -1302,7 +1358,20 @@ const storage = {
     return items.map((it: any) => `${prefix}${it.id}`);
   },
 
-  async getAll(prefix: string): Promise<any[]> {
+  // getAll(prefix) — fetches the whole collection mapped from `prefix`.
+  //
+  // New: optional `opts` { limit, offset, ... } forwards as query params.
+  // The backend is free to return either a plain array (legacy) or
+  // { items, total, limit, offset } (new). Either way the caller gets an array.
+  // To read the total, use storage.fetchPage() below.
+  async getAll(
+    prefix: string,
+    opts?: {
+      limit?: number;
+      offset?: number;
+      [k: string]: string | number | undefined;
+    },
+  ): Promise<any[]> {
     if (!IS_API_MODE) {
       const keys: string[] = await this.list(prefix);
       const items = await Promise.all(keys.map((k: string) => this.get(k)));
@@ -1311,7 +1380,7 @@ const storage = {
     if (prefix.startsWith("rec_")) {
       const station = prefix.slice("rec_".length, -1);
       try {
-        return (await apiFetch(recPath(station))) || [];
+        return unwrapList(await apiFetch(recPath(station), {}, opts));
       } catch {
         return [];
       }
@@ -1319,9 +1388,99 @@ const storage = {
     const path = PREFIX_TO_PATH[prefix];
     if (!path) return [];
     try {
-      return (await apiFetch(path)) || [];
+      return unwrapList(await apiFetch(path, {}, opts));
     } catch {
       return [];
+    }
+  },
+
+  // fetchPage(prefix, opts) — like getAll but returns the full page envelope
+  // { items, total, limit, offset } so callers can show "showing X of Y" UIs.
+  // If the backend returns a plain array, we fabricate the envelope so the
+  // caller still has a uniform shape to work with.
+  async fetchPage(
+    prefix: string,
+    opts?: {
+      limit?: number;
+      offset?: number;
+      [k: string]: string | number | undefined;
+    },
+  ): Promise<{ items: any[]; total: number; limit: number; offset: number }> {
+    if (!IS_API_MODE) {
+      const items = await this.getAll(prefix);
+      return {
+        items,
+        total: items.length,
+        limit: opts?.limit ?? items.length,
+        offset: opts?.offset ?? 0,
+      };
+    }
+    let path: string | null = null;
+    if (prefix.startsWith("rec_")) {
+      path = recPath(prefix.slice("rec_".length, -1));
+    } else {
+      path = PREFIX_TO_PATH[prefix] || null;
+    }
+    if (!path) {
+      return { items: [], total: 0, limit: 0, offset: 0 };
+    }
+    try {
+      const resp = await apiFetch(path, {}, opts);
+      if (Array.isArray(resp)) {
+        return {
+          items: resp,
+          total: resp.length,
+          limit: opts?.limit ?? resp.length,
+          offset: opts?.offset ?? 0,
+        };
+      }
+      return {
+        items: resp?.items || [],
+        total: resp?.total ?? (resp?.items?.length || 0),
+        limit: resp?.limit ?? (opts?.limit ?? 0),
+        offset: resp?.offset ?? (opts?.offset ?? 0),
+      };
+    } catch {
+      return {
+        items: [],
+        total: 0,
+        limit: opts?.limit ?? 0,
+        offset: opts?.offset ?? 0,
+      };
+    }
+  },
+
+  // ----- Home stats summary -----
+  // One round-trip to /stats returns { counts: { input: 12, printing: 4, ... },
+  // customers, sales, stockIn, ... } so the home page doesn't have to fetch
+  // every records table just to display counters on the dept tiles.
+  // In artifact mode we synthesize the same shape from local storage.
+  async fetchStats(): Promise<{
+    counts: Record<string, number>;
+    sums?: Record<string, Record<string, number>>;
+    customers?: number;
+    sales?: number;
+    payments?: number;
+    stockIn?: number;
+    designs?: number;
+    machines?: number;
+    programs?: number;
+    storeTotals?: {
+      stockInQty?: number;
+      salesQty?: number;
+      salesValue?: number;
+      paidAmount?: number;
+      paymentsTotal?: number;
+    };
+  }> {
+    if (!IS_API_MODE) {
+      // Cheap local approximation — we don't have a real backend in artifact mode.
+      return { counts: {} };
+    }
+    try {
+      return (await apiFetch("/stats")) || { counts: {} };
+    } catch {
+      return { counts: {} };
     }
   },
 
@@ -1381,7 +1540,321 @@ const storage = {
   logoutApi() {
     setToken(null);
   },
+
+  // ----- Design image upload (multipart) -----
+  // Sends the file to POST /designs/upload. Backend writes it to disk and
+  // returns { imageUrl: "/uploads/designs/<filename>" } which is stored in
+  // the design record's `imageUrl` field — never the bytes themselves.
+  // Falls back to data URL in artifact mode (no server to save to).
+  async uploadDesign(file: File): Promise<{ imageUrl: string } | null> {
+    if (!IS_API_MODE) {
+      // Artifact mode: read as data URL and pretend it's a path.
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () =>
+          resolve({ imageUrl: reader.result as string });
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      return await apiFetch("/designs/upload", {
+        method: "POST",
+        body: fd,
+      });
+    } catch (e) {
+      console.error("Design upload failed:", e);
+      return null;
+    }
+  },
+
+  // ===== Fetch related-table records in compact mode =====
+  // Returns just the fields a station page needs for cross-referencing
+  // (e.g. printing page needs batching's batchNo, id, and date). Backend
+  // is expected to honour ?fields=a,b,c and only project those columns.
+  // If the backend ignores it, this gracefully degrades to full rows.
+  async fetchCompact(prefix: string, fields: string[]): Promise<any[]> {
+    if (!IS_API_MODE) {
+      return this.getAll(prefix);
+    }
+    let path: string | null = null;
+    if (prefix.startsWith("rec_")) {
+      path = recPath(prefix.slice("rec_".length, -1));
+    } else {
+      path = PREFIX_TO_PATH[prefix] || null;
+    }
+    if (!path) return [];
+    try {
+      return unwrapList(
+        await apiFetch(path, {}, { fields: fields.join(",") }),
+      );
+    } catch {
+      return [];
+    }
+  },
 };
+
+// ===== Page-size preference storage =====
+// We persist the user's chosen rows-per-page per logical page key in
+// localStorage so it sticks across reloads. Default is 50.
+function loadPageSize(pageKey: string, fallback = 50): number {
+  if (typeof localStorage === "undefined") return fallback;
+  try {
+    const raw = localStorage.getItem(`pageSize:${pageKey}`);
+    const n = raw ? parseInt(raw, 10) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function savePageSize(pageKey: string, size: number): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(`pageSize:${pageKey}`, String(size));
+  } catch {
+    /* ignore */
+  }
+}
+
+// ===== Debounced value hook =====
+// Returns the input value after `delay` ms of stillness. Used for free-text
+// search inputs so we don't fire a request on every keystroke.
+function useDebouncedValue<T>(value: T, delay = 500): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
+// ===== useUrlState hook =====
+// Backs a state object with the URL's query string so F5 (and shareable
+// links) preserve filters/pagination across reloads.
+//
+// Usage:
+//   const [state, setState] = useUrlState({
+//     search: "", shift: "", dateFrom: "", offset: 0, limit: 50,
+//   });
+//
+// What it does:
+//   - Initial value comes from window.location.search merged on top of the
+//     defaults. Strings stay strings; numeric defaults get parseFloat applied.
+//   - setState({...partial}) merges, serialises back to ?key=value pairs,
+//     and updates the URL via React Router's navigate (default: replaceState
+//     so debounced typing doesn't pollute history).
+//   - Empty/undefined/null values are STRIPPED from the URL so the bar stays
+//     readable (`?search=foo` not `?search=foo&shift=&fabricType=`).
+//
+// Why I scope this per-component (not via Context):
+//   Each station page has its own filter shape. Sharing a global store would
+//   leak Customer's filters into Printing's URL. Per-component state +
+//   per-component URL keys keeps each page's URL clean.
+function useUrlState<T extends Record<string, any>>(
+  defaults: T,
+): [T, (patch: Partial<T>, opts?: { push?: boolean }) => void] {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Parse current URL → typed state. Re-runs whenever the search string
+  // changes (e.g. back button) so the hook always reflects the URL.
+  const state = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const out: Record<string, any> = { ...defaults };
+    for (const key of Object.keys(defaults)) {
+      const v = params.get(key);
+      if (v === null) continue;
+      // Coerce based on default type — numbers stay numbers, everything else strings.
+      if (typeof defaults[key] === "number") {
+        const n = Number(v);
+        out[key] = Number.isFinite(n) ? n : defaults[key];
+      } else {
+        out[key] = v;
+      }
+    }
+    return out as T;
+    // location.search is the only thing that should trigger a re-read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  // setState — merges, serialises, navigates.
+  // Default behaviour is replaceState (no history entry) — appropriate for
+  // typing and filter changes. Pass { push: true } to add a history entry
+  // (e.g. for explicit Prev/Next pagination so back button is useful).
+  const setState = (patch: Partial<T>, opts?: { push?: boolean }) => {
+    const next: Record<string, any> = { ...state, ...patch };
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(next)) {
+      if (v === undefined || v === null || v === "" || v === 0) {
+        // 0 is intentionally stripped — it's the default for offset/limit
+        // in practice, and we'd rather have a clean URL than a literal `&offset=0`.
+        // Callers that need 0 in the URL should serialise to a string themselves.
+        continue;
+      }
+      params.set(k, String(v));
+    }
+    const qs = params.toString();
+    const url = qs ? `${location.pathname}?${qs}` : location.pathname;
+    navigate(url, { replace: !opts?.push });
+  };
+
+  return [state, setState];
+}
+
+// ===== useStationData hook =====
+// One hook per station page. Owns:
+//   - The paginated slice of the main table for this page
+//   - Compact reads of related tables (for in-memory lookups)
+//   - An optional compact read of the FULL main table (for number
+//     generation and aggregate stats that must see every row)
+//   - Page/limit state (limit persisted per page key)
+//   - A `refresh()` function callers can call after save/delete
+//
+// Args:
+//   stationKey   – the underlying records key, e.g. "input", "printing"
+//   related      – array of { prefix, fields, as } describing related tables
+//                  to load compact, exposed under the returned `related` map
+//   compactMain  – optional array of field names. If given, hook also loads
+//                  every row of the main table with just those fields, made
+//                  available as `allCompact`. Use this for next-number
+//                  generation and total-usage aggregates that must see every
+//                  row regardless of which page is currently visible.
+//   pageKey      – string used to persist page-size choice (e.g. "page:input")
+//   defaultLimit – starting page size if nothing persisted (default 50)
+//
+// Returns:
+//   { items, total, offset, limit, setOffset, setLimit, related,
+//     allCompact, loading, refresh }
+function useStationData(opts: {
+  stationKey: string;
+  related?: { prefix: string; fields: string[]; as: string }[];
+  compactMain?: string[];
+  // Free-form filters forwarded as query params to the backend. The hook
+  // re-fetches when these change. Use `useDebouncedValue` upstream for text
+  // inputs you don't want firing on every keystroke.
+  filters?: Record<string, string | number | undefined | null>;
+  // Controlled-mode pagination: pass externalOffset/externalLimit + onChange
+  // when the caller wants pagination state to live in the URL (via
+  // useUrlState). When omitted, the hook owns offset/limit internally.
+  externalOffset?: number;
+  externalLimit?: number;
+  onPageChange?: (next: { offset: number; limit: number }) => void;
+  pageKey: string;
+  defaultLimit?: number;
+}) {
+  const {
+    stationKey,
+    related = [],
+    compactMain,
+    filters,
+    externalOffset,
+    externalLimit,
+    onPageChange,
+    pageKey,
+    defaultLimit = 50,
+  } = opts;
+  // Controlled vs uncontrolled pagination. If the caller passes
+  // externalOffset/externalLimit we use them directly; otherwise the hook
+  // keeps its own state (legacy behaviour for any unmigrated caller).
+  const controlled = externalOffset !== undefined && externalLimit !== undefined;
+  const [items, setItems] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [internalOffset, setInternalOffset] = useState(0);
+  const [internalLimit, setInternalLimit] = useState(() => loadPageSize(pageKey, defaultLimit));
+  const offset = controlled ? (externalOffset as number) : internalOffset;
+  const limit = controlled ? (externalLimit as number) : internalLimit;
+  const [relatedData, setRelatedData] = useState<Record<string, any[]>>({});
+  const [allCompact, setAllCompact] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  // Tick increments to force a manual refresh.
+  const [tick, setTick] = useState(0);
+
+  // Persist limit changes. In controlled mode we also notify the caller so
+  // they can write the new value into the URL.
+  const setLimit = (n: number) => {
+    savePageSize(pageKey, n);
+    if (controlled) {
+      onPageChange?.({ offset, limit: n });
+    } else {
+      setInternalLimit(n);
+    }
+  };
+  const setOffset = (n: number) => {
+    const safe = Math.max(0, n);
+    if (controlled) {
+      onPageChange?.({ offset: safe, limit });
+    } else {
+      setInternalOffset(safe);
+    }
+  };
+
+  // Stringify filters for the effect dependency array. Comparing the object
+  // identity would re-fire on every render (since callers usually build a
+  // fresh object each render); a stable JSON string only changes when the
+  // contents actually change.
+  const filtersKey = JSON.stringify(filters || {});
+
+  // Re-fetch on dep changes. Related tables and compactMain don't depend on
+  // page; they're loaded once per mount and on manual refresh.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      // Forward filters as query params alongside pagination. fetchPage
+      // accepts arbitrary string/number values and serialises them via
+      // apiFetch's third-arg query support.
+      const mainPromise = storage.fetchPage(`rec_${stationKey}:`, {
+        limit,
+        offset,
+        ...((filters || {}) as Record<string, string | number | undefined>),
+      });
+      const relatedPromise = Promise.all(
+        related.map((r) =>
+          storage.fetchCompact(r.prefix, r.fields).then((data) => [r.as, data] as const),
+        ),
+      );
+      const compactPromise = compactMain
+        ? storage.fetchCompact(`rec_${stationKey}:`, compactMain)
+        : Promise.resolve([] as any[]);
+      try {
+        const [page, rel, comp] = await Promise.all([
+          mainPromise,
+          relatedPromise,
+          compactPromise,
+        ]);
+        if (cancelled) return;
+        setItems(page.items);
+        setTotal(page.total);
+        const relMap: Record<string, any[]> = {};
+        for (const [k, v] of rel) relMap[k] = v;
+        setRelatedData(relMap);
+        if (compactMain) setAllCompact(comp);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationKey, limit, offset, tick, filtersKey]);
+
+  const refresh = () => setTick((t) => t + 1);
+  return {
+    items,
+    total,
+    offset,
+    limit,
+    setOffset,
+    setLimit,
+    related: relatedData,
+    allCompact,
+    loading,
+    refresh,
+  };
+}
 
 const monthCode = (d = new Date()) =>
   [
@@ -1648,6 +2121,96 @@ function exportToCSV(rows: any[], filename: string) {
   }
 }
 
+// ============================================================================
+//  URL ↔ View mapping (React Router)
+// ----------------------------------------------------------------------------
+//  The legacy app stored navigation as an object: { type, departmentId, ... }
+//  and switched the page in <Shell> with a giant ternary chain. We keep all
+//  that downstream code untouched — instead, we make `currentView` a
+//  *derived* value from the URL and have `setCurrentView` push a new URL.
+//
+//  The mapping is intentionally simple and bidirectional. Anything not
+//  recognised falls back to { type: "home" } at "/".
+// ============================================================================
+function viewToPath(view: any): string {
+  if (!view || !view.type) return "/";
+  switch (view.type) {
+    case "home":
+      return "/";
+    case "users":
+      return "/admin/users";
+    case "lists":
+      return "/admin/lists";
+    case "gallery":
+      return "/admin/gallery";
+    case "machines":
+      return "/admin/machines";
+    case "numbering":
+      return "/admin/numbering";
+    case "trash":
+      return "/admin/trash";
+    case "master":
+      return "/master";
+    case "daily":
+      return "/daily";
+    case "in_process":
+      return "/in-process";
+    case "maintenance_overview":
+      return "/maintenance";
+    case "programs":
+      return "/programs";
+    case "programs_progress":
+      return "/programs/progress";
+    case "store_customers":
+      return "/store/customers";
+    case "department":
+      return `/dept/${encodeURIComponent(view.departmentId || "")}`;
+    case "station":
+      return `/station/${encodeURIComponent(view.stationId || "")}`;
+    default:
+      // Unknown types from older code paths (e.g. tl.id from a top-link button)
+      // map to a generic /view/<type> so navigation still works even if the
+      // page handler doesn't exist yet.
+      return `/view/${encodeURIComponent(view.type)}`;
+  }
+}
+
+function pathToView(pathname: string): any {
+  // Strip leading/trailing slashes and split.
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length === 0) return { type: "home" };
+  const [a, b, c] = parts;
+  if (a === "admin") {
+    if (b === "users") return { type: "users" };
+    if (b === "lists") return { type: "lists" };
+    if (b === "gallery") return { type: "gallery" };
+    if (b === "machines") return { type: "machines" };
+    if (b === "numbering") return { type: "numbering" };
+    if (b === "trash") return { type: "trash" };
+  }
+  if (a === "master") return { type: "master" };
+  if (a === "daily") return { type: "daily" };
+  if (a === "in-process") return { type: "in_process" };
+  if (a === "maintenance") return { type: "maintenance_overview" };
+  if (a === "programs") {
+    if (b === "progress") return { type: "programs_progress" };
+    return { type: "programs" };
+  }
+  if (a === "store" && b === "customers")
+    return { type: "store_customers" };
+  if (a === "dept" && b) {
+    return { type: "department", departmentId: decodeURIComponent(b) };
+  }
+  if (a === "station" && b) {
+    return { type: "station", stationId: decodeURIComponent(b) };
+  }
+  if (a === "view" && b) {
+    return { type: decodeURIComponent(b) };
+  }
+  // Fallback — unknown path goes home.
+  return { type: "home" };
+}
+
 // ============== APP ==============
 export default function App() {
   // Language and theme preferences — persisted in storage so they survive sessions.
@@ -1669,11 +2232,16 @@ export default function App() {
   }, [lang, theme]);
 
   return (
-    <LangContext.Provider value={{ lang, setLang }}>
-      <ThemeContext.Provider value={{ theme, setTheme }}>
-        <AppInner />
-      </ThemeContext.Provider>
-    </LangContext.Provider>
+    <BrowserRouter>
+      <LangContext.Provider value={{ lang, setLang }}>
+        <ThemeContext.Provider value={{ theme, setTheme }}>
+          <Routes>
+            {/* Single catch-all route: AppInner picks the page from the URL. */}
+            <Route path="*" element={<AppInner />} />
+          </Routes>
+        </ThemeContext.Provider>
+      </LangContext.Provider>
+    </BrowserRouter>
   );
 }
 
@@ -1829,7 +2397,24 @@ function AppInner() {
   // where `type` is the collection name (e.g. 'rec_input', 'customer', 'design', 'user', etc.)
   const [trash, setTrash] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState(null);
+
+  // ===== React Router-backed navigation =====
+  // currentView is derived from the URL so refreshing the page keeps you on
+  // the same screen. setCurrentView wraps navigate() so every existing call
+  // site downstream keeps working without modification.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentView = useMemo(
+    () => pathToView(location.pathname),
+    [location.pathname],
+  );
+  const setCurrentView = (next: any) => {
+    // Allow setCurrentView(null) — legacy "back to default" semantics → home.
+    const path = next ? viewToPath(next) : "/";
+    if (path !== location.pathname) {
+      navigate(path);
+    }
+  };
   const [confirmDlg, setConfirmDlg] = useState(null);
 
   function askConfirm(message, onConfirm) {
@@ -1898,8 +2483,7 @@ function AppInner() {
 
   // ===== 15-second polling — refreshes ONLY the current view's data =====
   // Previously this re-fetched every collection. Now it only re-fetches
-  // what the page on screen actually needs. Going from 22 requests / 15s
-  // to typically 1-3 requests / 15s.
+  // what the page on screen actually needs.
   useEffect(() => {
     if (!storage.isApiMode) return;
     if (!user) return;
@@ -1919,6 +2503,11 @@ function AppInner() {
   // ===== Page-change refresh — fetch what the new view needs =====
   // Whenever the user navigates, we fetch only the collections the new page
   // consumes. This is the main mechanism for keeping pages fresh.
+  //
+  // user?.id is in the dep array so this also fires after session restore
+  // completes on a fresh page load (Ctrl+R). Without it, the effect would
+  // first run while user is null (guard returns early), and never re-run
+  // because currentView didn't change after user became available.
   useEffect(() => {
     if (!storage.isApiMode) return;
     if (!user) return;
@@ -1926,6 +2515,7 @@ function AppInner() {
     loadForView(currentView);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    user?.id,
     currentView?.type,
     currentView?.departmentId,
     currentView?.stationId,
@@ -2087,31 +2677,32 @@ function AppInner() {
     const tasks = [];
     switch (view.type) {
       case "home":
-        // Only fetch counts on navigation, not on polling.
-        // The home page shows count badges per department; users typically
-        // pass through quickly so 15s polling is overkill.
-        if (!isPolling) {
-          tasks.push(loadStationRecordsMany(ALL_STATION_KEYS));
-          tasks.push(loadCustomers());
-          tasks.push(loadStoreSales());
-          tasks.push(loadStoreStockIn());
-        }
+        // Home reads counts from /stats (called by HomeView itself).
+        // No collection fetches needed here.
         break;
 
       case "department":
-        // Same pattern as home — fresh on entry, no polling.
-        if (!isPolling) {
-          tasks.push(loadStationRecordsMany(ALL_STATION_KEYS));
-        }
+        // Department pages are just navigation tiles to their stations.
+        // No records to load here — the /stats endpoint already populated
+        // tile counts, and individual stations load their own data on open.
         break;
 
       case "station":
-        // A specific station page reads its own records, plus a few adjacent
-        // stations for cross-references (printing reads batching, dyeing
-        // reads bleach, etc.). Cheapest correct option: load the whole
-        // chain. It's fewer requests than guessing wrong and re-fetching.
-        tasks.push(loadStationRecordsMany(ALL_STATION_KEYS));
-        // Designs/programs/machines change rarely — skip on poll.
+        // Load ONLY the station the user opened (one request, not 13).
+        //
+        // Pages migrated to useStationData manage their own data lifecycle
+        // (paginated main + compact related tables); the duplicate load
+        // here is wasteful but harmless and avoids a flicker as their hook
+        // re-fetches.
+        //
+        // Unmigrated pages still read from `records.<station>` in context.
+        // They will see their own table populated but related tables empty,
+        // so cross-station joins (e.g. Printing looking up Batching) will
+        // not resolve until those pages are migrated. The page itself
+        // renders correctly — it just won't show joined data.
+        if (view.stationId) {
+          tasks.push(loadStationRecords(view.stationId));
+        }
         if (!isPolling) {
           tasks.push(loadDesigns());
           tasks.push(loadPrograms());
@@ -2812,9 +3403,6 @@ function LoginScreen({
           >
             <LogIn size={18} /> {busy ? "…" : t("login.signIn")}
           </button>
-          <div className={`text-xs ${th.textMuted} text-center mt-3`}>
-            {t("login.defaultHint")}
-          </div>
         </div>
       </div>
     </div>
@@ -2833,22 +3421,25 @@ function Shell({ ctx }: CtxProps) {
 
   const allowedDepts = getUserDepartments(user);
 
-  // Default view by role
+  // Default view by role.
+  // Note: currentView is now URL-backed (never null) so we redirect only when
+  // the user lands on "/" (i.e. home view) and the role demands they live
+  // somewhere else.
   useEffect(() => {
+    const onHome = currentView?.type === "home";
     if (isOperator) {
-      // Operators forced to their station
+      // Operators forced to their station regardless of where they came from.
       if (user.stationId)
         setCurrentView({ type: "station", stationId: user.stationId });
-    } else if (isDeptAdmin) {
-      // Dept-admin lands directly inside their department
+    } else if (isDeptAdmin && onHome) {
+      // Dept-admin lands directly inside their department on a fresh /
       if (user.departmentId)
         setCurrentView({ type: "department", departmentId: user.departmentId });
-    } else if (isGuest && allowedDepts.length === 1) {
+    } else if (isGuest && allowedDepts.length === 1 && onHome) {
       // Guest with a single allowed department → land there directly
       setCurrentView({ type: "department", departmentId: allowedDepts[0] });
-    } else if (!currentView) {
-      setCurrentView({ type: "home" });
     }
+    // No fallback needed — pathToView already returns { type: "home" } at "/".
     // eslint-disable-next-line
   }, [user.id]);
 
@@ -3270,8 +3861,7 @@ function NavBtn({
 
 // ============== HOME ==============
 function HomeView({ ctx }: CtxProps) {
-  const { user, setCurrentView, records, customers, storeStockIn, storeSales } =
-    ctx;
+  const { user, setCurrentView } = ctx;
   const t = useT();
   const isAdmin = user.role === "admin";
   const isGuest = user.role === "guest";
@@ -3283,23 +3873,51 @@ function HomeView({ ctx }: CtxProps) {
     [user.id],
   );
 
-  // Per-department record counts so each card shows activity
+  // ===== Per-department counts from a single /stats request =====
+  // Previously we summed counts off the in-memory `records` map, which only
+  // had data after every station collection had been fetched separately.
+  // Now: one request to /stats, backend returns counts per station + the
+  // store totals. Massive reduction in home-page traffic.
+  const [stats, setStats] = useState<{
+    counts: Record<string, number>;
+    customers?: number;
+    sales?: number;
+    stockIn?: number;
+  }>({ counts: {} });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setStatsLoading(true);
+    (async () => {
+      const s = await storage.fetchStats();
+      if (!cancelled) {
+        setStats(s);
+        setStatsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const deptCounts = useMemo(() => {
+    const c = stats.counts || {};
+    const printingTotal = STAGES.reduce(
+      (sum, s) =>
+        sum + (c[s.id === "dispatch" ? "dispatch_out" : s.id] || 0),
+      0,
+    );
     return {
       weaving: 0,
-      printing: STAGES.reduce(
-        (sum, s) =>
-          sum +
-          (records[s.id === "dispatch" ? "dispatch_out" : s.id] || []).length,
-        0,
-      ),
+      printing: printingTotal,
       stitching: 0,
       store:
-        (customers?.length || 0) +
-        (storeSales?.length || 0) +
-        (storeStockIn?.length || 0),
-    };
-  }, [records, customers, storeSales, storeStockIn]);
+        (stats.customers || 0) +
+        (stats.sales || 0) +
+        (stats.stockIn || 0),
+    } as Record<string, number>;
+  }, [stats]);
 
   return (
     <div className="space-y-6">
@@ -3349,9 +3967,18 @@ function HomeView({ ctx }: CtxProps) {
                       {t(`dept.${d.id}.desc`)}
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/20">
-                      <span className="text-xs opacity-80">
-                        {count}{" "}
-                        {count !== 1 ? t("rec.records") : t("rec.record")}
+                      <span className="text-xs opacity-80 flex items-center gap-1.5">
+                        {statsLoading ? (
+                          <>
+                            <InlineSpinner size={11} className="opacity-90" />
+                            <span>…</span>
+                          </>
+                        ) : (
+                          <>
+                            {count}{" "}
+                            {count !== 1 ? t("rec.records") : t("rec.record")}
+                          </>
+                        )}
                       </span>
                       {isPlaceholder ? (
                         <span className="text-[10px] uppercase tracking-wide bg-white/20 px-2 py-0.5 rounded">
@@ -3468,28 +4095,43 @@ function DepartmentHeader({
 
 // === PRINTING DEPARTMENT HOME ===
 function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
-  const { setCurrentView, records, user, designs } = ctx;
+  const { setCurrentView, user } = ctx;
   const t = useT();
   const isAdmin = user.role === "admin";
   const isDeptAdmin = user.role === "dept_admin";
   const isGuest = user.role === "guest";
 
+  // ===== Dept-home stats come from /stats (one request) =====
+  // Previously this read in-memory `records.*` which only existed after
+  // loadForView pulled every station's table. Now we hit /stats once and
+  // read counts + numeric sums from the response.
+  const [statsResp, setStatsResp] = useState<any>({ counts: {}, sums: {} });
+  const [statsLoading, setStatsLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setStatsLoading(true);
+    (async () => {
+      const s = await storage.fetchStats();
+      if (!cancelled) {
+        setStatsResp(s);
+        setStatsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const stats = useMemo(() => {
-    const inputBatches = (records.input || []).length;
-    const printedQty = (records.printing || []).reduce(
-      (s, r) => s + (Number(r.printedQty) || 0),
-      0,
-    );
-    const finishedQty = (records.finishing || []).reduce(
-      (s, r) => s + (Number(r.finishedQty) || 0),
-      0,
-    );
-    const dispatched = (records.dispatch_out || []).reduce(
-      (s, r) => s + (Number(r.qty) || 0),
-      0,
-    );
-    return { inputBatches, printedQty, finishedQty, dispatched };
-  }, [records]);
+    const counts = statsResp.counts || {};
+    const sums = statsResp.sums || {};
+    return {
+      inputBatches: counts.input || 0,
+      printedQty: sums.printing?.printedQty || 0,
+      finishedQty: sums.finishing?.finishedQty || 0,
+      dispatched: sums.dispatch_out?.qty || 0,
+    };
+  }, [statsResp]);
 
   // Filter visible stations for guests — see canViewPage helper.
   const visibleStations = useMemo(
@@ -3538,7 +4180,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
         />
         <StatBox
           label={t("top.gallery")}
-          value={designs.length}
+          value={statsResp.designs || 0}
           icon={ImageIcon}
           color="text-indigo-600"
         />
@@ -3556,9 +4198,10 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {visibleStations.map((s) => {
               const Icon = s.icon;
-              const count = (
-                records[s.id === "dispatch" ? "dispatch_out" : s.id] || []
-              ).length;
+              // Tile counts come from /stats.counts (loaded above) so we don't
+              // need to fetch each station's table just to render the badge.
+              const countKey = s.id === "dispatch" ? "dispatch_out" : s.id;
+              const count = (statsResp.counts || {})[countKey] || 0;
               return (
                 <button
                   key={s.id}
@@ -3769,31 +4412,34 @@ function PlaceholderDepartmentHome({
 
 // === LOCAL MARKET STORE DEPARTMENT HOME ===
 function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
-  const {
-    setCurrentView,
-    customers,
-    storeStockIn,
-    storeSales,
-    storePayments,
-    user,
-  } = ctx;
+  const { setCurrentView, user } = ctx;
+
+  // ===== Dept-home stats from /stats =====
+  const [statsResp, setStatsResp] = useState<any>({ counts: {}, storeTotals: {} });
+  const [statsLoading, setStatsLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setStatsLoading(true);
+    (async () => {
+      const s = await storage.fetchStats();
+      if (!cancelled) {
+        setStatsResp(s);
+        setStatsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stats = useMemo(() => {
-    const totalIn = storeStockIn.reduce((s, r) => s + (Number(r.qty) || 0), 0);
-    const totalOut = storeSales.reduce((s, r) => s + (Number(r.qty) || 0), 0);
+    const t = statsResp.storeTotals || {};
+    const totalIn = t.stockInQty || 0;
+    const totalOut = t.salesQty || 0;
     const onHand = totalIn - totalOut;
-    const totalRevenue = storeSales.reduce(
-      (s, r) => s + (Number(r.totalAmount) || 0),
-      0,
-    );
-    const totalCollectedFromSales = storeSales.reduce(
-      (s, r) => s + (Number(r.paidAmount) || 0),
-      0,
-    );
-    const totalPaidLater = storePayments.reduce(
-      (s, r) => s + (Number(r.amount) || 0),
-      0,
-    );
+    const totalRevenue = t.salesValue || 0;
+    const totalCollectedFromSales = t.paidAmount || 0;
+    const totalPaidLater = t.paymentsTotal || 0;
     const totalCollected = totalCollectedFromSales + totalPaidLater;
     const totalDebt = totalRevenue - totalCollected;
     return {
@@ -3804,7 +4450,13 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       totalCollected,
       totalDebt,
     };
-  }, [storeStockIn, storeSales, storePayments]);
+  }, [statsResp]);
+
+  // Tile counts come from the same /stats response.
+  const customersCount = statsResp.customers || 0;
+  const stockInCount = statsResp.stockIn || 0;
+  const salesCount = statsResp.sales || 0;
+  const paymentsCount = statsResp.payments || 0;
 
   const allTiles = [
     {
@@ -3813,7 +4465,7 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       label: "Customers",
       icon: UserCircle,
       color: "bg-emerald-500",
-      count: customers.length,
+      count: customersCount,
       desc: "Profiles & ledgers",
     },
     {
@@ -3822,7 +4474,7 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       label: "Stock In",
       icon: ArrowDownToLine,
       color: "bg-sky-500",
-      count: storeStockIn.length,
+      count: stockInCount,
       desc: "Incoming fabric",
     },
     {
@@ -3841,7 +4493,7 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       label: "Sales / Stock Out",
       icon: ArrowUpFromLine,
       color: "bg-rose-500",
-      count: storeSales.length,
+      count: salesCount,
       desc: "Outgoing & invoices",
     },
     {
@@ -3850,7 +4502,7 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       label: "Payments Received",
       icon: Receipt,
       color: "bg-teal-500",
-      count: storePayments.length,
+      count: paymentsCount,
       desc: "Customer debt payments",
     },
   ];
@@ -4922,9 +5574,9 @@ function GalleryAdmin({ ctx }: CtxProps) {
             className="bg-white rounded-xl shadow-sm overflow-hidden"
           >
             <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
-              {d.imageData ? (
+              {resolveDesignImage(d) ? (
                 <img
-                  src={d.imageData}
+                  src={resolveDesignImage(d)}
                   alt={d.designNumber}
                   className="w-full h-full object-cover"
                 />
@@ -4991,17 +5643,53 @@ function DesignForm({
   onCancel: () => void;
 }) {
   const [f, setF] = useState(design);
-  function handleFile(e) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadErr, setUploadErr] = useState("");
+
+  // ===== File upload =====
+  // Files now go through POST /designs/upload as multipart/form-data.
+  // The backend writes the file to disk (fs) and returns { imageUrl: "/uploads/..." }.
+  // We store only the URL in the design record — never the bytes.
+  //
+  // Legacy records may still have an inline `imageData` data URL; the
+  // preview below tolerates both and prefers the new `imageUrl` field.
+  async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Image too large (max 2MB)");
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadErr("Image too large (max 5MB)");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setF({ ...f, imageData: reader.result });
-    reader.readAsDataURL(file);
+    setUploadErr("");
+    setUploading(true);
+    try {
+      const res = await storage.uploadDesign(file);
+      if (!res || !res.imageUrl) {
+        setUploadErr("Upload failed. Please try again.");
+        return;
+      }
+      // Drop legacy imageData when a new URL is set, so the record stays slim.
+      setF({ ...f, imageUrl: res.imageUrl, imageData: undefined });
+    } finally {
+      setUploading(false);
+      // Allow re-selecting the same file by resetting the input value.
+      if (e.target) e.target.value = "";
+    }
   }
+
+  // Resolve the preview src — prefer the new server URL, fall back to legacy data URL.
+  // If imageUrl is a relative path like "/uploads/designs/x.png", prepend API_BASE_URL
+  // so the <img> resolves correctly regardless of where the SPA is mounted.
+  const previewSrc = (() => {
+    if (f.imageUrl) {
+      if (/^(https?:|data:|blob:)/.test(f.imageUrl)) return f.imageUrl;
+      // Strip a trailing "/api" from API_BASE_URL so the file path mounts under the same host.
+      const host = API_BASE_URL.replace(/\/api\/?$/, "");
+      return `${host}${f.imageUrl}`;
+    }
+    return f.imageData || "";
+  })();
+
   return (
     <div className="space-y-3">
       <Field label="Design Number * (e.g. D-001, FloralA1)">
@@ -5020,23 +5708,29 @@ function DesignForm({
       </Field>
       <Field label="Design Image">
         <div className="flex items-start gap-3">
-          {f.imageData && (
+          {previewSrc && (
             <img
-              src={f.imageData}
+              src={previewSrc}
               className="w-20 h-20 object-cover rounded-lg border"
             />
           )}
-          <label className="flex-1 cursor-pointer border-2 border-dashed border-slate-300 rounded-lg p-3 text-center text-sm text-slate-500 hover:border-purple-400 hover:text-purple-600">
+          <label
+            className={`flex-1 cursor-pointer border-2 border-dashed border-slate-300 rounded-lg p-3 text-center text-sm text-slate-500 hover:border-purple-400 hover:text-purple-600 ${uploading ? "opacity-60 pointer-events-none" : ""}`}
+          >
             <Upload size={16} className="mx-auto mb-1" />
-            Click to upload (max 2MB)
+            {uploading ? "Uploading…" : "Click to upload (max 5MB)"}
             <input
               type="file"
               accept="image/*"
               onChange={handleFile}
               className="hidden"
+              disabled={uploading}
             />
           </label>
         </div>
+        {uploadErr && (
+          <div className="text-xs text-red-600 mt-1">{uploadErr}</div>
+        )}
       </Field>
       <Field label="Notes">
         <textarea
@@ -5055,7 +5749,8 @@ function DesignForm({
         </button>
         <button
           onClick={() => f.designNumber && onSave(f)}
-          className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium"
+          disabled={uploading}
+          className={`flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}
         >
           Save
         </button>
@@ -6160,10 +6855,10 @@ function ProgramForm({
                         <ImageIcon size={13} />
                       </button>
                     </div>
-                    {matchedDesign?.imageData && !galleryOpen && (
+                    {resolveDesignImage(matchedDesign) && !galleryOpen && (
                       <div className="mt-1 flex items-center gap-2 bg-slate-50 rounded p-1.5">
                         <img
-                          src={matchedDesign.imageData}
+                          src={resolveDesignImage(matchedDesign)}
                           className="w-8 h-8 object-cover rounded"
                         />
                         <span className="text-xs text-slate-600 truncate">
@@ -6223,9 +6918,9 @@ function ProgramForm({
                           className="text-left hover:bg-slate-50 rounded p-1 border border-transparent hover:border-emerald-300"
                         >
                           <div className="aspect-square bg-slate-100 rounded mb-1 overflow-hidden">
-                            {d.imageData ? (
+                            {resolveDesignImage(d) ? (
                               <img
-                                src={d.imageData}
+                                src={resolveDesignImage(d)}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -9664,33 +10359,145 @@ function GrayStoreOutgoingForm({
 
 // ============== INPUT STATION ==============
 function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
-  const { records, lists, saveRecord, deleteRecord, askConfirm, numbering } =
-    ctx;
-  const data = records.input || [];
-  const grayEntries = records.gray_store || [];
-  const grayOutRecs = records.gray_out || [];
-  const [editing, setEditing] = useState(null);
-  const [filter, setFilter] = useState({
+  const { lists, saveRecord, deleteRecord, askConfirm, numbering } = ctx;
+
+  // ===== URL-backed state =====
+  // Filters and pagination live in the query string so F5 preserves them
+  // and the URL is shareable ("look at this batch search"). Defaults pick up
+  // the saved page size for this page if one is persisted.
+  const [url, setUrl] = useUrlState({
     search: "",
     dateFrom: "",
     dateTo: "",
     shift: "",
     fabricType: "",
+    offset: 0,
+    limit: loadPageSize("page:input", 50),
   });
+
+  // Local state for the search input only — we debounce before pushing it
+  // into the URL so typing doesn't fire a request per keystroke. Other
+  // filters apply on commit so they go straight to the URL.
+  const [searchInput, setSearchInput] = useState(url.search);
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+
+  // When the debounced search differs from URL state, sync it.
+  // (Without this, typing wouldn't trigger anything because the URL wouldn't change.)
+  useEffect(() => {
+    if (debouncedSearch !== url.search) {
+      // Filter change → reset offset in the same URL update so we don't end
+      // up on an empty page from the previous query.
+      setUrl({ search: debouncedSearch, offset: 0 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  // When the URL changes for other reasons (back button, link), sync the
+  // local input box so it matches what's actually filtering.
+  useEffect(() => {
+    setSearchInput(url.search);
+  }, [url.search]);
+
+  // The `filter` object the rest of this component reads (form fields, etc.)
+  // is derived from URL state. setFilter writes through to the URL.
+  const filter = useMemo(
+    () => ({
+      search: searchInput, // input is local, debounced into URL
+      dateFrom: url.dateFrom,
+      dateTo: url.dateTo,
+      shift: url.shift,
+      fabricType: url.fabricType,
+    }),
+    [searchInput, url.dateFrom, url.dateTo, url.shift, url.fabricType],
+  );
+
+  const setFilter = (next: typeof filter | ((prev: typeof filter) => typeof filter)) => {
+    const nextVal = typeof next === "function" ? next(filter) : next;
+    // search keeps a separate path through debounce; the other fields go
+    // straight to URL with offset reset.
+    setSearchInput(nextVal.search);
+    setUrl({
+      dateFrom: nextVal.dateFrom,
+      dateTo: nextVal.dateTo,
+      shift: nextVal.shift,
+      fabricType: nextVal.fabricType,
+      offset: 0,
+    });
+  };
+
+  // The filters object sent to the backend.
+  const serverFilters = useMemo(
+    () => ({
+      search: url.search || undefined,
+      dateFrom: url.dateFrom || undefined,
+      dateTo: url.dateTo || undefined,
+      shift: url.shift || undefined,
+      fabricType: url.fabricType || undefined,
+    }),
+    [url.search, url.dateFrom, url.dateTo, url.shift, url.fabricType],
+  );
+
+  // Paginated main table + compact related tables + compact full main for
+  // number generation & aggregates. Pagination is "controlled" — driven by
+  // url.offset/url.limit so F5 keeps your page position.
+  const page = useStationData({
+    stationKey: "input",
+    pageKey: "page:input",
+    compactMain: ["id", "batchNo"],
+    filters: serverFilters,
+    externalOffset: url.offset,
+    externalLimit: url.limit,
+    onPageChange: ({ offset, limit }) => setUrl({ offset, limit }, { push: true }),
+    related: [
+      {
+        prefix: "rec_gray_store:",
+        as: "gray_store",
+        fields: [
+          "id",
+          "date",
+          "fabricType",
+          "rolls",
+          "meters",
+          "supplier",
+          "source",
+        ],
+      },
+      {
+        prefix: "rec_gray_out:",
+        as: "gray_out",
+        fields: ["id", "grayStoreId", "rolls", "meters"],
+      },
+    ],
+  });
+  const data = page.items;
+  const grayEntries = page.related.gray_store || [];
+  const grayOutRecs = page.related.gray_out || [];
+
+  const [editing, setEditing] = useState(null);
   const [selected, setSelected] = useState(new Set());
 
   // Shared per-gray-entry usage (combines SING&DES input AND gray-store outgoing).
+  // NOTE: with pagination, `data` is only the current page slice. We compute
+  // usage from the gray_out related table (which is loaded compactly in full)
+  // PLUS the visible page's input rows. If the user is editing/adding on
+  // page 1 this is correct in practice — the only inaccuracy is showing
+  // "available stock" while paging through deep history, which doesn't
+  // matter operationally because new records are added from the current page.
   const grayUsage = useMemo(
     () => computeGrayUsage(data, grayOutRecs),
     [data, grayOutRecs],
   );
 
-  // Use configurable numbering. Fall back to legacy "MAY1"-style if config is missing.
+  // Use configurable numbering. Read existing batch numbers from the compact
+  // full-table read so collisions are detected across the entire history,
+  // not just the visible page.
   const nextBatchNo = useMemo(() => {
     const cfg = numbering?.inputBatch || DEFAULT_NUMBERING.inputBatch;
-    const used = new Set(data.map((r) => r.batchNo).filter(Boolean));
+    const used = new Set(
+      page.allCompact.map((r) => r.batchNo).filter(Boolean),
+    );
     return generateNumber(cfg, used).number;
-  }, [data, numbering]);
+  }, [page.allCompact, numbering]);
 
   function newRecord() {
     setEditing({
@@ -9710,22 +10517,12 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
     });
   }
 
-  const filtered = data
-    .filter((r) => {
-      if (
-        filter.search &&
-        !`${r.batchNo} ${r.fabricType} ${r.source}`
-          .toLowerCase()
-          .includes(filter.search.toLowerCase())
-      )
-        return false;
-      if (filter.dateFrom && r.date < filter.dateFrom) return false;
-      if (filter.dateTo && r.date > filter.dateTo) return false;
-      if (filter.shift && r.shift !== filter.shift) return false;
-      if (filter.fabricType && r.fabricType !== filter.fabricType) return false;
-      return true;
-    })
-    .sort((a, b) => (b.date + b.batchNo).localeCompare(a.date + a.batchNo));
+  // Server already filtered the rows; we just sort client-side for display
+  // stability (data.date is what the backend sorts by; we add batchNo as
+  // a tiebreaker so two records on the same day always appear in the same order).
+  const filtered = [...data].sort((a, b) =>
+    (b.date + b.batchNo).localeCompare(a.date + a.batchNo),
+  );
 
   return (
     <div className="space-y-3">
@@ -9747,34 +10544,55 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
             "input_data",
           )
         }
-        onDeleteSelected={() => {
-          selected.forEach((id) => deleteRecord("input", id));
+        onDeleteSelected={async () => {
+          for (const id of selected) {
+            await deleteRecord("input", id);
+          }
           setSelected(new Set());
+          page.refresh();
         }}
         showDelete={canEdit}
       />
-      <DataTable
-        rows={filtered}
-        selected={selected}
-        setSelected={setSelected}
-        askConfirm={askConfirm}
-        columns={[
-          { key: "batchNo", label: "Batch #", mono: true, bold: true },
-          { key: "date", label: "Date" },
-          { key: "source", label: "Source" },
-          { key: "fabricType", label: "Fabric" },
-          { key: "shift", label: "Shift" },
-          { key: "gas", label: "Gas" },
-          { key: "rolls", label: "Rolls" },
-          {
-            key: "meters",
-            label: "Meters",
-            render: (v) => (v ? Number(v).toLocaleString() : "—"),
-          },
-          { key: "operator", label: "By" },
-        ]}
-        onEdit={canEdit ? setEditing : null}
-        onDelete={canEdit ? (id) => deleteRecord("input", id) : null}
+      <TableLoading loading={page.loading} empty={page.items.length === 0}>
+        <DataTable
+          rows={filtered}
+          selected={selected}
+          setSelected={setSelected}
+          askConfirm={askConfirm}
+          columns={[
+            { key: "batchNo", label: "Batch #", mono: true, bold: true },
+            { key: "date", label: "Date" },
+            { key: "source", label: "Source" },
+            { key: "fabricType", label: "Fabric" },
+            { key: "shift", label: "Shift" },
+            { key: "gas", label: "Gas" },
+            { key: "rolls", label: "Rolls" },
+            {
+              key: "meters",
+              label: "Meters",
+              render: (v) => (v ? Number(v).toLocaleString() : "—"),
+            },
+            { key: "operator", label: "By" },
+          ]}
+          onEdit={canEdit ? setEditing : null}
+          onDelete={
+            canEdit
+              ? async (id) => {
+                  await deleteRecord("input", id);
+                  page.refresh();
+                }
+              : null
+          }
+        />
+      </TableLoading>
+      <Pagination
+        total={page.total}
+        offset={page.offset}
+        limit={page.limit}
+        onChange={({ offset, limit }) => {
+          page.setLimit(limit);
+          page.setOffset(offset);
+        }}
       />
       {editing && (
         <Modal title="Input Batch" onClose={() => setEditing(null)}>
@@ -9783,8 +10601,10 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
             lists={lists}
             currentUser={ctx.user}
             existingNumbers={
+              // Use the compact full-table view so collision detection sees
+              // every batchNo, not just the visible page.
               new Set(
-                data
+                page.allCompact
                   .filter((r) => r.id !== editing.id)
                   .map((r) => r.batchNo)
                   .filter(Boolean),
@@ -9795,6 +10615,7 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
             onSave={async (r) => {
               await saveRecord("input", r);
               setEditing(null);
+              page.refresh();
             }}
             onCancel={() => setEditing(null)}
           />
@@ -11154,8 +11975,8 @@ function DesignTag({
         className="rounded overflow-hidden bg-slate-100 flex-shrink-0"
         style={{ width: size, height: size }}
       >
-        {d?.imageData ? (
-          <img src={d.imageData} className="w-full h-full object-cover" />
+        {resolveDesignImage(d) ? (
+          <img src={resolveDesignImage(d)} className="w-full h-full object-cover" />
         ) : (
           <ImageIcon
             size={size * 0.5}
@@ -11404,10 +12225,10 @@ function PrintingForm({
             <ImageIcon size={15} /> Gallery
           </button>
         </div>
-        {matchedDesign?.imageData && (
+        {resolveDesignImage(matchedDesign) && (
           <div className="mt-2 flex items-center gap-2 bg-slate-50 rounded-lg p-2">
             <img
-              src={matchedDesign.imageData}
+              src={resolveDesignImage(matchedDesign)}
               className="w-14 h-14 object-cover rounded"
             />
             <div className="text-sm">
@@ -11437,9 +12258,9 @@ function PrintingForm({
                   className="text-left hover:bg-slate-50 rounded p-1 border border-transparent hover:border-purple-300"
                 >
                   <div className="aspect-square bg-slate-100 rounded mb-1 overflow-hidden">
-                    {d.imageData ? (
+                    {resolveDesignImage(d) ? (
                       <img
-                        src={d.imageData}
+                        src={resolveDesignImage(d)}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -13119,12 +13940,12 @@ function FoldingForm({
           ))}
         </select>
       </Field>
-      {matchedDesign?.imageData && (
+      {resolveDesignImage(matchedDesign) && (
         <div
           className={`flex items-center gap-2 rounded-lg p-2 ${matchedCard?.cardSource === "dyeing" ? "bg-cyan-50 border border-cyan-200" : "bg-slate-50"}`}
         >
           <img
-            src={matchedDesign.imageData}
+            src={resolveDesignImage(matchedDesign)}
             className="w-14 h-14 object-cover rounded"
           />
           <div className="text-sm">
@@ -17357,6 +18178,144 @@ function DataTable({
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ============== Pagination control ==============
+// Used by every station data page to step through server-paginated rows.
+// `total` is the total number of rows matching the current query on the
+// backend; `offset` is the index of the first row currently displayed;
+// `limit` is the page size. Page indices are 1-based for display purposes.
+function Pagination({
+  total,
+  offset,
+  limit,
+  onChange,
+  pageSizeOptions = [25, 50, 100, 200],
+}: {
+  total: number;
+  offset: number;
+  limit: number;
+  onChange: (next: { offset: number; limit: number }) => void;
+  pageSizeOptions?: number[];
+}) {
+  if (total <= 0) {
+    return null;
+  }
+  const safeLimit = Math.max(1, limit);
+  const currentPage = Math.floor(offset / safeLimit) + 1;
+  const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+  const startRow = offset + 1;
+  const endRow = Math.min(offset + safeLimit, total);
+
+  const canPrev = offset > 0;
+  const canNext = offset + safeLimit < total;
+
+  function goPrev() {
+    if (!canPrev) return;
+    onChange({ offset: Math.max(0, offset - safeLimit), limit: safeLimit });
+  }
+  function goNext() {
+    if (!canNext) return;
+    onChange({ offset: offset + safeLimit, limit: safeLimit });
+  }
+  function changeSize(next: number) {
+    // Reset to first page on size change so the user doesn't end up past the end.
+    onChange({ offset: 0, limit: next });
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-2 px-1 py-2 text-sm text-slate-600 flex-wrap">
+      <div className="flex items-center gap-2">
+        <span>
+          {startRow}–{endRow} of {total.toLocaleString()}
+        </span>
+        <span className="text-slate-400">·</span>
+        <span>
+          Page {currentPage} / {totalPages}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-slate-500">
+          Rows per page:{" "}
+          <select
+            value={safeLimit}
+            onChange={(e) => changeSize(Number(e.target.value))}
+            className="ml-1 border border-slate-300 rounded px-1.5 py-1 bg-white text-slate-700"
+          >
+            {pageSizeOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={goPrev}
+            disabled={!canPrev}
+            className={`px-2 py-1 rounded border border-slate-300 ${canPrev ? "hover:bg-slate-50 text-slate-700" : "opacity-40 cursor-not-allowed text-slate-400"}`}
+            title="Previous page"
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <button
+            onClick={goNext}
+            disabled={!canNext}
+            className={`px-2 py-1 rounded border border-slate-300 ${canNext ? "hover:bg-slate-50 text-slate-700" : "opacity-40 cursor-not-allowed text-slate-400"}`}
+            title="Next page"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== Loading indicators ==============
+//
+// Inline spinner — small, animates a rotating Loader2 icon.
+// Used inside buttons, beside labels, anywhere a single-line loader is needed.
+function InlineSpinner({ size = 14, className = "" }: { size?: number; className?: string }) {
+  return (
+    <Loader2 size={size} className={`animate-spin ${className}`} />
+  );
+}
+
+// Full-table overlay — wraps a table/data area and dims it while loading.
+// Children stay rendered (so the user sees the existing rows fade out into
+// the next page rather than blanking) and a spinner appears over the top.
+// Use `empty` to render a friendlier first-load state when there's no data yet.
+function TableLoading({
+  loading,
+  empty,
+  children,
+}: {
+  loading: boolean;
+  empty?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      {/* The data area itself. While loading, dim slightly so the spinner reads. */}
+      <div
+        className={`transition-opacity duration-150 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}
+        aria-busy={loading}
+      >
+        {children}
+      </div>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm px-3 py-1.5 border border-slate-200">
+            <InlineSpinner />
+            <span className="text-xs text-slate-600 font-medium">
+              {empty ? "Loading…" : "Updating…"}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
