@@ -12400,222 +12400,330 @@ function PrintingForm({
 }
 
 function BleachedInventoryPage({ ctx }: CtxProps) {
-  const { records } = ctx;
-  const bleachRecs = records.bleach || [];
-  const batchingRecs = records.batching || [];
-  const printRecs = records.printing || [];
+  // ===== Self-fetch three compact tables =====
+  // This page lives as a tab inside the Printing station. Under the new
+  // per-station loader, only `records.printing` is loaded by loadForView,
+  // so we fetch bleach + batching + printing here directly (compact mode
+  // — only the fields the math needs).
+  //
+  // All three loads run in parallel. Total wire size is small: just the
+  // join keys and numeric quantities.
+  const [bleachRecs, setBleachRecs] = useState<any[]>([]);
+  const [batchingRecs, setBatchingRecs] = useState<any[]>([]);
+  const [printRecs, setPrintRecs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Real bleached stock = each bleach record's qty, minus how much of THAT batch was already printed.
-  // We track usage from bleach -> batching -> printing via the batcher chain.
-  // NEW (item 6): if a printing record marks a batcher as "ended", we treat the FULL remaining
-  // capacity of that batcher (qtyAfter) as consumed — leftover that wasn't actually printed
-  // is still removed from bleached stock since the operator declared the roll finished.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      const [bleach, batching, printing] = await Promise.all([
+        // Bleach: id is informational; the lookup join key is batchNo (string).
+        storage.fetchCompact("rec_bleach:", ["id", "batchNo", "qty", "date"]),
+        // Batching: id is what `endedBatchers` references; sourceBatches[]
+        // is the join key; sourceBatches.length determines "is this a single
+        // or pair/triplet" (display only — never split in real life).
+        storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
+        // Printing: we need to know per-batcher consumed qty and the
+        // endedBatchers flag so we can decide which batchers are still in stock.
+        storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+      ]);
+      if (cancelled) return;
+      setBleachRecs(bleach);
+      setBatchingRecs(batching);
+      setPrintRecs(printing);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ===== Stock math =====
+  // One row per batching record. A batcher is identified by its id; its
+  // display label is its sourceBatches joined with '+'. Input qty is the
+  // SUM of bleach.qty for every source batch. Printed qty is the SUM of
+  // batcherUsage entries across all print records pointing at this batcher.
+  // Ended flag: true if ANY print record marked this batcher in endedBatchers.
+  //
+  // Available = input - printed.
+  // Rules:
+  //   - Ended batchers: drop them (they're finished; any difference vs input
+  //     becomes extension on the Extension Audit page).
+  //   - Available <= 0: drop them.
+  //   - Batchers without source batches: defensively drop them.
   const stock = useMemo(() => {
-    // Pre-compute, per batching record, the effective consumed qty from the printing side.
-    // = sum of usage entries, but if any printing record flagged this batcher as ended,
-    // we ratchet the consumed qty up to the batcher's full qtyAfter.
-    const consumedPerBatcher: Record<string, number> = {};
-    batchingRecs.forEach((br) => {
-      consumedPerBatcher[br.id] = 0;
-    });
-    printRecs.forEach((p) => {
-      const ended = new Set<string>(p.endedBatchers || []);
-      (p.batcherUsage || []).forEach((u) => {
-        consumedPerBatcher[u.batchingId] =
-          (consumedPerBatcher[u.batchingId] || 0) + (Number(u.qty) || 0);
-      });
-      // After accounting all use, if this print record ended a batcher, lift the consumed
-      // value to at least the batcher's full qtyAfter (i.e., charge the leftover to stock).
-      ended.forEach((bid) => {
-        const br = batchingRecs.find((b) => b.id === bid);
-        if (!br) return;
-        const cap = Number(br.qtyAfter) || 0;
-        if ((consumedPerBatcher[bid] || 0) < cap) consumedPerBatcher[bid] = cap;
-      });
-    });
+    // Build a lookup of bleach qty by batchNo for fast joins.
+    const bleachQtyByBatch: Record<string, number> = {};
+    for (const b of bleachRecs) {
+      bleachQtyByBatch[b.batchNo] = Number(b.qty) || 0;
+    }
 
-    return bleachRecs
-      .map((b) => {
-        const batchingForThis = batchingRecs.filter((br) =>
-          (br.sourceBatches || []).includes(b.batchNo),
+    // Per-batcher printed totals + ended flag.
+    const printedById: Record<string, number> = {};
+    const endedById: Record<string, boolean> = {};
+    for (const p of printRecs) {
+      for (const u of p.batcherUsage || []) {
+        if (!u.batchingId) continue;
+        printedById[u.batchingId] =
+          (printedById[u.batchingId] || 0) + (Number(u.qty) || 0);
+      }
+      for (const bid of p.endedBatchers || []) {
+        endedById[bid] = true;
+      }
+    }
+
+    // Build rows.
+    return batchingRecs
+      .map((br) => {
+        const sources: string[] = Array.isArray(br.sourceBatches)
+          ? br.sourceBatches
+          : [];
+        if (!sources.length) return null;
+        const inputQty = sources.reduce(
+          (s, batchNo) => s + (bleachQtyByBatch[batchNo] || 0),
+          0,
         );
-        let printedAttributable = 0;
-        batchingForThis.forEach((br) => {
-          const totalBefore = Number(br.qtyBefore) || 0;
-          const myShare = totalBefore ? Number(b.qty) / totalBefore : 0;
-          const usedFromBatcher = consumedPerBatcher[br.id] || 0;
-          printedAttributable += usedFromBatcher * myShare;
-        });
-        const bleachQty = Number(b.qty) || 0;
-        const available = bleachQty - printedAttributable;
-        return { ...b, used: printedAttributable, available };
+        const printed = printedById[br.id] || 0;
+        const ended = !!endedById[br.id];
+        const available = inputQty - printed;
+        return {
+          id: br.id,
+          label: sources.join("+"),
+          date: br.date,
+          inputQty,
+          printed,
+          available,
+          ended,
+        };
       })
-      .filter((s) => s.available > 0.01)
+      .filter((r): r is NonNullable<typeof r> => !!r)
+      // Hide ended batchers (they're done — see Extension Audit instead).
+      .filter((r) => !r.ended)
+      // Hide fully-consumed (avoids "0m available" noise).
+      .filter((r) => r.available > 0.01)
+      // Most stock first.
       .sort((a, b) => b.available - a.available);
   }, [bleachRecs, batchingRecs, printRecs]);
 
   const totalAvailable = stock.reduce((s, x) => s + x.available, 0);
+
   return (
     <div className="space-y-3">
       <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
         <div className="text-sm text-cyan-700">
-          Total bleached fabric still available (true input/bleach quantity
-          minus what's been printed)
+          Total bleached fabric still available (input/bleach qty minus printed,
+          ended batchers excluded)
         </div>
         <div className="text-3xl font-bold text-cyan-900">
           {totalAvailable.toLocaleString()}m
         </div>
         <div className="text-xs text-cyan-700 mt-1">
-          Note: drying-stage extension is ignored here because real extension is
-          measured between bleached → printed.
+          One row per physical batcher (joined batches stay joined).
         </div>
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Batch #
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Bleach Date
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Bleached (m)
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Printed (attr.)
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Available (m)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {stock.map((s) => (
-              <tr key={s.id} className="border-t border-slate-100">
-                <td className="p-3 font-mono font-bold text-purple-700">
-                  {s.batchNo}
-                </td>
-                <td className="p-3 text-slate-500 text-xs">{s.date}</td>
-                <td className="p-3">{Number(s.qty).toLocaleString()}</td>
-                <td className="p-3 text-orange-600">-{s.used.toFixed(0)}</td>
-                <td className="p-3 font-bold text-cyan-700">
-                  {s.available.toFixed(0)}
-                </td>
-              </tr>
-            ))}
-            {!stock.length && (
+      <TableLoading loading={loading} empty={stock.length === 0}>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-400">
-                  No bleached fabric in stock
-                </td>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Batcher
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Date
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Input (m)
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Printed (m)
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Available (m)
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {stock.map((s) => (
+                <tr key={s.id} className="border-t border-slate-100">
+                  <td className="p-3 font-mono font-bold text-purple-700">
+                    {s.label}
+                  </td>
+                  <td className="p-3 text-slate-500 text-xs">{s.date}</td>
+                  <td className="p-3">{s.inputQty.toLocaleString()}</td>
+                  <td className="p-3 text-orange-600">
+                    {s.printed > 0 ? `-${s.printed.toFixed(0)}` : "—"}
+                  </td>
+                  <td className="p-3 font-bold text-cyan-700">
+                    {s.available.toFixed(0)}
+                  </td>
+                </tr>
+              ))}
+              {!stock.length && !loading && (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                    No bleached fabric in stock
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </TableLoading>
     </div>
   );
 }
 
 function ExtensionAuditPage({ ctx }: CtxProps) {
-  const { records } = ctx;
-  const inputRecs = records.input || [];
-  const batchingRecs = records.batching || [];
-  const printRecs = records.printing || [];
-  const bleachRecs = records.bleach || [];
+  // Same self-fetching pattern as BleachedInventoryPage. Both pages are tabs
+  // in the Printing station and need bleach + batching + printing tables that
+  // the per-station loader no longer provides.
+  const [bleachRecs, setBleachRecs] = useState<any[]>([]);
+  const [batchingRecs, setBatchingRecs] = useState<any[]>([]);
+  const [printRecs, setPrintRecs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // For each bleach batch: how much was its bleached qty, and how much of it ended up printed (attributed share).
-  // Real extension = (printed share - bleached qty) / bleached qty.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      const [bleach, batching, printing] = await Promise.all([
+        storage.fetchCompact("rec_bleach:", ["batchNo", "qty"]),
+        storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
+        storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+      ]);
+      if (cancelled) return;
+      setBleachRecs(bleach);
+      setBatchingRecs(batching);
+      setPrintRecs(printing);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Audit math: one row per ENDED batcher. The operator declared the roll
+  // finished, so we now know the final printed total and can compute real
+  // extension = printed - input. Positive = stretch (more meters out than in),
+  // negative = shortage.
+  //
+  // Non-ended batchers are intentionally excluded — their numbers aren't
+  // final yet, so calling that "extension" would mislead.
   const audit = useMemo(() => {
-    return bleachRecs
-      .map((bleach) => {
-        const inputRec = inputRecs.find((i) => i.batchNo === bleach.batchNo);
-        const inputQty = Number(inputRec?.meters) || 0;
-        const bleachQty = Number(bleach.qty) || 0;
-        const batchingsForThis = batchingRecs.filter((br) =>
-          (br.sourceBatches || []).includes(bleach.batchNo),
+    const bleachQtyByBatch: Record<string, number> = {};
+    for (const b of bleachRecs) {
+      bleachQtyByBatch[b.batchNo] = Number(b.qty) || 0;
+    }
+
+    const printedById: Record<string, number> = {};
+    const endedById: Record<string, boolean> = {};
+    for (const p of printRecs) {
+      for (const u of p.batcherUsage || []) {
+        if (!u.batchingId) continue;
+        printedById[u.batchingId] =
+          (printedById[u.batchingId] || 0) + (Number(u.qty) || 0);
+      }
+      for (const bid of p.endedBatchers || []) {
+        endedById[bid] = true;
+      }
+    }
+
+    return batchingRecs
+      .map((br) => {
+        if (!endedById[br.id]) return null;
+        const sources: string[] = Array.isArray(br.sourceBatches)
+          ? br.sourceBatches
+          : [];
+        if (!sources.length) return null;
+        const inputQty = sources.reduce(
+          (s, batchNo) => s + (bleachQtyByBatch[batchNo] || 0),
+          0,
         );
-        let printedShare = 0;
-        batchingsForThis.forEach((br) => {
-          const totalBefore = Number(br.qtyBefore) || 0;
-          const myShare = totalBefore ? bleachQty / totalBefore : 0;
-          const usedFromBatcher = printRecs
-            .flatMap((p) => p.batcherUsage || [])
-            .filter((u) => u.batchingId === br.id)
-            .reduce((s, u) => s + (Number(u.qty) || 0), 0);
-          printedShare += usedFromBatcher * myShare;
-        });
-        // Extension % is printed share vs BLEACHED qty (point 2)
-        const extPct = bleachQty
-          ? ((printedShare - bleachQty) / bleachQty) * 100
-          : 0;
+        const printed = printedById[br.id] || 0;
+        const extMeters = printed - inputQty;
+        const extPct = inputQty ? (extMeters / inputQty) * 100 : 0;
         return {
-          batchNo: bleach.batchNo,
+          id: br.id,
+          label: sources.join("+"),
+          date: br.date,
           inputQty,
-          bleachQty,
-          printedShare,
+          printed,
+          extMeters,
           extPct,
         };
       })
-      .filter((a) => a.printedShare > 0); // only show ones that actually got into printing
-  }, [inputRecs, bleachRecs, batchingRecs, printRecs]);
+      .filter((r): r is NonNullable<typeof r> => !!r)
+      // Most-extreme first so anomalies surface at the top.
+      .sort((a, b) => Math.abs(b.extPct) - Math.abs(a.extPct));
+  }, [bleachRecs, batchingRecs, printRecs]);
 
   return (
     <div className="space-y-3">
       <div className="text-sm text-slate-600">
-        Real extension % = printed share vs <strong>bleached</strong> quantity
-        (drying stage ignored).
+        Real extension = printed meters minus input/bleach meters, for batchers
+        marked <strong>Ended</strong>. Positive = stretch, negative = shortage.
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Batch #
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Input (m)
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Bleached (m)
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Printed Share (m)
-              </th>
-              <th className="text-left p-3 font-medium text-slate-600">
-                Extension % (printed vs bleached)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {audit.map((a, i) => (
-              <tr key={i} className="border-t border-slate-100">
-                <td className="p-3 font-mono font-bold text-purple-700">
-                  {a.batchNo}
-                </td>
-                <td className="p-3">{a.inputQty.toLocaleString()}</td>
-                <td className="p-3">{a.bleachQty.toLocaleString()}</td>
-                <td className="p-3">{a.printedShare.toFixed(0)}</td>
-                <td
-                  className={`p-3 font-bold ${a.extPct >= 0 ? "text-green-600" : "text-orange-600"}`}
-                >
-                  {a.extPct >= 0 ? "+" : ""}
-                  {a.extPct.toFixed(2)}%
-                </td>
-              </tr>
-            ))}
-            {!audit.length && (
+      <TableLoading loading={loading} empty={audit.length === 0}>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-400">
-                  No printed batches yet
-                </td>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Batcher
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Date
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Input (m)
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Printed (m)
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Δ (m)
+                </th>
+                <th className="text-left p-3 font-medium text-slate-600">
+                  Extension %
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {audit.map((a) => (
+                <tr key={a.id} className="border-t border-slate-100">
+                  <td className="p-3 font-mono font-bold text-purple-700">
+                    {a.label}
+                  </td>
+                  <td className="p-3 text-slate-500 text-xs">{a.date}</td>
+                  <td className="p-3">{a.inputQty.toLocaleString()}</td>
+                  <td className="p-3">{a.printed.toFixed(0)}</td>
+                  <td
+                    className={`p-3 ${a.extMeters >= 0 ? "text-green-600" : "text-orange-600"}`}
+                  >
+                    {a.extMeters >= 0 ? "+" : ""}
+                    {a.extMeters.toFixed(0)}
+                  </td>
+                  <td
+                    className={`p-3 font-bold ${a.extPct >= 0 ? "text-green-600" : "text-orange-600"}`}
+                  >
+                    {a.extPct >= 0 ? "+" : ""}
+                    {a.extPct.toFixed(2)}%
+                  </td>
+                </tr>
+              ))}
+              {!audit.length && !loading && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                    No ended batchers yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </TableLoading>
     </div>
   );
 }
