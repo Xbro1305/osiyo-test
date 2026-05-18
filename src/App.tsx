@@ -2768,6 +2768,39 @@ function AppInner() {
   // Maintenance-related record keys.
   const MAINT_KEYS = ["maintenance", "breakdown", "dailycheck"];
 
+  // ===== Per-station cross-station dependencies =====
+  //
+  // The previous loader fetched all 13 station tables on every station-page
+  // open, which was wasteful. The new loader fetches only the current
+  // station's table — fast, but breaks pages that read OTHER stations' data
+  // (e.g. Jigger's batch picker reads bleach records, Batching's source
+  // picker reads bleach too).
+  //
+  // This map declares, per station, which OTHER tables the page reads from
+  // `ctx.records`. `loadForView` fetches the station itself + everything in
+  // this list. Adding a new cross-station read? Add it here and the loader
+  // picks it up automatically.
+  //
+  // (Stations migrated to useStationData own their own data lifecycle and
+  // don't need entries here — their list can stay empty.)
+  const STATION_DEPENDENCIES: Record<string, string[]> = {
+    gray_store: ["gray_out", "input"],
+    gray_out: ["gray_store", "input"],
+    // Input is migrated to useStationData and self-fetches its compact
+    // related tables. No entries needed.
+    input: [],
+    bleach: ["input"],
+    dyeing: ["bleach", "input"],
+    batching: ["bleach"],
+    printing: ["batching"],
+    curing: ["printing"],
+    finishing: ["dyeing", "input", "printing"],
+    calendering: ["dyeing", "finishing", "printing"],
+    folding: ["calendering", "dyeing", "printing"],
+    dispatch_in: ["folding", "printing"],
+    dispatch_out: ["folding", "printing"],
+  };
+
   // ---- The "essentials" load. Only fetched once on boot.
   // Contents must be the absolute minimum needed for the shell + navigation
   // to render correctly: who am I, what lists power the dropdowns, what
@@ -2806,20 +2839,17 @@ function AppInner() {
         break;
 
       case "station":
-        // Load ONLY the station the user opened (one request, not 13).
+        // Load the station's own table + any cross-station tables it reads
+        // from (per STATION_DEPENDENCIES above). One request per table; small
+        // for unmigrated pages, zero extra for migrated ones (input has no
+        // declared deps).
         //
-        // Pages migrated to useStationData manage their own data lifecycle
-        // (paginated main + compact related tables); the duplicate load
-        // here is wasteful but harmless and avoids a flicker as their hook
-        // re-fetches.
-        //
-        // Unmigrated pages still read from `records.<station>` in context.
-        // They will see their own table populated but related tables empty,
-        // so cross-station joins (e.g. Printing looking up Batching) will
-        // not resolve until those pages are migrated. The page itself
-        // renders correctly — it just won't show joined data.
+        // Pages migrated to useStationData ignore this and own their data;
+        // the duplicate fetch is wasteful but harmless.
         if (view.stationId) {
-          tasks.push(loadStationRecords(view.stationId));
+          const deps = STATION_DEPENDENCIES[view.stationId] || [];
+          const keys = [view.stationId, ...deps];
+          tasks.push(loadStationRecordsMany(keys));
         }
         if (!isPolling) {
           tasks.push(loadDesigns());
@@ -10480,17 +10510,15 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
   const { lists, saveRecord, deleteRecord, askConfirm, numbering } = ctx;
 
   // ===== URL-backed state =====
-  // Filters and pagination live in the query string so F5 preserves them
-  // and the URL is shareable ("look at this batch search"). Defaults pick up
-  // the saved page size for this page if one is persisted.
+  // Filters live in the query string so F5 preserves them and the URL is
+  // shareable. NOTE: SING&DES (Input) no longer paginates — show all rows.
+  // Pagination state is therefore not part of the URL on this page.
   const [url, setUrl] = useUrlState({
     search: "",
     dateFrom: "",
     dateTo: "",
     shift: "",
     fabricType: "",
-    offset: 0,
-    limit: loadPageSize("page:input", 50),
   });
 
   // Local state for the search input only — we debounce before pushing it
@@ -10531,15 +10559,12 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
 
   const setFilter = (next: typeof filter | ((prev: typeof filter) => typeof filter)) => {
     const nextVal = typeof next === "function" ? next(filter) : next;
-    // search keeps a separate path through debounce; the other fields go
-    // straight to URL with offset reset.
     setSearchInput(nextVal.search);
     setUrl({
       dateFrom: nextVal.dateFrom,
       dateTo: nextVal.dateTo,
       shift: nextVal.shift,
       fabricType: nextVal.fabricType,
-      offset: 0,
     });
   };
 
@@ -10555,17 +10580,16 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
     [url.search, url.dateFrom, url.dateTo, url.shift, url.fabricType],
   );
 
-  // Paginated main table + compact related tables + compact full main for
-  // number generation & aggregates. Pagination is "controlled" — driven by
-  // url.offset/url.limit so F5 keeps your page position.
+  // SING&DES no longer paginates — fetch everything in one page. We pass a
+  // very high default limit so the backend returns all rows in the envelope;
+  // the table renders all of them. Server-side search still filters at the
+  // DB level so the wire size scales with results, not with table size.
   const page = useStationData({
     stationKey: "input",
     pageKey: "page:input",
+    defaultLimit: 100000,
     compactMain: ["id", "batchNo"],
     filters: serverFilters,
-    externalOffset: url.offset,
-    externalLimit: url.limit,
-    onPageChange: ({ offset, limit }) => setUrl({ offset, limit }, { push: true }),
     related: [
       {
         prefix: "rec_gray_store:",
@@ -10703,15 +10727,6 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
           }
         />
       </TableLoading>
-      <Pagination
-        total={page.total}
-        offset={page.offset}
-        limit={page.limit}
-        onChange={({ offset, limit }) => {
-          page.setLimit(limit);
-          page.setOffset(offset);
-        }}
-      />
       {editing && (
         <Modal title="Input Batch" onClose={() => setEditing(null)}>
           <InputForm
