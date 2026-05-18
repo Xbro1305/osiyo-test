@@ -12533,36 +12533,43 @@ function PrintingForm({
 }
 
 function BleachedInventoryPage({ ctx }: CtxProps) {
-  // ===== Self-fetch three compact tables =====
+  // ===== Self-fetch four compact tables =====
   // This page lives as a tab inside the Printing station. Under the new
   // per-station loader, only `records.printing` is loaded by loadForView,
-  // so we fetch bleach + batching + printing here directly (compact mode
-  // — only the fields the math needs).
+  // so we fetch bleach + batching + printing + input here directly (compact
+  // mode — only the fields the math + display need).
   //
-  // All three loads run in parallel. Total wire size is small: just the
-  // join keys and numeric quantities.
+  // Why input: fabric type lives on the INPUT record, not on bleach. We join
+  // bleach.batchNo → input.batchNo → input.fabricType to surface fabric type
+  // on each batcher row.
+  //
+  // All four loads run in parallel. Total wire size is small: just the join
+  // keys, numeric quantities, and fabric-type strings.
   const [bleachRecs, setBleachRecs] = useState<any[]>([]);
   const [batchingRecs, setBatchingRecs] = useState<any[]>([]);
   const [printRecs, setPrintRecs] = useState<any[]>([]);
+  const [inputRecs, setInputRecs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Wait for auth (token present) before firing the three fetches. Without
-  // this, a Ctrl+R lands on the page while the token is still being restored,
-  // every request silently 401s, and the page renders "no stock" with stale
-  // empty arrays. useAuthReadyEffect ensures we run only after auth is ready.
+  // Wait for auth (token present) before firing the fetches. Without this, a
+  // Ctrl+R lands on the page while the token is still being restored, every
+  // request silently 401s, and the page renders "no stock" with stale empty
+  // arrays. useAuthReadyEffect ensures we run only after auth is ready.
   useAuthReadyEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
-      const [bleach, batching, printing] = await Promise.all([
+      const [bleach, batching, printing, input] = await Promise.all([
         storage.fetchCompact("rec_bleach:", ["id", "batchNo", "qty", "date"]),
         storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
         storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+        storage.fetchCompact("rec_input:", ["batchNo", "fabricType"]),
       ]);
       if (cancelled) return;
       setBleachRecs(bleach);
       setBatchingRecs(batching);
       setPrintRecs(printing);
+      setInputRecs(input);
       setLoading(false);
     })();
     return () => {
@@ -12588,6 +12595,15 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
     const bleachQtyByBatch: Record<string, number> = {};
     for (const b of bleachRecs) {
       bleachQtyByBatch[b.batchNo] = Number(b.qty) || 0;
+    }
+
+    // Build a lookup of fabric type by batchNo. Bleach records don't store
+    // fabric type — the original input record does, sharing the same batchNo.
+    const fabricByBatch: Record<string, string> = {};
+    for (const i of inputRecs) {
+      if (i.batchNo && i.fabricType) {
+        fabricByBatch[i.batchNo] = i.fabricType;
+      }
     }
 
     // Per-batcher printed totals + ended flag.
@@ -12618,10 +12634,19 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
         const printed = printedById[br.id] || 0;
         const ended = !!endedById[br.id];
         const available = inputQty - printed;
+        // Fabric types across sources, deduplicated. Single fabric → one label;
+        // mixed batcher (rare in practice) → "TypeA / TypeB".
+        const fabricSet = new Set<string>();
+        for (const batchNo of sources) {
+          const f = fabricByBatch[batchNo];
+          if (f) fabricSet.add(f);
+        }
+        const fabricType = fabricSet.size ? [...fabricSet].join(" / ") : "—";
         return {
           id: br.id,
           label: sources.join("+"),
           date: br.date,
+          fabricType,
           inputQty,
           printed,
           available,
@@ -12635,7 +12660,7 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
       .filter((r) => r.available > 0.01);
     // Note: no default sort here — column header clicks drive ordering.
     // First render shows rows in insertion order from batchingRecs.
-  }, [bleachRecs, batchingRecs, printRecs]);
+  }, [bleachRecs, batchingRecs, printRecs, inputRecs]);
 
   // Column sort state (three-state click cycle).
   const [sort, setSort] = useState<SortSpec>({ key: "available", dir: "desc" });
@@ -12667,6 +12692,7 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
                 stock.map((s) => ({
                   batcher: s.label,
                   date: s.date || "",
+                  fabricType: s.fabricType,
                   inputMeters: s.inputQty,
                   printedMeters: s.printed,
                   availableMeters: s.available,
@@ -12700,6 +12726,12 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
                   setSort={setSort}
                 />
                 <SortableTh
+                  sortKey="fabricType"
+                  label="Fabric"
+                  sort={sort}
+                  setSort={setSort}
+                />
+                <SortableTh
                   sortKey="inputQty"
                   label="Input (m)"
                   sort={sort}
@@ -12729,6 +12761,7 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
                     {s.label}
                   </td>
                   <td className="p-3 text-slate-500 text-xs">{s.date}</td>
+                  <td className="p-3 text-slate-700">{s.fabricType}</td>
                   <td className="p-3">{s.inputQty.toLocaleString()}</td>
                   <td className="p-3 text-orange-600">
                     {s.printed > 0 ? `-${s.printed.toFixed(0)}` : "—"}
@@ -12740,7 +12773,7 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
               ))}
               {!sortedStock.length && !loading && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                  <td colSpan={6} className="p-8 text-center text-slate-400">
                     No bleached fabric in stock
                   </td>
                 </tr>
@@ -12756,10 +12789,13 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
 function ExtensionAuditPage({ ctx }: CtxProps) {
   // Same self-fetching pattern as BleachedInventoryPage. Both pages are tabs
   // in the Printing station and need bleach + batching + printing tables that
-  // the per-station loader no longer provides.
+  // the per-station loader no longer provides. We also pull input.fabricType
+  // so each row can be labelled with its fabric type — essential context for
+  // interpreting whether an extension % is normal for that fabric.
   const [bleachRecs, setBleachRecs] = useState<any[]>([]);
   const [batchingRecs, setBatchingRecs] = useState<any[]>([]);
   const [printRecs, setPrintRecs] = useState<any[]>([]);
+  const [inputRecs, setInputRecs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // See BleachedInventoryPage for why useAuthReadyEffect — protects against
@@ -12768,15 +12804,17 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
     let cancelled = false;
     setLoading(true);
     (async () => {
-      const [bleach, batching, printing] = await Promise.all([
+      const [bleach, batching, printing, input] = await Promise.all([
         storage.fetchCompact("rec_bleach:", ["batchNo", "qty"]),
         storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
         storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+        storage.fetchCompact("rec_input:", ["batchNo", "fabricType"]),
       ]);
       if (cancelled) return;
       setBleachRecs(bleach);
       setBatchingRecs(batching);
       setPrintRecs(printing);
+      setInputRecs(input);
       setLoading(false);
     })();
     return () => {
@@ -12795,6 +12833,13 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
     const bleachQtyByBatch: Record<string, number> = {};
     for (const b of bleachRecs) {
       bleachQtyByBatch[b.batchNo] = Number(b.qty) || 0;
+    }
+    // Fabric type lives on input records, joined by shared batchNo.
+    const fabricByBatch: Record<string, string> = {};
+    for (const i of inputRecs) {
+      if (i.batchNo && i.fabricType) {
+        fabricByBatch[i.batchNo] = i.fabricType;
+      }
     }
 
     const printedById: Record<string, number> = {};
@@ -12824,10 +12869,18 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
         const printed = printedById[br.id] || 0;
         const extMeters = printed - inputQty;
         const extPct = inputQty ? (extMeters / inputQty) * 100 : 0;
+        // Fabric types across sources, deduplicated.
+        const fabricSet = new Set<string>();
+        for (const batchNo of sources) {
+          const f = fabricByBatch[batchNo];
+          if (f) fabricSet.add(f);
+        }
+        const fabricType = fabricSet.size ? [...fabricSet].join(" / ") : "—";
         return {
           id: br.id,
           label: sources.join("+"),
           date: br.date,
+          fabricType,
           inputQty,
           printed,
           extMeters,
@@ -12836,7 +12889,7 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
       })
       .filter((r): r is NonNullable<typeof r> => !!r);
     // No default sort here — user-driven via SortableTh column headers.
-  }, [bleachRecs, batchingRecs, printRecs]);
+  }, [bleachRecs, batchingRecs, printRecs, inputRecs]);
 
   // Default sort: most-extreme extension first so anomalies surface at the top.
   // Stored as state so column clicks can override it.
@@ -12865,6 +12918,7 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
               audit.map((a) => ({
                 batcher: a.label,
                 date: a.date || "",
+                fabricType: a.fabricType,
                 inputMeters: a.inputQty,
                 printedMeters: a.printed,
                 deltaMeters: a.extMeters,
@@ -12894,6 +12948,12 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
                 <SortableTh
                   sortKey="date"
                   label="Date"
+                  sort={sort}
+                  setSort={setSort}
+                />
+                <SortableTh
+                  sortKey="fabricType"
+                  label="Fabric"
                   sort={sort}
                   setSort={setSort}
                 />
@@ -12934,6 +12994,7 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
                     {a.label}
                   </td>
                   <td className="p-3 text-slate-500 text-xs">{a.date}</td>
+                  <td className="p-3 text-slate-700">{a.fabricType}</td>
                   <td className="p-3">{a.inputQty.toLocaleString()}</td>
                   <td className="p-3">{a.printed.toFixed(0)}</td>
                   <td
@@ -12952,7 +13013,7 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
               ))}
               {!sortedAudit.length && !loading && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     No ended batchers yet
                   </td>
                 </tr>
