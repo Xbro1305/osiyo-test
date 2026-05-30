@@ -352,6 +352,44 @@ const TRANSLATIONS = {
       "Programs that produce solid-color dyed fabric (skip batching, printing & curing).",
     "printing.programsTitle": "Printing Programs",
     "printing.programsDesc": "Programs that produce printed-pattern fabric.",
+    // ===== Stock In (Local Market Store) =====
+    "stockin.title": "Stock In",
+    "stockin.subtitle": "Incoming fabric to the store",
+    "stockin.search": "Search fabric, lot, source…",
+    "stockin.add": "Add Stock In",
+    "stockin.edit": "Edit Stock In",
+    "stockin.new": "New Stock In",
+    "stockin.date": "Date",
+    "stockin.source": "Source",
+    "stockin.fabricState": "Fabric State",
+    "stockin.fabricState.printed": "Printed",
+    "stockin.fabricState.dyed": "Dyed",
+    "stockin.design": "Design",
+    "stockin.design.mix": "Mix (multiple designs)",
+    "stockin.design.pick": "Pick a design…",
+    "stockin.color": "Color",
+    "stockin.stockFabricType": "Stock Fabric Type",
+    "stockin.fabricType": "Production Fabric Type",
+    "stockin.lot": "Lot / batch #",
+    "stockin.unit": "Unit",
+    "stockin.unit.meters": "meters",
+    "stockin.unit.rolls": "rolls",
+    "stockin.qty": "Quantity",
+    "stockin.rollLines": "Roll lines",
+    "stockin.rollLines.add": "+ Add roll line",
+    "stockin.rollLines.length": "Length (m)",
+    "stockin.rollLines.qty": "Rolls",
+    "stockin.rollLines.subtotal": "Subtotal",
+    "stockin.extraMeters": "Extra meters (bulk piece)",
+    "stockin.extraMeters.help": "Optional — e.g. a 76m remnant alongside the rolls.",
+    "stockin.total": "Total meters",
+    "stockin.costPerMeter": "Cost / meter",
+    "stockin.totalCost": "Total cost",
+    "stockin.notes": "Notes",
+    "stockin.empty": "No stock-in records yet.",
+    "stockin.fabricRequired": "Fabric is required",
+    "stockin.qtyRequired": "Quantity must be positive",
+    "stockin.col.variant": "Variant",
   },
   uz: {
     "common.home": "Bosh sahifa",
@@ -566,6 +604,44 @@ const TRANSLATIONS = {
       "Bir rangli boʻyalgan mato ishlab chiqaruvchi dasturlar (quritish, bosma va termik ishlovni oʻtkazib yuboradi).",
     "printing.programsTitle": "Bosma dasturlari",
     "printing.programsDesc": "Naqshli bosma mato ishlab chiqaruvchi dasturlar.",
+    // ===== Stock In (Mahalliy Bozor Doʻkoni) =====
+    "stockin.title": "Kirim",
+    "stockin.subtitle": "Doʻkonga kirayotgan mato",
+    "stockin.search": "Mato, partiya, manba boʻyicha qidirish…",
+    "stockin.add": "Kirim qoʻshish",
+    "stockin.edit": "Kirimni tahrirlash",
+    "stockin.new": "Yangi kirim",
+    "stockin.date": "Sana",
+    "stockin.source": "Manba",
+    "stockin.fabricState": "Mato holati",
+    "stockin.fabricState.printed": "Bosma",
+    "stockin.fabricState.dyed": "Boʻyalgan",
+    "stockin.design": "Dizayn",
+    "stockin.design.mix": "Aralash (bir nechta dizayn)",
+    "stockin.design.pick": "Dizayn tanlang…",
+    "stockin.color": "Rang",
+    "stockin.stockFabricType": "Doʻkon mato turi",
+    "stockin.fabricType": "Ishlab chiqarish mato turi",
+    "stockin.lot": "Partiya raqami",
+    "stockin.unit": "Birlik",
+    "stockin.unit.meters": "metr",
+    "stockin.unit.rolls": "rulon",
+    "stockin.qty": "Miqdor",
+    "stockin.rollLines": "Rulon qatorlari",
+    "stockin.rollLines.add": "+ Rulon qatori qoʻshish",
+    "stockin.rollLines.length": "Uzunlik (m)",
+    "stockin.rollLines.qty": "Rulon soni",
+    "stockin.rollLines.subtotal": "Oraliq jami",
+    "stockin.extraMeters": "Qoʻshimcha metr (yirik boʻlak)",
+    "stockin.extraMeters.help": "Ixtiyoriy — masalan, rulonlar bilan birga 76m qoldiq boʻlak.",
+    "stockin.total": "Jami metr",
+    "stockin.costPerMeter": "1 metr narxi",
+    "stockin.totalCost": "Umumiy narx",
+    "stockin.notes": "Izohlar",
+    "stockin.empty": "Hali kirim yozuvlari yoʻq.",
+    "stockin.fabricRequired": "Mato turi majburiy",
+    "stockin.qtyRequired": "Miqdor musbat boʻlishi kerak",
+    "stockin.col.variant": "Variant",
   },
 };
 
@@ -813,6 +889,24 @@ const DEFAULT_LISTS = {
     "From Production (Dispatch)",
     "External Supplier",
     "Return / Refurbished",
+    // Used when an operator records a manual stock correction (e.g. after
+    // a physical count finds extra/missing meters that don't tie to any
+    // dispatch or supplier).
+    "Correction",
+  ],
+  // Granular fabric-type list for the local market store. Separate from the
+  // production fabricType because the store sells finished fabric in
+  // commercial categories that don't map 1:1 to what production tracks.
+  stockFabricType: [
+    "Plain Cotton",
+    "Printed Cotton",
+    "Cotton Satin",
+    "Voile",
+    "Crepe",
+    "Chiffon",
+    "Linen",
+    "Polyester",
+    "Mixed Blend",
   ],
 };
 
@@ -926,10 +1020,32 @@ interface StoreStockIn {
   id: string;
   date: string;
   fabricType?: string;
+  // NEW (v2 stock-in shape): a more granular fabric-type list used only in
+  // the store (separate from the production-side fabricType list).
+  stockFabricType?: string;
+  // NEW: incoming state of the fabric — only "printed" or "dyed" today.
+  fabricState?: "printed" | "dyed";
+  // NEW: design reference (when fabricState=printed). "mix" means the
+  // record contains rolls of multiple designs.
+  designId?: string | "mix";
+  // NEW: hex color string (when fabricState=dyed). Includes the leading '#'.
+  hexColor?: string;
+  // NEW: roll lines (when unit=rolls). Each line is e.g. 34×30m.
+  rollLines?: { length: number; qty: number }[];
+  // NEW: bulk meters alongside roll lines (when unit=rolls).
+  // For e.g. "34 rolls × 30m + a separate 76m piece".
+  extraMeters?: number;
+  // NEW: per-meter cost. Total cost = qty × costPerMeter.
+  costPerMeter?: number;
+  // Legacy: kept for back-compat with older records. New records still set
+  // `qty` to the computed total (sum of rollLines + extraMeters when rolls,
+  // or the raw qty when meters) so downstream code keeps working.
   qty?: number;
   unit?: string;
   source?: string;
   lotNumber?: string;
+  // Legacy field — old records stored cost-per-unit here. New records also
+  // mirror their costPerMeter into costPrice so reads keep working.
   costPrice?: number;
   notes?: string;
   operator?: string;
@@ -17272,16 +17388,36 @@ function StoreStockInView({ ctx }: CtxProps) {
   const {
     storeStockIn,
     lists,
+    designs,
     user,
     saveStoreStockIn,
     deleteStoreStockIn,
     askConfirm,
   } = ctx;
+  const t = useT();
   const canEdit =
     user.role === "admin" ||
     (user.role === "dept_admin" && user.departmentId === "store");
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<StoreStockIn | null>(null);
   const [search, setSearch] = useState("");
+
+  // Helper: resolve a row's "variant" label (design number or hex color)
+  // for display + export. Returns short text for the table cell.
+  const designById = useMemo(() => {
+    const m: Record<string, Design> = {};
+    for (const d of designs || []) m[d.id] = d;
+    return m;
+  }, [designs]);
+  function variantLabel(r: StoreStockIn): string {
+    if (r.fabricState === "dyed" && r.hexColor) return r.hexColor.toUpperCase();
+    if (r.fabricState === "printed") {
+      if (r.designId === "mix") return t("stockin.design.mix");
+      if (r.designId && designById[r.designId]) {
+        return designById[r.designId].designNumber;
+      }
+    }
+    return "—";
+  }
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -17290,22 +17426,70 @@ function StoreStockInView({ ctx }: CtxProps) {
         (r) =>
           !term ||
           r.fabricType?.toLowerCase().includes(term) ||
+          r.stockFabricType?.toLowerCase().includes(term) ||
           r.source?.toLowerCase().includes(term) ||
           r.lotNumber?.toLowerCase().includes(term),
       )
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   }, [storeStockIn, search]);
 
+  // ===== CSV export — flatten the rich shape into spreadsheet-friendly columns =====
+  //
+  // The old export passed `rows` directly to exportToCSV, which stringifies
+  // arrays into "[object Object]" — that's the "all data in one cell" bug.
+  // Here we explicitly project each row into scalar columns: roll lines are
+  // serialised into a readable "30m×34 + 50m×23" string in one column, with
+  // separate columns for the structural fields the user filters on.
+  function exportRows() {
+    const out = rows.map((r) => {
+      const lines = (r.rollLines || [])
+        .map((ln) => `${ln.length}m×${ln.qty}`)
+        .join(" + ");
+      const total =
+        r.qty !== undefined
+          ? Number(r.qty) || 0
+          : (r.rollLines || []).reduce(
+              (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+              0,
+            ) + (Number(r.extraMeters) || 0);
+      const costPerM = Number(r.costPerMeter ?? r.costPrice) || 0;
+      return {
+        date: r.date || "",
+        source: r.source || "",
+        fabricState: r.fabricState || "",
+        variant: variantLabel(r),
+        stockFabricType: r.stockFabricType || "",
+        productionFabricType: r.fabricType || "",
+        lotNumber: r.lotNumber || "",
+        unit: r.unit || "",
+        rollLines: lines,
+        extraMeters: Number(r.extraMeters) || 0,
+        totalMeters: total,
+        costPerMeter: costPerM,
+        totalCost: total * costPerM,
+        notes: r.notes || "",
+      };
+    });
+    exportToCSV(out, "store_stock_in");
+  }
+
   function newEntry() {
     setEditing({
       id: uid(),
       date: todayISO(),
       source: "From Production (Dispatch)",
+      fabricState: "printed",
+      designId: undefined,
+      hexColor: "#7E22CE",
       fabricType: "",
+      stockFabricType: "",
       lotNumber: "",
-      qty: "",
+      qty: 0,
       unit: "meters",
-      costPrice: "",
+      rollLines: [],
+      extraMeters: 0,
+      costPerMeter: 0,
+      costPrice: 0,
       notes: "",
     });
   }
@@ -17314,8 +17498,8 @@ function StoreStockInView({ ctx }: CtxProps) {
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
-        title="Stock In"
-        subtitle="Incoming fabric to the store"
+        title={t("stockin.title")}
+        subtitle={t("stockin.subtitle")}
         icon={ArrowDownToLine}
         color="bg-sky-500"
       />
@@ -17329,7 +17513,7 @@ function StoreStockInView({ ctx }: CtxProps) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search fabric, lot, source..."
+            placeholder={t("stockin.search")}
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
         </div>
@@ -17338,14 +17522,14 @@ function StoreStockInView({ ctx }: CtxProps) {
             onClick={newEntry}
             className="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
           >
-            <Plus size={15} /> Add Stock In
+            <Plus size={15} /> {t("stockin.add")}
           </button>
         )}
         <button
-          onClick={() => exportToCSV(rows, "store_stock_in")}
+          onClick={exportRows}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
         >
-          <Download size={14} /> Export
+          <Download size={14} /> {t("common.export")}
         </button>
       </div>
 
@@ -17353,20 +17537,32 @@ function StoreStockInView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">Date</th>
-              <th className="text-left p-3 font-medium">Source</th>
-              <th className="text-left p-3 font-medium">Fabric</th>
-              <th className="text-left p-3 font-medium">Lot #</th>
-              <th className="text-right p-3 font-medium">Qty</th>
-              <th className="text-left p-3 font-medium">Unit</th>
-              <th className="text-right p-3 font-medium">Cost / unit</th>
-              <th className="text-right p-3 font-medium">Total cost</th>
+              <th className="text-left p-3 font-medium">{t("stockin.date")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.source")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.stockFabricType")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.col.variant")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.lot")}</th>
+              <th className="text-right p-3 font-medium">{t("stockin.total")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.unit")}</th>
+              <th className="text-right p-3 font-medium">{t("stockin.costPerMeter")}</th>
+              <th className="text-right p-3 font-medium">{t("stockin.totalCost")}</th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
-              const total = (Number(r.qty) || 0) * (Number(r.costPrice) || 0);
+              // Total meters: prefer rollLines+extraMeters when present, else legacy qty.
+              const hasLines = (r.rollLines || []).length > 0;
+              const totalM = hasLines
+                ? (r.rollLines || []).reduce(
+                    (s, ln) =>
+                      s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+                    0,
+                  ) + (Number(r.extraMeters) || 0)
+                : Number(r.qty) || 0;
+              const costPerM = Number(r.costPerMeter ?? r.costPrice) || 0;
+              const total = totalM * costPerM;
+              const isDyed = r.fabricState === "dyed";
               return (
                 <tr
                   key={r.id}
@@ -17377,14 +17573,31 @@ function StoreStockInView({ ctx }: CtxProps) {
                   </td>
                   <td className="p-3 text-slate-700">{r.source || "—"}</td>
                   <td className="p-3 font-medium text-slate-800">
-                    {r.fabricType || "—"}
+                    {r.stockFabricType || r.fabricType || "—"}
+                  </td>
+                  <td className="p-3">
+                    {isDyed && r.hexColor ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-4 h-4 rounded border border-slate-200"
+                          style={{ backgroundColor: r.hexColor }}
+                        />
+                        <span className="font-mono text-xs">
+                          {r.hexColor.toUpperCase()}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-700 text-xs">
+                        {variantLabel(r)}
+                      </span>
+                    )}
                   </td>
                   <td className="p-3 font-mono text-xs">
                     {r.lotNumber || "—"}
                   </td>
-                  <td className="p-3 text-right">{fmtMoney(r.qty)}</td>
+                  <td className="p-3 text-right">{fmtMoney(totalM)}</td>
                   <td className="p-3 text-slate-600">{r.unit}</td>
-                  <td className="p-3 text-right">{fmtMoney(r.costPrice)}</td>
+                  <td className="p-3 text-right">{fmtMoney(costPerM)}</td>
                   <td className="p-3 text-right font-medium">
                     {fmtMoney(total)}
                   </td>
@@ -17414,10 +17627,10 @@ function StoreStockInView({ ctx }: CtxProps) {
             {!rows.length && (
               <tr>
                 <td
-                  colSpan={canEdit ? 9 : 8}
+                  colSpan={canEdit ? 10 : 9}
                   className="p-8 text-center text-slate-400"
                 >
-                  No stock-in records yet.
+                  {t("stockin.empty")}
                 </td>
               </tr>
             )}
@@ -17429,14 +17642,15 @@ function StoreStockInView({ ctx }: CtxProps) {
         <Modal
           title={
             storeStockIn.find((r) => r.id === editing.id)
-              ? "Edit Stock In"
-              : "New Stock In"
+              ? t("stockin.edit")
+              : t("stockin.new")
           }
           onClose={() => setEditing(null)}
         >
           <StockInForm
             initial={editing}
             lists={lists}
+            designs={designs || []}
             onSave={async (r) => {
               await saveStoreStockIn(r);
               setEditing(null);
@@ -17452,31 +17666,111 @@ function StoreStockInView({ ctx }: CtxProps) {
 function StockInForm({
   initial,
   lists,
+  designs,
   onSave,
   onCancel,
 }: {
   initial: StoreStockIn;
   lists: Lists;
+  designs: Design[];
   onSave: (s: StoreStockIn) => void;
   onCancel: () => void;
 }) {
-  const [r, setR] = useState(initial);
-  const set = (k, v) => setR((prev) => ({ ...prev, [k]: v }));
-  function save() {
-    if (!r.fabricType) {
-      alert("Fabric type is required");
-      return;
+  const t = useT();
+  // Local form state. Includes the new fields with sensible defaults; legacy
+  // records pass through unchanged because we read with `?? fallback` below.
+  const [r, setR] = useState<StoreStockIn>(() => ({
+    ...initial,
+    fabricState: initial.fabricState || "printed",
+    rollLines: initial.rollLines || [],
+    extraMeters:
+      initial.extraMeters !== undefined ? initial.extraMeters : 0,
+    hexColor: initial.hexColor || "#7E22CE",
+    costPerMeter:
+      initial.costPerMeter !== undefined
+        ? initial.costPerMeter
+        : Number(initial.costPrice) || 0,
+  }));
+  const set = (k: string, v: any) => setR((prev) => ({ ...prev, [k]: v }));
+
+  // ===== Total meters calculation =====
+  // The visible "total" depends on unit and which sub-shape the user is using.
+  // - unit=meters → just the qty field.
+  // - unit=rolls  → sum(line.length × line.qty) + extraMeters.
+  const totalMeters = useMemo(() => {
+    if (r.unit === "rolls") {
+      const lineSum = (r.rollLines || []).reduce(
+        (s, ln) =>
+          s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+        0,
+      );
+      return lineSum + (Number(r.extraMeters) || 0);
     }
-    if (!r.qty || Number(r.qty) <= 0) {
-      alert("Qty must be positive");
-      return;
-    }
-    onSave({ ...r, qty: Number(r.qty), costPrice: Number(r.costPrice) || 0 });
+    return Number(r.qty) || 0;
+  }, [r.unit, r.rollLines, r.extraMeters, r.qty]);
+
+  const totalCost = totalMeters * (Number(r.costPerMeter) || 0);
+
+  // ===== Roll line editing =====
+  function addRollLine() {
+    setR((prev) => ({
+      ...prev,
+      rollLines: [...(prev.rollLines || []), { length: 30, qty: 1 }],
+    }));
   }
+  function updateRollLine(idx: number, key: "length" | "qty", value: string) {
+    setR((prev) => {
+      const next = [...(prev.rollLines || [])];
+      next[idx] = { ...next[idx], [key]: Number(value) || 0 };
+      return { ...prev, rollLines: next };
+    });
+  }
+  function removeRollLine(idx: number) {
+    setR((prev) => {
+      const next = [...(prev.rollLines || [])];
+      next.splice(idx, 1);
+      return { ...prev, rollLines: next };
+    });
+  }
+
+  function save() {
+    // Validation: require at least a stock fabric type. Legacy fabricType is
+    // optional now (we keep the field for backward compat but no longer make
+    // it required since stockFabricType is the new authoritative list).
+    if (!r.stockFabricType && !r.fabricType) {
+      alert(t("stockin.fabricRequired"));
+      return;
+    }
+    if (totalMeters <= 0) {
+      alert(t("stockin.qtyRequired"));
+      return;
+    }
+    // Project to the canonical shape: mirror the computed total into `qty`
+    // so any legacy code that reads `qty` keeps working. Also mirror
+    // costPerMeter into costPrice for the same reason.
+    const out: StoreStockIn = {
+      ...r,
+      qty: totalMeters,
+      costPrice: Number(r.costPerMeter) || 0,
+      costPerMeter: Number(r.costPerMeter) || 0,
+      extraMeters: Number(r.extraMeters) || 0,
+    };
+    // Clean fields that don't apply to the current state. Don't strip them
+    // — keep them at null so the DB document stays explicit about "no value
+    // for this field" rather than "field absent from this record".
+    if (r.fabricState !== "printed") out.designId = undefined;
+    if (r.fabricState !== "dyed") out.hexColor = undefined;
+    if (r.unit !== "rolls") {
+      out.rollLines = [];
+      out.extraMeters = 0;
+    }
+    onSave(out);
+  }
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Date *">
+        <Field label={t("stockin.date") + " *"}>
           <input
             type="date"
             value={r.date}
@@ -17484,7 +17778,7 @@ function StockInForm({
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
-        <Field label="Source">
+        <Field label={t("stockin.source")}>
           <Select
             value={r.source}
             options={lists.storeStockSource}
@@ -17492,22 +17786,101 @@ function StockInForm({
           />
         </Field>
       </div>
-      <Field label="Fabric type *">
-        <Select
-          value={r.fabricType}
-          options={lists.fabricType}
-          onChange={(v) => set("fabricType", v)}
-        />
+
+      {/* ===== Fabric state: Printed | Dyed ===== */}
+      <Field label={t("stockin.fabricState") + " *"}>
+        <div className="flex gap-2">
+          {(["printed", "dyed"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => set("fabricState", s)}
+              className={`flex-1 py-2 rounded-lg border text-sm font-medium ${r.fabricState === s ? "bg-purple-600 text-white border-purple-600" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
+            >
+              {t(`stockin.fabricState.${s}`)}
+            </button>
+          ))}
+        </div>
       </Field>
+
+      {/* ===== Design picker (when printed) ===== */}
+      {r.fabricState === "printed" && (
+        <Field label={t("stockin.design")}>
+          <div className="flex gap-2 items-stretch">
+            <select
+              value={r.designId || ""}
+              onChange={(e) => set("designId", e.target.value)}
+              className="flex-1 p-2.5 border border-slate-300 rounded-lg bg-white"
+            >
+              <option value="">{t("stockin.design.pick")}</option>
+              <option value="mix">{t("stockin.design.mix")}</option>
+              {designs.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.designNumber}
+                  {d.name ? ` — ${d.name}` : ""}
+                </option>
+              ))}
+            </select>
+            {/* Tiny preview of the selected design's image, if any. */}
+            {r.designId && r.designId !== "mix" &&
+              (() => {
+                const d = designs.find((x) => x.id === r.designId);
+                const src = d ? resolveDesignImage(d) : "";
+                return src ? (
+                  <img
+                    src={src}
+                    className="w-12 h-12 object-cover rounded-lg border"
+                  />
+                ) : null;
+              })()}
+          </div>
+        </Field>
+      )}
+
+      {/* ===== Color picker (when dyed) ===== */}
+      {r.fabricState === "dyed" && (
+        <Field label={t("stockin.color")}>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={r.hexColor || "#7E22CE"}
+              onChange={(e) => set("hexColor", e.target.value)}
+              className="w-14 h-10 rounded border border-slate-300 cursor-pointer"
+            />
+            <span className="font-mono text-sm text-slate-700">
+              {(r.hexColor || "#7E22CE").toUpperCase()}
+            </span>
+          </div>
+        </Field>
+      )}
+
+      {/* ===== Fabric type rows (stock list + production list) ===== */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Lot / batch #">
+        <Field label={t("stockin.stockFabricType") + " *"}>
+          <Select
+            value={r.stockFabricType}
+            options={lists.stockFabricType || []}
+            onChange={(v) => set("stockFabricType", v)}
+          />
+        </Field>
+        <Field label={t("stockin.fabricType")}>
+          <Select
+            value={r.fabricType}
+            options={lists.fabricType}
+            onChange={(v) => set("fabricType", v)}
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("stockin.lot")}>
           <input
             value={r.lotNumber}
             onChange={(e) => set("lotNumber", e.target.value)}
             className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
           />
         </Field>
-        <Field label="Unit">
+        <Field label={t("stockin.unit")}>
           <Select
             value={r.unit}
             options={lists.storeUnit}
@@ -17515,29 +17888,152 @@ function StockInForm({
           />
         </Field>
       </div>
+
+      {/* ===== Quantity entry — meters mode ===== */}
+      {r.unit !== "rolls" && (
+        <Field label={t("stockin.qty") + " *"}>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={r.qty ?? ""}
+            onChange={(e) => set("qty", Number(e.target.value) || 0)}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+      )}
+
+      {/* ===== Quantity entry — rolls mode (multi-line) ===== */}
+      {r.unit === "rolls" && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-700">
+              {t("stockin.rollLines")}
+            </span>
+            <button
+              type="button"
+              onClick={addRollLine}
+              className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+            >
+              {t("stockin.rollLines.add")}
+            </button>
+          </div>
+          {(!r.rollLines || r.rollLines.length === 0) && (
+            <div className="text-xs text-slate-400 italic px-2">
+              No roll lines yet — click “+” to add e.g. 34 rolls × 30m.
+            </div>
+          )}
+          {(r.rollLines || []).map((ln, i) => {
+            const subtotal =
+              (Number(ln.length) || 0) * (Number(ln.qty) || 0);
+            return (
+              <div
+                key={i}
+                className="grid grid-cols-12 gap-2 items-end bg-slate-50 rounded-lg p-2"
+              >
+                <div className="col-span-4">
+                  <label className="text-[10px] uppercase tracking-wide text-slate-500">
+                    {t("stockin.rollLines.length")}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={ln.length}
+                    onChange={(e) =>
+                      updateRollLine(i, "length", e.target.value)
+                    }
+                    className="w-full p-2 border border-slate-300 rounded text-sm"
+                  />
+                </div>
+                <div className="col-span-3">
+                  <label className="text-[10px] uppercase tracking-wide text-slate-500">
+                    {t("stockin.rollLines.qty")}
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={ln.qty}
+                    onChange={(e) =>
+                      updateRollLine(i, "qty", e.target.value)
+                    }
+                    className="w-full p-2 border border-slate-300 rounded text-sm"
+                  />
+                </div>
+                <div className="col-span-4 text-right">
+                  <label className="text-[10px] uppercase tracking-wide text-slate-500 block">
+                    {t("stockin.rollLines.subtotal")}
+                  </label>
+                  <div className="text-sm font-medium text-slate-700 pt-2">
+                    {subtotal.toLocaleString()} m
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeRollLine(i)}
+                  className="col-span-1 text-slate-400 hover:text-red-600 self-center"
+                  title={t("common.delete")}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            );
+          })}
+
+          <Field label={t("stockin.extraMeters")}>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={r.extraMeters ?? 0}
+              onChange={(e) =>
+                set("extraMeters", Number(e.target.value) || 0)
+              }
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            />
+            <div className="text-xs text-slate-500 mt-1">
+              {t("stockin.extraMeters.help")}
+            </div>
+          </Field>
+        </div>
+      )}
+
+      {/* ===== Total + cost summary ===== */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Quantity *">
+        <Field label={t("stockin.costPerMeter")}>
           <input
             type="number"
             step="0.01"
             min="0"
-            value={r.qty}
-            onChange={(e) => set("qty", e.target.value)}
+            value={r.costPerMeter ?? 0}
+            onChange={(e) =>
+              set("costPerMeter", Number(e.target.value) || 0)
+            }
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
-        <Field label="Cost / unit">
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={r.costPrice}
-            onChange={(e) => set("costPrice", e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg"
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-2 items-end">
+          <div className="bg-slate-50 rounded-lg p-2.5">
+            <div className="text-[10px] uppercase tracking-wide text-slate-500">
+              {t("stockin.total")}
+            </div>
+            <div className="text-sm font-bold text-slate-800">
+              {totalMeters.toLocaleString()} m
+            </div>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-2.5">
+            <div className="text-[10px] uppercase tracking-wide text-slate-500">
+              {t("stockin.totalCost")}
+            </div>
+            <div className="text-sm font-bold text-slate-800">
+              {fmtMoney(totalCost)}
+            </div>
+          </div>
+        </div>
       </div>
-      <Field label="Notes">
+
+      <Field label={t("stockin.notes")}>
         <textarea
           value={r.notes}
           onChange={(e) => set("notes", e.target.value)}
