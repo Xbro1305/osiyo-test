@@ -1004,6 +1004,13 @@ interface StoreSale {
   fabricState?: "printed" | "dyed";
   designId?: string | "mix";
   hexColor?: string;
+  // ----- Roll-line capture (v3) -----
+  // When unit=rolls, sales record which specific roll lengths are being
+  // sold (e.g. "5 × 30m + 2 × 50m"). Pairing this with Stock In's
+  // rollLines lets the on-hand-per-length math be exact rather than a
+  // FIFO guess. Legacy sales with only `qty` still validate.
+  rollLines?: { length: number; qty: number }[];
+  extraMeters?: number;
   qty?: number;
   unit?: string;
   unitPrice?: number;
@@ -5660,6 +5667,14 @@ function ListsAdmin({ ctx }: CtxProps) {
     dailyCheckResult: "Daily Check Results",
     grayFabricSource: "Gray Fabric Sources",
     grayOutDestination: "Gray Fabric Out — Destinations",
+    // ===== Local Market Store lists =====
+    // Exposed here so operators can edit them like any other dropdown
+    // instead of needing a DB migration.
+    stockFabricType: "Store — Stock Fabric Types",
+    storeStockSource: "Store — Stock-In Sources",
+    storeUnit: "Store — Units",
+    customerType: "Store — Customer Types",
+    paymentMethod: "Store — Payment Methods",
   };
 
   return (
@@ -17856,6 +17871,140 @@ function StoreStockInView({ ctx }: CtxProps) {
   );
 }
 
+// ===== RollLinesEditor =====
+//
+// Shared roll-line entry control used by both Stock In and Stock Out forms.
+// Renders the "Roll lines" section and the "Extra meters" bulk-piece field
+// below it. Parent owns the data and gets a single onChange callback
+// containing both pieces.
+//
+// Why a single onChange instead of two: keeps the parent's update logic
+// straightforward — no juggling two state branches — and the helper can
+// recompute totals in one place if needed later.
+function RollLinesEditor({
+  rollLines,
+  extraMeters,
+  onChange,
+}: {
+  rollLines: { length: number; qty: number }[];
+  extraMeters: number;
+  onChange: (next: {
+    rollLines: { length: number; qty: number }[];
+    extraMeters: number;
+  }) => void;
+}) {
+  const t = useT();
+  const lines = rollLines || [];
+
+  function addLine() {
+    onChange({
+      rollLines: [...lines, { length: 30, qty: 1 }],
+      extraMeters,
+    });
+  }
+  function updateLine(idx: number, key: "length" | "qty", val: string) {
+    const next = lines.map((ln, i) =>
+      i === idx ? { ...ln, [key]: Number(val) || 0 } : ln,
+    );
+    onChange({ rollLines: next, extraMeters });
+  }
+  function removeLine(idx: number) {
+    const next = [...lines];
+    next.splice(idx, 1);
+    onChange({ rollLines: next, extraMeters });
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-slate-700">
+          {t("stockin.rollLines")}
+        </span>
+        <button
+          type="button"
+          onClick={addLine}
+          className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+        >
+          {t("stockin.rollLines.add")}
+        </button>
+      </div>
+      {lines.length === 0 && (
+        <div className="text-xs text-slate-400 italic px-2">
+          No roll lines yet — click “+” to add e.g. 34 rolls × 30m.
+        </div>
+      )}
+      {lines.map((ln, i) => {
+        const subtotal = (Number(ln.length) || 0) * (Number(ln.qty) || 0);
+        return (
+          <div
+            key={i}
+            className="grid grid-cols-12 gap-2 items-end bg-slate-50 rounded-lg p-2"
+          >
+            <div className="col-span-4">
+              <label className="text-[10px] uppercase tracking-wide text-slate-500">
+                {t("stockin.rollLines.length")}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={ln.length}
+                onChange={(e) => updateLine(i, "length", e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded text-sm"
+              />
+            </div>
+            <div className="col-span-3">
+              <label className="text-[10px] uppercase tracking-wide text-slate-500">
+                {t("stockin.rollLines.qty")}
+              </label>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={ln.qty}
+                onChange={(e) => updateLine(i, "qty", e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded text-sm"
+              />
+            </div>
+            <div className="col-span-4 text-right">
+              <label className="text-[10px] uppercase tracking-wide text-slate-500 block">
+                {t("stockin.rollLines.subtotal")}
+              </label>
+              <div className="text-sm font-medium text-slate-700 pt-2">
+                {subtotal.toLocaleString()} m
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeLine(i)}
+              className="col-span-1 text-slate-400 hover:text-red-600 self-center"
+              title={t("common.delete")}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        );
+      })}
+
+      <Field label={t("stockin.extraMeters")}>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={extraMeters ?? 0}
+          onChange={(e) =>
+            onChange({ rollLines: lines, extraMeters: Number(e.target.value) || 0 })
+          }
+          className="w-full p-2.5 border border-slate-300 rounded-lg"
+        />
+        <div className="text-xs text-slate-500 mt-1">
+          {t("stockin.extraMeters.help")}
+        </div>
+      </Field>
+    </div>
+  );
+}
+
 function StockInForm({
   initial,
   lists,
@@ -17904,27 +18053,7 @@ function StockInForm({
 
   const totalCost = totalMeters * (Number(r.costPerMeter) || 0);
 
-  // ===== Roll line editing =====
-  function addRollLine() {
-    setR((prev) => ({
-      ...prev,
-      rollLines: [...(prev.rollLines || []), { length: 30, qty: 1 }],
-    }));
-  }
-  function updateRollLine(idx: number, key: "length" | "qty", value: string) {
-    setR((prev) => {
-      const next = [...(prev.rollLines || [])];
-      next[idx] = { ...next[idx], [key]: Number(value) || 0 };
-      return { ...prev, rollLines: next };
-    });
-  }
-  function removeRollLine(idx: number) {
-    setR((prev) => {
-      const next = [...(prev.rollLines || [])];
-      next.splice(idx, 1);
-      return { ...prev, rollLines: next };
-    });
-  }
+  // (Roll-line editing helpers moved into the shared RollLinesEditor component.)
 
   function save() {
     // Validation: require at least a stock fabric type. Legacy fabricType is
@@ -17961,7 +18090,16 @@ function StockInForm({
   }
 
   return (
-    <div className="space-y-3">
+    // Wrap in <form> so pressing Enter inside any input submits via save().
+    // onSubmit's e.preventDefault() stops the browser from doing a full page
+    // navigation (which would happen because we never assigned an action URL).
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save();
+      }}
+      className="space-y-3"
+    >
       <div className="grid grid-cols-2 gap-3">
         <Field label={t("stockin.date") + " *"}>
           <input
@@ -18076,98 +18214,13 @@ function StockInForm({
 
       {/* ===== Quantity entry — rolls mode (multi-line) ===== */}
       {r.unit === "rolls" && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-700">
-              {t("stockin.rollLines")}
-            </span>
-            <button
-              type="button"
-              onClick={addRollLine}
-              className="text-xs text-purple-600 hover:text-purple-700 font-medium"
-            >
-              {t("stockin.rollLines.add")}
-            </button>
-          </div>
-          {(!r.rollLines || r.rollLines.length === 0) && (
-            <div className="text-xs text-slate-400 italic px-2">
-              No roll lines yet — click “+” to add e.g. 34 rolls × 30m.
-            </div>
-          )}
-          {(r.rollLines || []).map((ln, i) => {
-            const subtotal =
-              (Number(ln.length) || 0) * (Number(ln.qty) || 0);
-            return (
-              <div
-                key={i}
-                className="grid grid-cols-12 gap-2 items-end bg-slate-50 rounded-lg p-2"
-              >
-                <div className="col-span-4">
-                  <label className="text-[10px] uppercase tracking-wide text-slate-500">
-                    {t("stockin.rollLines.length")}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={ln.length}
-                    onChange={(e) =>
-                      updateRollLine(i, "length", e.target.value)
-                    }
-                    className="w-full p-2 border border-slate-300 rounded text-sm"
-                  />
-                </div>
-                <div className="col-span-3">
-                  <label className="text-[10px] uppercase tracking-wide text-slate-500">
-                    {t("stockin.rollLines.qty")}
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    value={ln.qty}
-                    onChange={(e) =>
-                      updateRollLine(i, "qty", e.target.value)
-                    }
-                    className="w-full p-2 border border-slate-300 rounded text-sm"
-                  />
-                </div>
-                <div className="col-span-4 text-right">
-                  <label className="text-[10px] uppercase tracking-wide text-slate-500 block">
-                    {t("stockin.rollLines.subtotal")}
-                  </label>
-                  <div className="text-sm font-medium text-slate-700 pt-2">
-                    {subtotal.toLocaleString()} m
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeRollLine(i)}
-                  className="col-span-1 text-slate-400 hover:text-red-600 self-center"
-                  title={t("common.delete")}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            );
-          })}
-
-          <Field label={t("stockin.extraMeters")}>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={r.extraMeters ?? 0}
-              onChange={(e) =>
-                set("extraMeters", Number(e.target.value) || 0)
-              }
-              className="w-full p-2.5 border border-slate-300 rounded-lg"
-            />
-            <div className="text-xs text-slate-500 mt-1">
-              {t("stockin.extraMeters.help")}
-            </div>
-          </Field>
-        </div>
+        <RollLinesEditor
+          rollLines={r.rollLines || []}
+          extraMeters={Number(r.extraMeters) || 0}
+          onChange={({ rollLines, extraMeters }) =>
+            setR((prev) => ({ ...prev, rollLines, extraMeters }))
+          }
+        />
       )}
 
       {/* ===== Total + cost summary ===== */}
@@ -18213,7 +18266,7 @@ function StockInForm({
         />
       </Field>
       <FormFooter onCancel={onCancel} onSave={save} />
-    </div>
+    </form>
   );
 }
 
@@ -18254,6 +18307,12 @@ function StoreStockView({ ctx }: CtxProps) {
       inCost: number;
       outQty: number;
       outRevenue: number;
+      // ===== Per-length roll counts (v3 on-hand math) =====
+      // Keys are roll lengths (in meters, as numbers); values are net roll
+      // counts on hand. Stock-in adds to this; sales subtract. Lengths a
+      // design never came in as won't appear. A length that's gone to zero
+      // stays in the map (as 0) so it's clear "we had some, none left".
+      rollsByLength: Record<number, number>;
     };
     const m: Record<string, Row> = {};
 
@@ -18286,9 +18345,26 @@ function StoreStockView({ ctx }: CtxProps) {
           inCost: 0,
           outQty: 0,
           outRevenue: 0,
+          rollsByLength: {},
         };
       }
       return m[key];
+    }
+
+    // Helper: sum rollLines into a row's rollsByLength map, with a sign so
+    // we can use the same code path for both stock-in (+1) and sales (-1).
+    function applyRollLines(
+      row: Row,
+      lines: { length: number; qty: number }[] | undefined,
+      sign: 1 | -1,
+    ) {
+      if (!Array.isArray(lines)) return;
+      for (const ln of lines) {
+        const len = Number(ln.length) || 0;
+        const qty = Number(ln.qty) || 0;
+        if (len <= 0 || qty <= 0) continue;
+        row.rollsByLength[len] = (row.rollsByLength[len] || 0) + sign * qty;
+      }
     }
 
     for (const r of storeStockIn) {
@@ -18297,18 +18373,32 @@ function StoreStockView({ ctx }: CtxProps) {
       row.inQty += Number(r.qty) || 0;
       const cpm = Number(r.costPerMeter ?? r.costPrice) || 0;
       row.inCost += (Number(r.qty) || 0) * cpm;
+      applyRollLines(row, r.rollLines, 1);
     }
     for (const s of storeSales) {
       const { key, kind } = keyFor(s as any);
       const row = ensure(s, kind, key);
       row.outQty += Number(s.qty) || 0;
       row.outRevenue += Number(s.totalAmount) || 0;
+      applyRollLines(row, (s as any).rollLines, -1);
     }
 
     return Object.values(m)
       .map((x) => ({ ...x, onHand: x.inQty - x.outQty }))
       .sort((a, b) => b.onHand - a.onHand);
   }, [storeStockIn, storeSales, designById]);
+
+  // All distinct roll lengths across all rows, sorted ascending. Used to
+  // build the dynamic per-length columns in the xlsx export.
+  const allLengths = useMemo(() => {
+    const set = new Set<number>();
+    for (const r of stockByDesign) {
+      for (const len of Object.keys(r.rollsByLength)) {
+        set.add(Number(len));
+      }
+    }
+    return [...set].sort((a, b) => a - b);
+  }, [stockByDesign]);
 
   const totals = useMemo(
     () => ({
@@ -18339,27 +18429,33 @@ function StoreStockView({ ctx }: CtxProps) {
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Current Stock");
 
-      // Column widths in characters (approximate). Image column is wider
-      // to give the embedded picture room.
+      // ===== Column layout =====
+      //
+      // Order requested: orderNo, designNo, designImg, fabricType,
+      // <dynamic per-length count columns…>, total.
+      //
+      // orderNo is a 1-based row index — purely for human reference in the
+      // exported sheet. Image column width is generous to host a 100px image
+      // without squeezing. Per-length columns get a fixed width of 8 chars
+      // (enough for "999" with breathing room).
+      const lengthColumns = allLengths.map((len) => ({
+        header: `${len}m`,
+        key: `len_${len}`,
+        width: 8,
+      }));
       ws.columns = [
-        { header: "Image", key: "image", width: 14 },
+        { header: "#", key: "orderNo", width: 5 },
         { header: "Design #", key: "designNumber", width: 16 },
-        { header: "Design Name", key: "designName", width: 24 },
-        { header: "Color (hex)", key: "hex", width: 12 },
+        { header: "Image", key: "image", width: 18 },
         { header: "Fabric Type", key: "fabric", width: 18 },
-        { header: "Unit", key: "unit", width: 8 },
-        { header: "In Qty", key: "inQty", width: 10 },
-        { header: "Out Qty", key: "outQty", width: 10 },
-        { header: "On Hand", key: "onHand", width: 10 },
-        { header: "Stock Cost", key: "inCost", width: 14 },
-        { header: "Revenue", key: "outRevenue", width: 14 },
+        ...lengthColumns,
+        { header: "Total (m)", key: "total", width: 12 },
       ];
-      // Header style.
       ws.getRow(1).font = { bold: true };
+      ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+      ws.getRow(1).height = 22;
 
-      // Fetch images in parallel up front. We pre-resolve src strings and
-      // download each. Failures don't abort the export — the cell just stays
-      // empty. We cap parallelism via a small Promise.all batch.
+      // ===== Fetch images in parallel =====
       const rowsForExport = stockByDesign;
       const imageBuffers: (ArrayBuffer | null)[] = await Promise.all(
         rowsForExport.map(async (r) => {
@@ -18377,28 +18473,40 @@ function StoreStockView({ ctx }: CtxProps) {
         }),
       );
 
-      // Add rows + embed images. Tall rows so the picture has visible size.
+      // ===== Write rows =====
       rowsForExport.forEach((r, i) => {
-        const rowNumber = i + 2; // +1 for header, +1 for 1-indexed
-        ws.addRow({
-          image: "",
-          designNumber: r.designNumber || (r.kind === "color" ? "" : "—"),
-          designName: r.designName || "",
-          hex: r.hexColor || "",
+        const rowNumber = i + 2; // header is row 1
+        // Build the row data: scalar columns + one cell per length column.
+        const rowData: Record<string, any> = {
+          orderNo: i + 1,
+          designNumber:
+            r.kind === "design"
+              ? r.designNumber || "—"
+              : r.kind === "color"
+                ? r.hexColor || ""
+                : "(no variant)",
+          image: "", // populated by addImage below
           fabric: r.fabricType || "",
-          unit: r.unit,
-          inQty: r.inQty,
-          outQty: r.outQty,
-          onHand: r.onHand,
-          inCost: r.inCost,
-          outRevenue: r.outRevenue,
-        });
-        // Make the row tall enough to host the image.
-        ws.getRow(rowNumber).height = 60;
+          total: r.onHand,
+        };
+        // Per-length count cells. Empty when the design never came in at
+        // that length — keeps the sheet visually clean (no "0" noise).
+        for (const len of allLengths) {
+          const count = r.rollsByLength[len];
+          rowData[`len_${len}`] = count && count > 0 ? count : "";
+        }
+        ws.addRow(rowData);
+
+        // Tall row so the image has real estate. 110px ≈ 82pt (Excel rows
+        // are measured in points, ~0.75 of a pixel at default DPI).
+        ws.getRow(rowNumber).height = 82;
+        ws.getRow(rowNumber).alignment = {
+          vertical: "middle",
+          horizontal: "center",
+        };
 
         const buf = imageBuffers[i];
         if (buf) {
-          // Pick extension from the source URL; default to png.
           const d = r.designId ? designById[r.designId] : null;
           const src = d ? resolveDesignImage(d) : "";
           const m = src.match(/\.(png|jpe?g|gif|webp)(?:$|\?)/i);
@@ -18412,11 +18520,12 @@ function StoreStockView({ ctx }: CtxProps) {
             buffer: buf as any,
             extension: ext === "jpg" ? "jpeg" : ext,
           });
-          // Anchor by row/col indices. Image fits into the Image column
-          // (column 0) with a fixed pixel size.
+          // Place the image inside the "Image" column (zero-indexed col 2).
+          // Larger size (100x100) so it isn't squeezed. Anchor uses
+          // fractional col/row offsets for a small inset.
           ws.addImage(imgId, {
-            tl: { col: 0.05, row: rowNumber - 1 + 0.05 } as any,
-            ext: { width: 70, height: 70 },
+            tl: { col: 2.1, row: rowNumber - 1 + 0.1 } as any,
+            ext: { width: 100, height: 100 },
           });
         }
       });
@@ -18514,6 +18623,7 @@ function StoreStockView({ ctx }: CtxProps) {
               <th className="text-left p-3 font-medium">Design</th>
               <th className="text-left p-3 font-medium">Fabric type</th>
               <th className="text-left p-3 font-medium">Unit</th>
+              <th className="text-left p-3 font-medium">Rolls on hand</th>
               <th className="text-right p-3 font-medium">In</th>
               <th className="text-right p-3 font-medium">Out</th>
               <th className="text-right p-3 font-medium">On hand</th>
@@ -18526,6 +18636,14 @@ function StoreStockView({ ctx }: CtxProps) {
             {stockByDesign.map((r) => {
               const d = r.designId ? designById[r.designId] : null;
               const src = d ? resolveDesignImage(d) : "";
+              // Per-length on-hand summary, e.g. "30m × 12, 50m × 5". Sort
+              // by length ascending. Skip zero/negative counts (sold out).
+              const rollSummary = Object.entries(r.rollsByLength)
+                .map(([len, qty]) => ({ len: Number(len), qty }))
+                .filter((x) => x.qty > 0)
+                .sort((a, b) => a.len - b.len)
+                .map((x) => `${x.len}m × ${x.qty}`)
+                .join(", ");
               return (
                 <tr
                   key={r.key}
@@ -18574,6 +18692,11 @@ function StoreStockView({ ctx }: CtxProps) {
                     {r.fabricType || "—"}
                   </td>
                   <td className="p-3 text-slate-600">{r.unit}</td>
+                  <td className="p-3 text-xs text-slate-600">
+                    {rollSummary || (
+                      <span className="text-slate-400 italic">—</span>
+                    )}
+                  </td>
                   <td className="p-3 text-right">{fmtMoney(r.inQty)}</td>
                   <td className="p-3 text-right">{fmtMoney(r.outQty)}</td>
                   <td
@@ -18607,7 +18730,7 @@ function StoreStockView({ ctx }: CtxProps) {
             })}
             {!stockByDesign.length && (
               <tr>
-                <td colSpan={10} className="p-8 text-center text-slate-400">
+                <td colSpan={11} className="p-8 text-center text-slate-400">
                   No stock yet. Add a Stock In record to begin.
                 </td>
               </tr>
@@ -18846,19 +18969,33 @@ function SaleForm({
     ...initial,
     fabricState: initial.fabricState || "printed",
     hexColor: initial.hexColor || "#7E22CE",
+    rollLines: initial.rollLines || [],
+    extraMeters:
+      initial.extraMeters !== undefined ? initial.extraMeters : 0,
   }));
-  const set = (k: string, v: any) =>
-    setS((prev) => {
-      const next = { ...prev, [k]: v } as any;
-      // auto-recalc total when qty or unitPrice changes
-      if (k === "qty" || k === "unitPrice") {
-        next.totalAmount =
-          (Number(next.qty) || 0) * (Number(next.unitPrice) || 0);
-      }
-      return next;
-    });
 
-  const total = (Number(s.qty) || 0) * (Number(s.unitPrice) || 0);
+  // ===== Total meters (the sold qty) =====
+  // Mirrors Stock In: when unit=rolls, total = sum(length × qty) + extraMeters.
+  // When unit=meters, the qty field IS the total. We store this back into `qty`
+  // on save so legacy code keeps working.
+  const totalMeters = useMemo(() => {
+    if (s.unit === "rolls") {
+      const lineSum = (s.rollLines || []).reduce(
+        (sum, ln) =>
+          sum + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+        0,
+      );
+      return lineSum + (Number(s.extraMeters) || 0);
+    }
+    return Number(s.qty) || 0;
+  }, [s.unit, s.rollLines, s.extraMeters, s.qty]);
+
+  const set = (k: string, v: any) =>
+    setS((prev) => ({ ...prev, [k]: v }));
+
+  // Total amount = totalMeters × unitPrice. Computed live; not stored in
+  // state (avoids stale-after-rollLines-edit bugs).
+  const total = totalMeters * (Number(s.unitPrice) || 0);
   const paid = Number(s.paidAmount) || 0;
   const debt = total - paid;
 
@@ -18871,7 +19008,7 @@ function SaleForm({
       alert("Pick a fabric type");
       return;
     }
-    if (!s.qty || Number(s.qty) <= 0) {
+    if (totalMeters <= 0) {
       alert("Qty must be positive");
       return;
     }
@@ -18881,10 +19018,14 @@ function SaleForm({
     }
     onSave({
       ...s,
-      qty: Number(s.qty),
+      qty: totalMeters,
       unitPrice: Number(s.unitPrice),
       totalAmount: total,
       paidAmount: paid,
+      // When unit isn't rolls, blank out roll-line data so the saved record
+      // is unambiguous (no orphan rollLines on a meters-mode sale).
+      rollLines: s.unit === "rolls" ? s.rollLines : [],
+      extraMeters: s.unit === "rolls" ? Number(s.extraMeters) || 0 : 0,
       // Clean the variant field that doesn't apply to the chosen state, so
       // the record doesn't keep an orphan (e.g. a hex color on a printed sale).
       designId: s.fabricState === "printed" ? s.designId : undefined,
@@ -18893,7 +19034,13 @@ function SaleForm({
   }
 
   return (
-    <div className="space-y-3">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save();
+      }}
+      className="space-y-3"
+    >
       <div className="grid grid-cols-2 gap-3">
         <Field label="Date *">
           <input
@@ -18999,17 +19146,43 @@ function SaleForm({
             onChange={(v) => set("unit", v)}
           />
         </Field>
-        <Field label="Quantity *">
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={s.qty}
-            onChange={(e) => set("qty", e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg"
-          />
-        </Field>
+        {/* Show the plain Quantity input only when unit isn't rolls. With
+            rolls, the multi-line editor below replaces the single number. */}
+        {s.unit !== "rolls" && (
+          <Field label="Quantity *">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={s.qty}
+              onChange={(e) => set("qty", e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            />
+          </Field>
+        )}
       </div>
+      {/* When unit=rolls, capture the specific roll lengths/qty being sold.
+          Pairing this with Stock In's rollLines lets the Current Stock view
+          compute on-hand-per-length exactly. */}
+      {s.unit === "rolls" && (
+        <>
+          <RollLinesEditor
+            rollLines={s.rollLines || []}
+            extraMeters={Number(s.extraMeters) || 0}
+            onChange={({ rollLines, extraMeters }) =>
+              setS((prev) => ({ ...prev, rollLines, extraMeters }))
+            }
+          />
+          <div className="bg-slate-50 rounded-lg p-2.5">
+            <div className="text-[10px] uppercase tracking-wide text-slate-500">
+              Total meters sold
+            </div>
+            <div className="text-sm font-bold text-slate-800">
+              {totalMeters.toLocaleString()} m
+            </div>
+          </div>
+        </>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Unit price *">
           <input
@@ -19076,7 +19249,7 @@ function SaleForm({
         />
       </Field>
       <FormFooter onCancel={onCancel} onSave={save} />
-    </div>
+    </form>
   );
 }
 
@@ -19699,6 +19872,24 @@ function Modal({
   children: React.ReactNode;
   large?: boolean;
 }) {
+  // Escape-to-close. Native modal UX: pressing Esc anywhere closes the
+  // top-most modal. We listen on document because the user might have any
+  // input or button focused inside the modal — listening on the wrapper
+  // wouldn't catch those events unless they bubble (which Esc does, but
+  // some inputs may stop propagation).
+  //
+  // Cleanup runs on unmount so we don't leak listeners between modals.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
@@ -19775,12 +19966,14 @@ function FormFooter({
   return (
     <div className="flex gap-2 pt-2">
       <button
+        type="button"
         onClick={onCancel}
         className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium"
       >
         Cancel
       </button>
       <button
+        type="submit"
         onClick={onSave}
         className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium"
       >
