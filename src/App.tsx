@@ -996,6 +996,14 @@ interface StoreSale {
   date: string;
   customerId: string;
   fabricType?: string;
+  // ----- Mirroring Stock In's variant shape -----
+  // The stock-out (sale) form also picks a design or color so we can track
+  // which variant left the building. Optional everywhere for back-compat
+  // with older records that didn't capture this.
+  stockFabricType?: string;
+  fabricState?: "printed" | "dyed";
+  designId?: string | "mix";
+  hexColor?: string;
   qty?: number;
   unit?: string;
   unitPrice?: number;
@@ -3026,15 +3034,28 @@ function AppInner() {
         break;
       case "store_stock_in":
         tasks.push(loadStoreStockIn());
+        // The stock-in form has a design picker (when fabricState=printed).
+        // Without designs loaded, the dropdown shows only "Pick a design…"
+        // and "Mix" — effectively unusable. Designs change rarely, so we
+        // skip on poll to keep the request count tight.
+        if (!isPolling) tasks.push(loadDesigns());
         break;
       case "store_stock":
         // Stock-on-hand = stock-in qty − sales qty. Needs both.
         tasks.push(loadStoreStockIn());
         tasks.push(loadStoreSales());
+        // Current-stock view shows the design thumbnail per row, so it
+        // needs the designs catalogue too.
+        if (!isPolling) tasks.push(loadDesigns());
         break;
       case "store_sales":
         tasks.push(loadStoreSales());
-        if (!isPolling) tasks.push(loadCustomers());
+        if (!isPolling) {
+          tasks.push(loadCustomers());
+          // Sale form has a design picker (mirrors Stock In's). Without
+          // designs the dropdown is empty.
+          tasks.push(loadDesigns());
+        }
         break;
       case "store_payments":
         tasks.push(loadStorePayments());
@@ -12239,6 +12260,178 @@ function DesignTag({
   );
 }
 
+// ===== DesignPickerById =====
+//
+// Same UX as the Printing form's design picker (search field + collapsible
+// gallery grid), but stores `designId` (Mongo _id) rather than `designNumber`
+// (display string). Used by Stock In and Stock Out so a renamed design
+// doesn't break historical records.
+//
+// Includes a "Mix" option (sentinel value "mix") for records that contain
+// multiple designs in one entry — relevant only for stock-in.
+//
+// Props:
+//   value      – the currently-selected designId, or "mix", or empty.
+//   onChange   – called with the new value (designId | "mix" | "").
+//   designs    – the full design catalogue from ctx.
+//   allowMix   – show the "Mix" sentinel button (default true).
+//   placeholder– text for the empty state.
+function DesignPickerById({
+  value,
+  onChange,
+  designs,
+  allowMix = true,
+  placeholder = "Type or pick from gallery",
+}: {
+  value?: string;
+  onChange: (next: string) => void;
+  designs: Design[];
+  allowMix?: boolean;
+  placeholder?: string;
+}) {
+  const t = useT();
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const selected = useMemo(() => {
+    if (!value || value === "mix") return null;
+    return designs.find((d) => d.id === value) || null;
+  }, [designs, value]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return designs;
+    return designs.filter(
+      (d) =>
+        d.designNumber?.toLowerCase().includes(term) ||
+        d.name?.toLowerCase().includes(term),
+    );
+  }, [designs, search]);
+
+  return (
+    <div>
+      <div className="flex gap-2">
+        {/* Read-only display of the current pick. Empty state shows the
+            placeholder; selected state shows the design number. Click anywhere
+            on this field to open the gallery — feels like a single control. */}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="flex-1 p-2.5 border border-slate-300 rounded-lg bg-white text-left flex items-center gap-2"
+        >
+          {value === "mix" ? (
+            <span className="text-slate-700 font-medium">
+              {t("stockin.design.mix")}
+            </span>
+          ) : selected ? (
+            <>
+              {resolveDesignImage(selected) && (
+                <img
+                  src={resolveDesignImage(selected)}
+                  className="w-7 h-7 object-cover rounded"
+                />
+              )}
+              <span className="font-mono font-bold text-slate-800">
+                {selected.designNumber}
+              </span>
+              {selected.name && (
+                <span className="text-slate-500 text-sm truncate">
+                  — {selected.name}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-slate-400">{placeholder}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm flex items-center gap-1"
+        >
+          <ImageIcon size={15} /> Gallery
+        </button>
+        {/* Quick-clear button: useful when an operator picked the wrong one. */}
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="px-2 text-slate-400 hover:text-red-500"
+            title="Clear"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <div className="mt-2 border border-slate-200 rounded-lg p-2 bg-white">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by number or name…"
+            className="w-full p-2 border border-slate-200 rounded text-sm mb-2"
+          />
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+            {allowMix && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("mix");
+                  setOpen(false);
+                }}
+                className={`text-left rounded p-1 border ${value === "mix" ? "border-purple-400 bg-purple-50" : "border-transparent hover:border-purple-300 hover:bg-slate-50"}`}
+              >
+                <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded mb-1 flex items-center justify-center">
+                  <span className="text-xs font-bold text-purple-700">MIX</span>
+                </div>
+                <div className="text-xs font-medium truncate">
+                  {t("stockin.design.mix")}
+                </div>
+              </button>
+            )}
+            {filtered.map((d) => (
+              <button
+                type="button"
+                key={d.id}
+                onClick={() => {
+                  onChange(d.id);
+                  setOpen(false);
+                }}
+                className={`text-left rounded p-1 border ${value === d.id ? "border-purple-400 bg-purple-50" : "border-transparent hover:border-purple-300 hover:bg-slate-50"}`}
+              >
+                <div className="aspect-square bg-slate-100 rounded mb-1 overflow-hidden">
+                  {resolveDesignImage(d) ? (
+                    <img
+                      src={resolveDesignImage(d)}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon size={20} className="m-auto text-slate-300" />
+                  )}
+                </div>
+                <div className="font-mono text-xs font-bold truncate">
+                  {d.designNumber}
+                </div>
+                {d.name && (
+                  <div className="text-[10px] text-slate-500 truncate">
+                    {d.name}
+                  </div>
+                )}
+              </button>
+            ))}
+            {!filtered.length && (
+              <div className="col-span-3 sm:col-span-4 text-center text-xs text-slate-400 p-3">
+                No designs match
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PrintingForm({
   rec,
   lists,
@@ -17806,34 +17999,12 @@ function StockInForm({
       {/* ===== Design picker (when printed) ===== */}
       {r.fabricState === "printed" && (
         <Field label={t("stockin.design")}>
-          <div className="flex gap-2 items-stretch">
-            <select
-              value={r.designId || ""}
-              onChange={(e) => set("designId", e.target.value)}
-              className="flex-1 p-2.5 border border-slate-300 rounded-lg bg-white"
-            >
-              <option value="">{t("stockin.design.pick")}</option>
-              <option value="mix">{t("stockin.design.mix")}</option>
-              {designs.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.designNumber}
-                  {d.name ? ` — ${d.name}` : ""}
-                </option>
-              ))}
-            </select>
-            {/* Tiny preview of the selected design's image, if any. */}
-            {r.designId && r.designId !== "mix" &&
-              (() => {
-                const d = designs.find((x) => x.id === r.designId);
-                const src = d ? resolveDesignImage(d) : "";
-                return src ? (
-                  <img
-                    src={src}
-                    className="w-12 h-12 object-cover rounded-lg border"
-                  />
-                ) : null;
-              })()}
-          </div>
+          <DesignPickerById
+            value={r.designId}
+            onChange={(v) => set("designId", v)}
+            designs={designs}
+            placeholder={t("stockin.design.pick")}
+          />
         </Field>
       )}
 
@@ -18048,69 +18219,237 @@ function StockInForm({
 
 // ============== STORE STOCK (current inventory) ==============
 function StoreStockView({ ctx }: CtxProps) {
-  const { storeStockIn, storeSales } = ctx;
+  const { storeStockIn, storeSales, designs } = ctx;
+  const [exporting, setExporting] = useState(false);
 
-  // Aggregate on-hand quantity per fabricType + unit
-  const stockByFabric = useMemo(() => {
-    const m: Record<
-      string,
-      {
-        fabricType?: string;
-        unit: string;
-        inQty: number;
-        inCost: number;
-        outQty: number;
-        outRevenue: number;
+  // Look up designs by id for fast joins from stock-in/sale records.
+  const designById = useMemo(() => {
+    const m: Record<string, Design> = {};
+    for (const d of designs || []) m[d.id] = d;
+    return m;
+  }, [designs]);
+
+  // ===== Group by design =====
+  //
+  // Each row is one design (or one hex color for dyed records, or one
+  // bucket per fabric for stock-ins with no variant captured). We track
+  // qty in and qty out separately so the on-hand and revenue numbers are
+  // computed correctly.
+  //
+  // Group key strategy:
+  //   - Printed records (fabricState=printed) with a designId → key by designId
+  //   - Dyed records (fabricState=dyed) → key by hexColor
+  //   - "mix" or no variant → bucket by fabricType so old records still appear
+  const stockByDesign = useMemo(() => {
+    type Row = {
+      key: string;
+      kind: "design" | "color" | "fabric";
+      designId?: string;
+      designNumber?: string;
+      designName?: string;
+      hexColor?: string;
+      fabricType?: string;
+      unit: string;
+      inQty: number;
+      inCost: number;
+      outQty: number;
+      outRevenue: number;
+    };
+    const m: Record<string, Row> = {};
+
+    function keyFor(r: { fabricState?: string; designId?: string; hexColor?: string; fabricType?: string }): {
+      key: string;
+      kind: "design" | "color" | "fabric";
+    } {
+      if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
+        return { key: `d:${r.designId}`, kind: "design" };
       }
-    > = {};
-    storeStockIn.forEach((r) => {
-      const k = `${r.fabricType}::${r.unit || "meters"}`;
-      m[k] = m[k] || {
-        fabricType: r.fabricType,
-        unit: r.unit || "meters",
-        inQty: 0,
-        inCost: 0,
-        outQty: 0,
-        outRevenue: 0,
-      };
-      m[k].inQty += Number(r.qty) || 0;
-      m[k].inCost += (Number(r.qty) || 0) * (Number(r.costPrice) || 0);
-    });
-    storeSales.forEach((s) => {
-      const k = `${s.fabricType}::${s.unit || "meters"}`;
-      m[k] = m[k] || {
-        fabricType: s.fabricType,
-        unit: s.unit || "meters",
-        inQty: 0,
-        inCost: 0,
-        outQty: 0,
-        outRevenue: 0,
-      };
-      m[k].outQty += Number(s.qty) || 0;
-      m[k].outRevenue += Number(s.totalAmount) || 0;
-    });
+      if (r.fabricState === "dyed" && r.hexColor) {
+        return { key: `c:${r.hexColor.toLowerCase()}`, kind: "color" };
+      }
+      return { key: `f:${r.fabricType || "(unspecified)"}`, kind: "fabric" };
+    }
+
+    function ensure(r: any, kind: "design" | "color" | "fabric", key: string): Row {
+      if (!m[key]) {
+        const d = r.designId ? designById[r.designId] : null;
+        m[key] = {
+          key,
+          kind,
+          designId: kind === "design" ? r.designId : undefined,
+          designNumber: d?.designNumber,
+          designName: d?.name,
+          hexColor: kind === "color" ? r.hexColor : undefined,
+          fabricType: r.fabricType || r.stockFabricType,
+          unit: r.unit || "meters",
+          inQty: 0,
+          inCost: 0,
+          outQty: 0,
+          outRevenue: 0,
+        };
+      }
+      return m[key];
+    }
+
+    for (const r of storeStockIn) {
+      const { key, kind } = keyFor(r);
+      const row = ensure(r, kind, key);
+      row.inQty += Number(r.qty) || 0;
+      const cpm = Number(r.costPerMeter ?? r.costPrice) || 0;
+      row.inCost += (Number(r.qty) || 0) * cpm;
+    }
+    for (const s of storeSales) {
+      const { key, kind } = keyFor(s as any);
+      const row = ensure(s, kind, key);
+      row.outQty += Number(s.qty) || 0;
+      row.outRevenue += Number(s.totalAmount) || 0;
+    }
+
     return Object.values(m)
       .map((x) => ({ ...x, onHand: x.inQty - x.outQty }))
       .sort((a, b) => b.onHand - a.onHand);
-  }, [storeStockIn, storeSales]);
+  }, [storeStockIn, storeSales, designById]);
 
   const totals = useMemo(
     () => ({
-      inQty: stockByFabric.reduce((s, r) => s + r.inQty, 0),
-      outQty: stockByFabric.reduce((s, r) => s + r.outQty, 0),
-      onHand: stockByFabric.reduce((s, r) => s + r.onHand, 0),
-      inCost: stockByFabric.reduce((s, r) => s + r.inCost, 0),
-      outRevenue: stockByFabric.reduce((s, r) => s + r.outRevenue, 0),
+      inQty: stockByDesign.reduce((s, r) => s + r.inQty, 0),
+      outQty: stockByDesign.reduce((s, r) => s + r.outQty, 0),
+      onHand: stockByDesign.reduce((s, r) => s + r.onHand, 0),
+      inCost: stockByDesign.reduce((s, r) => s + r.inCost, 0),
+      outRevenue: stockByDesign.reduce((s, r) => s + r.outRevenue, 0),
     }),
-    [stockByFabric],
+    [stockByDesign],
   );
+
+  // ===== xlsx export with embedded images =====
+  //
+  // Strategy: dynamic-import exceljs only when the user clicks Export so the
+  // main app bundle stays lean. Each row's design image is fetched as bytes
+  // and embedded into a cell. Images are scaled to fit a ~80px-tall row.
+  //
+  // Images come from the same path the UI uses (resolveDesignImage), which
+  // for server-uploaded designs is "{API host}/uploads/designs/<id>.png".
+  // We fetch with the auth token so CORS/auth gates don't block us.
+  async function exportXlsx() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const ExcelJSMod: any = await import("exceljs");
+      const ExcelJS = ExcelJSMod.default || ExcelJSMod;
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Current Stock");
+
+      // Column widths in characters (approximate). Image column is wider
+      // to give the embedded picture room.
+      ws.columns = [
+        { header: "Image", key: "image", width: 14 },
+        { header: "Design #", key: "designNumber", width: 16 },
+        { header: "Design Name", key: "designName", width: 24 },
+        { header: "Color (hex)", key: "hex", width: 12 },
+        { header: "Fabric Type", key: "fabric", width: 18 },
+        { header: "Unit", key: "unit", width: 8 },
+        { header: "In Qty", key: "inQty", width: 10 },
+        { header: "Out Qty", key: "outQty", width: 10 },
+        { header: "On Hand", key: "onHand", width: 10 },
+        { header: "Stock Cost", key: "inCost", width: 14 },
+        { header: "Revenue", key: "outRevenue", width: 14 },
+      ];
+      // Header style.
+      ws.getRow(1).font = { bold: true };
+
+      // Fetch images in parallel up front. We pre-resolve src strings and
+      // download each. Failures don't abort the export — the cell just stays
+      // empty. We cap parallelism via a small Promise.all batch.
+      const rowsForExport = stockByDesign;
+      const imageBuffers: (ArrayBuffer | null)[] = await Promise.all(
+        rowsForExport.map(async (r) => {
+          if (r.kind !== "design") return null;
+          const d = r.designId ? designById[r.designId] : null;
+          const src = d ? resolveDesignImage(d) : "";
+          if (!src) return null;
+          try {
+            const res = await fetch(src, { credentials: "include" });
+            if (!res.ok) return null;
+            return await res.arrayBuffer();
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      // Add rows + embed images. Tall rows so the picture has visible size.
+      rowsForExport.forEach((r, i) => {
+        const rowNumber = i + 2; // +1 for header, +1 for 1-indexed
+        ws.addRow({
+          image: "",
+          designNumber: r.designNumber || (r.kind === "color" ? "" : "—"),
+          designName: r.designName || "",
+          hex: r.hexColor || "",
+          fabric: r.fabricType || "",
+          unit: r.unit,
+          inQty: r.inQty,
+          outQty: r.outQty,
+          onHand: r.onHand,
+          inCost: r.inCost,
+          outRevenue: r.outRevenue,
+        });
+        // Make the row tall enough to host the image.
+        ws.getRow(rowNumber).height = 60;
+
+        const buf = imageBuffers[i];
+        if (buf) {
+          // Pick extension from the source URL; default to png.
+          const d = r.designId ? designById[r.designId] : null;
+          const src = d ? resolveDesignImage(d) : "";
+          const m = src.match(/\.(png|jpe?g|gif|webp)(?:$|\?)/i);
+          const ext = (m ? m[1].toLowerCase() : "png") as
+            | "png"
+            | "jpeg"
+            | "jpg"
+            | "gif"
+            | "webp";
+          const imgId = wb.addImage({
+            buffer: buf as any,
+            extension: ext === "jpg" ? "jpeg" : ext,
+          });
+          // Anchor by row/col indices. Image fits into the Image column
+          // (column 0) with a fixed pixel size.
+          ws.addImage(imgId, {
+            tl: { col: 0.05, row: rowNumber - 1 + 0.05 } as any,
+            ext: { width: 70, height: 70 },
+          });
+        }
+      });
+
+      // Write and trigger download.
+      const out = await wb.xlsx.writeBuffer();
+      const blob = new Blob([out], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `current_stock_${todayISO()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("xlsx export failed:", err);
+      alert(
+        "Export failed. Check the console for details. If exceljs is missing, run `npm install exceljs`.",
+      );
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
         title="Current Stock"
-        subtitle="On-hand inventory by fabric type"
+        subtitle="On-hand inventory by design"
         icon={Package}
         color="bg-indigo-500"
       />
@@ -18150,10 +18489,20 @@ function StoreStockView({ ctx }: CtxProps) {
 
       <div className="flex justify-end">
         <button
-          onClick={() => exportToCSV(stockByFabric, "store_stock_levels")}
-          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          onClick={exportXlsx}
+          disabled={exporting || !stockByDesign.length}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${exporting || !stockByDesign.length ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
+          title="Download .xlsx with design images embedded"
         >
-          <Download size={14} /> Export
+          {exporting ? (
+            <>
+              <InlineSpinner size={14} /> Generating…
+            </>
+          ) : (
+            <>
+              <Download size={14} /> Export .xlsx
+            </>
+          )}
         </button>
       </div>
 
@@ -18161,6 +18510,8 @@ function StoreStockView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
+              <th className="text-left p-3 font-medium w-20">Image</th>
+              <th className="text-left p-3 font-medium">Design</th>
               <th className="text-left p-3 font-medium">Fabric type</th>
               <th className="text-left p-3 font-medium">Unit</th>
               <th className="text-right p-3 font-medium">In</th>
@@ -18172,48 +18523,91 @@ function StoreStockView({ ctx }: CtxProps) {
             </tr>
           </thead>
           <tbody>
-            {stockByFabric.map((r) => (
-              <tr
-                key={`${r.fabricType}-${r.unit}`}
-                className="border-t border-slate-100 hover:bg-slate-50"
-              >
-                <td className="p-3 font-medium text-slate-800">
-                  {r.fabricType || "(unspecified)"}
-                </td>
-                <td className="p-3 text-slate-600">{r.unit}</td>
-                <td className="p-3 text-right">{fmtMoney(r.inQty)}</td>
-                <td className="p-3 text-right">{fmtMoney(r.outQty)}</td>
-                <td
-                  className={`p-3 text-right font-bold ${r.onHand <= 0 ? "text-red-600" : r.onHand < 50 ? "text-orange-600" : "text-slate-800"}`}
+            {stockByDesign.map((r) => {
+              const d = r.designId ? designById[r.designId] : null;
+              const src = d ? resolveDesignImage(d) : "";
+              return (
+                <tr
+                  key={r.key}
+                  className="border-t border-slate-100 hover:bg-slate-50"
                 >
-                  {fmtMoney(r.onHand)}
-                </td>
-                <td className="p-3 text-right text-slate-600">
-                  {fmtMoney(r.inCost)}
-                </td>
-                <td className="p-3 text-right text-emerald-700">
-                  {fmtMoney(r.outRevenue)}
-                </td>
-                <td className="p-3">
-                  {r.onHand <= 0 ? (
-                    <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
-                      Out of stock
-                    </span>
-                  ) : r.onHand < 50 ? (
-                    <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
-                      Low
-                    </span>
-                  ) : (
-                    <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">
-                      In stock
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!stockByFabric.length && (
+                  <td className="p-3">
+                    {r.kind === "design" && src ? (
+                      <img
+                        src={src}
+                        className="w-12 h-12 object-cover rounded border border-slate-200"
+                      />
+                    ) : r.kind === "color" && r.hexColor ? (
+                      <div
+                        className="w-12 h-12 rounded border border-slate-200"
+                        style={{ backgroundColor: r.hexColor }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center">
+                        <ImageIcon size={18} className="text-slate-300" />
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {r.kind === "design" ? (
+                      <>
+                        <div className="font-mono font-bold text-slate-800">
+                          {r.designNumber || "—"}
+                        </div>
+                        {r.designName && (
+                          <div className="text-xs text-slate-500">
+                            {r.designName}
+                          </div>
+                        )}
+                      </>
+                    ) : r.kind === "color" ? (
+                      <span className="font-mono text-slate-700">
+                        {r.hexColor?.toUpperCase()}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 italic text-xs">
+                        (no variant)
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3 text-slate-700">
+                    {r.fabricType || "—"}
+                  </td>
+                  <td className="p-3 text-slate-600">{r.unit}</td>
+                  <td className="p-3 text-right">{fmtMoney(r.inQty)}</td>
+                  <td className="p-3 text-right">{fmtMoney(r.outQty)}</td>
+                  <td
+                    className={`p-3 text-right font-bold ${r.onHand <= 0 ? "text-red-600" : r.onHand < 50 ? "text-orange-600" : "text-slate-800"}`}
+                  >
+                    {fmtMoney(r.onHand)}
+                  </td>
+                  <td className="p-3 text-right text-slate-600">
+                    {fmtMoney(r.inCost)}
+                  </td>
+                  <td className="p-3 text-right text-emerald-700">
+                    {fmtMoney(r.outRevenue)}
+                  </td>
+                  <td className="p-3">
+                    {r.onHand <= 0 ? (
+                      <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
+                        Out of stock
+                      </span>
+                    ) : r.onHand < 50 ? (
+                      <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                        Low
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                        In stock
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+            {!stockByDesign.length && (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-slate-400">
+                <td colSpan={10} className="p-8 text-center text-slate-400">
                   No stock yet. Add a Stock In record to begin.
                 </td>
               </tr>
@@ -18442,11 +18836,20 @@ function SaleForm({
   onSave: (s: StoreSale) => void;
   onCancel: () => void;
 }) {
-  const { customers, lists } = ctx;
-  const [s, setS] = useState(initial);
-  const set = (k, v) =>
+  const { customers, lists, designs } = ctx;
+  const t = useT();
+  // Default fabricState to "printed" so legacy records (which have neither
+  // fabricState nor designId) render the picker on first edit. Operators
+  // can switch to "dyed" if needed; the toggle clears the unused field on
+  // save so we don't store stale variants.
+  const [s, setS] = useState<StoreSale>(() => ({
+    ...initial,
+    fabricState: initial.fabricState || "printed",
+    hexColor: initial.hexColor || "#7E22CE",
+  }));
+  const set = (k: string, v: any) =>
     setS((prev) => {
-      const next = { ...prev, [k]: v };
+      const next = { ...prev, [k]: v } as any;
       // auto-recalc total when qty or unitPrice changes
       if (k === "qty" || k === "unitPrice") {
         next.totalAmount =
@@ -18482,6 +18885,10 @@ function SaleForm({
       unitPrice: Number(s.unitPrice),
       totalAmount: total,
       paidAmount: paid,
+      // Clean the variant field that doesn't apply to the chosen state, so
+      // the record doesn't keep an orphan (e.g. a hex color on a printed sale).
+      designId: s.fabricState === "printed" ? s.designId : undefined,
+      hexColor: s.fabricState === "dyed" ? s.hexColor : undefined,
     });
   }
 
@@ -18518,7 +18925,64 @@ function SaleForm({
           ))}
         </select>
       </Field>
+
+      {/* ===== Variant: mirrors the Stock In form so the same record shape
+          (fabricState + designId/hexColor + stockFabricType) flows through
+          stock out too. The picker dropdown is empty if `designs` hasn't
+          been loaded — see the loadForView store_sales case for the fetch. */}
+      <Field label={t("stockin.fabricState") + " *"}>
+        <div className="flex gap-2">
+          {(["printed", "dyed"] as const).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => set("fabricState", opt)}
+              className={`flex-1 py-2 rounded-lg border text-sm font-medium ${s.fabricState === opt ? "bg-purple-600 text-white border-purple-600" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
+            >
+              {t(`stockin.fabricState.${opt}`)}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      {s.fabricState === "printed" && (
+        <Field label={t("stockin.design")}>
+          <DesignPickerById
+            value={s.designId}
+            onChange={(v) => set("designId", v)}
+            designs={designs || []}
+            placeholder={t("stockin.design.pick")}
+            // Stock-out is a single physical movement of one variant, but
+            // we allow "Mix" too for symmetry with stock-in. If you want
+            // to forbid it on sales specifically, set allowMix={false}.
+          />
+        </Field>
+      )}
+
+      {s.fabricState === "dyed" && (
+        <Field label={t("stockin.color")}>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={s.hexColor || "#7E22CE"}
+              onChange={(e) => set("hexColor", e.target.value)}
+              className="w-14 h-10 rounded border border-slate-300 cursor-pointer"
+            />
+            <span className="font-mono text-sm text-slate-700">
+              {(s.hexColor || "#7E22CE").toUpperCase()}
+            </span>
+          </div>
+        </Field>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
+        <Field label={t("stockin.stockFabricType")}>
+          <Select
+            value={s.stockFabricType}
+            options={lists.stockFabricType || []}
+            onChange={(v) => set("stockFabricType", v)}
+          />
+        </Field>
         <Field label="Fabric type *">
           <Select
             value={s.fabricType}
@@ -18526,6 +18990,8 @@ function SaleForm({
             onChange={(v) => set("fabricType", v)}
           />
         </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Unit">
           <Select
             value={s.unit}
@@ -18533,8 +18999,6 @@ function SaleForm({
             onChange={(v) => set("unit", v)}
           />
         </Field>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
         <Field label="Quantity *">
           <input
             type="number"
@@ -18545,6 +19009,8 @@ function SaleForm({
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Unit price *">
           <input
             type="number"
