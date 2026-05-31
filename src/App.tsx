@@ -366,6 +366,8 @@ const TRANSLATIONS = {
     "stockin.fabricState.dyed": "Dyed",
     "stockin.design": "Design",
     "stockin.design.mix": "Mix (multiple designs)",
+    "stockin.design.remainder": "Mixed Remainder",
+    "stockin.design.remainder.help": "Leftover small pieces from many designs, pooled together.",
     "stockin.design.pick": "Pick a design…",
     "stockin.color": "Color",
     "stockin.stockFabricType": "Stock Fabric Type",
@@ -719,6 +721,8 @@ const TRANSLATIONS = {
     "stockin.fabricState.dyed": "Boʻyalgan",
     "stockin.design": "Dizayn",
     "stockin.design.mix": "Aralash (bir nechta dizayn)",
+    "stockin.design.remainder": "Aralash qoldiq",
+    "stockin.design.remainder.help": "Turli dizaynlardan qolgan kichik boʻlaklar yigʻindisi.",
     "stockin.design.pick": "Dizayn tanlang…",
     "stockin.color": "Rang",
     "stockin.stockFabricType": "Doʻkon mato turi",
@@ -1204,7 +1208,10 @@ interface StoreSale {
   // with older records that didn't capture this.
   stockFabricType?: string;
   fabricState?: "printed" | "dyed";
-  designId?: string | "mix";
+  // designId can be a real Design._id, "mix" (multiple designs in one entry,
+  // not separable), or "remainder" (mixed-design leftover bin, pooled across
+  // all designs — has its own row on Current Stock and is sellable).
+  designId?: string | "mix" | "remainder";
   hexColor?: string;
   // ----- Roll-line capture (v3) -----
   // When unit=rolls, sales record which specific roll lengths are being
@@ -1243,8 +1250,10 @@ interface StoreStockIn {
   // NEW: incoming state of the fabric — only "printed" or "dyed" today.
   fabricState?: "printed" | "dyed";
   // NEW: design reference (when fabricState=printed). "mix" means the
-  // record contains rolls of multiple designs.
-  designId?: string | "mix";
+  // record contains rolls of multiple designs in one entry. "remainder"
+  // means it goes into the shared "mixed remainder" bin — small leftover
+  // pieces from many runs pooled together.
+  designId?: string | "mix" | "remainder";
   // NEW: hex color string (when fabricState=dyed). Includes the leading '#'.
   hexColor?: string;
   // NEW: roll lines (when unit=rolls). Each line is e.g. 34×30m.
@@ -12527,7 +12536,7 @@ function DesignPickerById({
   const [addingDesign, setAddingDesign] = useState<Design | null>(null);
 
   const selected = useMemo(() => {
-    if (!value || value === "mix") return null;
+    if (!value || value === "mix" || value === "remainder") return null;
     return designs.find((d) => d.id === value) || null;
   }, [designs, value]);
 
@@ -12555,6 +12564,10 @@ function DesignPickerById({
           {value === "mix" ? (
             <span className="text-slate-700 font-medium">
               {t("stockin.design.mix")}
+            </span>
+          ) : value === "remainder" ? (
+            <span className="text-amber-700 font-medium">
+              ♻ {t("stockin.design.remainder")}
             </span>
           ) : selected ? (
             <>
@@ -12642,6 +12655,28 @@ function DesignPickerById({
                 </div>
                 <div className="text-xs font-medium truncate">
                   {t("stockin.design.mix")}
+                </div>
+              </button>
+            )}
+            {/* Mixed Remainder sentinel — sits next to Mix. Visually distinct
+                (amber instead of purple) so operators don't confuse them.
+                Mix = "this one entry is multi-design". Remainder = "drop into
+                the shared leftover bin that's pooled across all designs". */}
+            {allowMix && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("remainder");
+                  setOpen(false);
+                }}
+                className={`text-left rounded p-1 border ${value === "remainder" ? "border-amber-400 bg-amber-50" : "border-transparent hover:border-amber-300 hover:bg-slate-50"}`}
+                title={t("stockin.design.remainder.help")}
+              >
+                <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 rounded mb-1 flex items-center justify-center">
+                  <span className="text-lg">♻</span>
+                </div>
+                <div className="text-xs font-medium truncate">
+                  {t("stockin.design.remainder")}
                 </div>
               </button>
             )}
@@ -17888,6 +17923,7 @@ function StoreStockInView({ ctx }: CtxProps) {
     }
     if (r.fabricState === "printed") {
       if (r.designId === "mix") return t("stockin.design.mix");
+      if (r.designId === "remainder") return t("stockin.design.remainder");
       if (r.designId && designById[r.designId]) {
         return designById[r.designId].designNumber;
       }
@@ -18593,7 +18629,7 @@ function StoreStockView({ ctx }: CtxProps) {
   const stockByDesign = useMemo(() => {
     type Row = {
       key: string;
-      kind: "design" | "color" | "fabric";
+      kind: "design" | "color" | "fabric" | "remainder";
       designId?: string;
       designNumber?: string;
       designName?: string;
@@ -18619,8 +18655,13 @@ function StoreStockView({ ctx }: CtxProps) {
 
     function keyFor(r: { fabricState?: string; designId?: string; hexColor?: string; fabricType?: string }): {
       key: string;
-      kind: "design" | "color" | "fabric";
+      kind: "design" | "color" | "fabric" | "remainder";
     } {
+      // Mixed Remainder bucket: pooled across ALL stock-ins with
+      // designId === "remainder". Single global row.
+      if (r.designId === "remainder") {
+        return { key: "r:remainder", kind: "remainder" };
+      }
       if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
         return { key: `d:${r.designId}`, kind: "design" };
       }
@@ -18630,9 +18671,9 @@ function StoreStockView({ ctx }: CtxProps) {
       return { key: `f:${r.fabricType || "(unspecified)"}`, kind: "fabric" };
     }
 
-    function ensure(r: any, kind: "design" | "color" | "fabric", key: string): Row {
+    function ensure(r: any, kind: "design" | "color" | "fabric" | "remainder", key: string): Row {
       if (!m[key]) {
-        const d = r.designId ? designById[r.designId] : null;
+        const d = r.designId && kind === "design" ? designById[r.designId] : null;
         m[key] = {
           key,
           kind,
@@ -18836,6 +18877,36 @@ function StoreStockView({ ctx }: CtxProps) {
 
       // ===== Fetch + transform images in parallel =====
       const rowsForExport = stockByDesign;
+      // Render the "remainder" cell as a static amber gradient swatch with
+      // the ♻ glyph centered. Generated once and reused via closure.
+      function remainderSwatchBuffer(): ArrayBuffer | null {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = IMG_W;
+          canvas.height = IMG_H;
+          const cx = canvas.getContext("2d");
+          if (!cx) return null;
+          const g = cx.createLinearGradient(0, 0, IMG_W, IMG_H);
+          g.addColorStop(0, "#fef3c7");
+          g.addColorStop(1, "#fed7aa");
+          cx.fillStyle = g;
+          cx.fillRect(0, 0, IMG_W, IMG_H);
+          cx.fillStyle = "#92400e";
+          cx.font = "32px sans-serif";
+          cx.textAlign = "center";
+          cx.textBaseline = "middle";
+          cx.fillText("♻", IMG_W / 2, IMG_H / 2);
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+          const bin = atob(base64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        } catch {
+          return null;
+        }
+      }
+
       const processedImages: (ArrayBuffer | null)[] = await Promise.all(
         rowsForExport.map(async (r) => {
           if (r.kind === "design") {
@@ -18854,6 +18925,9 @@ function StoreStockView({ ctx }: CtxProps) {
           if (r.kind === "color" && r.hexColor) {
             return hexSwatchBuffer(r.hexColor);
           }
+          if (r.kind === "remainder") {
+            return remainderSwatchBuffer();
+          }
           return null;
         }),
       );
@@ -18863,12 +18937,14 @@ function StoreStockView({ ctx }: CtxProps) {
         const rowNumber = i + 2; // header is row 1
         // Label cell: for dyed rows, prefer the color name (the human label
         // the operator typed) and fall back to hex. For printed designs,
-        // the design number. For unspecified, a marker.
+        // the design number. For remainder, the localised label. Else, a marker.
         let label = "—";
         if (r.kind === "design") {
           label = r.designNumber || "—";
         } else if (r.kind === "color") {
           label = r.colorName || r.hexColor || "";
+        } else if (r.kind === "remainder") {
+          label = t("stockin.design.remainder");
         } else {
           label = "(no variant)";
         }
@@ -19039,6 +19115,10 @@ function StoreStockView({ ctx }: CtxProps) {
                         className="w-12 h-12 rounded border border-slate-200"
                         style={{ backgroundColor: r.hexColor }}
                       />
+                    ) : r.kind === "remainder" ? (
+                      <div className="w-12 h-12 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-2xl">
+                        ♻
+                      </div>
                     ) : (
                       <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center">
                         <ImageIcon size={18} className="text-slate-300" />
@@ -19067,6 +19147,10 @@ function StoreStockView({ ctx }: CtxProps) {
                         <div className="font-mono text-xs text-slate-500">
                           {r.hexColor?.toUpperCase()}
                         </div>
+                      </div>
+                    ) : r.kind === "remainder" ? (
+                      <div className="font-medium text-amber-700">
+                        {t("stockin.design.remainder")}
                       </div>
                     ) : (
                       <span className="text-slate-500 italic text-xs">
@@ -19379,7 +19463,7 @@ function SaleForm({
     type LengthMap = Record<number, number>;
     type GroupInfo = {
       key: string;
-      kind: "design" | "color";
+      kind: "design" | "color" | "remainder";
       designId?: string;
       designNumber?: string;
       designName?: string;
@@ -19389,7 +19473,12 @@ function SaleForm({
     };
     const groups: Record<string, GroupInfo> = {};
 
-    function groupKey(r: any): { key: string; kind: "design" | "color" } | null {
+    function groupKey(r: any): { key: string; kind: "design" | "color" | "remainder" } | null {
+      // Remainder bin: pooled across all stock-ins with designId === "remainder".
+      // One global group in the picker.
+      if (r.designId === "remainder") {
+        return { key: "r:remainder", kind: "remainder" };
+      }
       if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
         return { key: `d:${r.designId}`, kind: "design" };
       }
@@ -19399,9 +19488,9 @@ function SaleForm({
       return null;
     }
 
-    function ensureGroup(r: any, key: string, kind: "design" | "color") {
+    function ensureGroup(r: any, key: string, kind: "design" | "color" | "remainder") {
       if (groups[key]) return groups[key];
-      const d = r.designId ? designs.find((x) => x.id === r.designId) : null;
+      const d = r.designId && kind === "design" ? designs.find((x) => x.id === r.designId) : null;
       const g: GroupInfo = {
         key,
         kind,
@@ -19470,8 +19559,11 @@ function SaleForm({
         });
       }
     }
-    // Sort by group then by length asc for predictable order.
+    // Sort by group then by length asc. Remainder bin always sinks to the
+    // bottom regardless of name, since it's the catch-all.
     rows.sort((a, b) => {
+      if (a.kind === "remainder" && b.kind !== "remainder") return 1;
+      if (b.kind === "remainder" && a.kind !== "remainder") return -1;
       if (a.groupKey !== b.groupKey) {
         return (a.designNumber || a.hexColor || "").localeCompare(
           b.designNumber || b.hexColor || "",
@@ -19489,7 +19581,13 @@ function SaleForm({
   // an existing sale shows the previous picks.
   const initialPicks = useMemo(() => {
     const m: Record<string, number> = {};
-    if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
+    // Remainder sale: rollLines come from the shared "r:remainder" group.
+    if (s.designId === "remainder") {
+      for (const ln of s.rollLines || []) {
+        const k = `r:remainder|${ln.length}`;
+        m[k] = (m[k] || 0) + ln.qty;
+      }
+    } else if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
       for (const ln of s.rollLines || []) {
         m[`d:${s.designId}|${ln.length}`] = (m[`d:${s.designId}|${ln.length}`] || 0) + ln.qty;
       }
@@ -19524,7 +19622,7 @@ function SaleForm({
   const pickedRows = useMemo(() => {
     const out: {
       groupKey: string;
-      kind: "design" | "color";
+      kind: "design" | "color" | "remainder";
       designId?: string;
       hexColor?: string;
       colorName?: string;
@@ -19594,17 +19692,29 @@ function SaleForm({
     );
     const rollLines = inGroup.map((p) => ({ length: p.length, qty: p.qty }));
 
+    // Variant fields based on the picked group's kind. Remainder is stored
+    // as designId="remainder" + fabricState="printed" — mirroring how the
+    // stock-in side encodes it, so the grouping logic finds these sales
+    // and subtracts them from the remainder bin.
+    const variantFields: Partial<StoreSale> =
+      firstGroup.kind === "remainder"
+        ? { fabricState: "printed", designId: "remainder", hexColor: undefined }
+        : firstGroup.kind === "design"
+          ? {
+              fabricState: "printed",
+              designId: firstGroup.designId,
+              hexColor: undefined,
+            }
+          : {
+              fabricState: "dyed",
+              designId: undefined,
+              hexColor: firstGroup.hexColor,
+            };
+
     onSave({
       ...s,
       customerId: s.customerId,
-      fabricState: firstGroup.kind === "design" ? "printed" : "dyed",
-      designId: firstGroup.kind === "design" ? firstGroup.designId : undefined,
-      hexColor: firstGroup.kind === "color" ? firstGroup.hexColor : undefined,
-      // Color name carried along for dyed sales (display label).
-      ...(firstGroup.kind === "color" && firstGroup.colorName
-        ? { /* sales schema doesn't store colorName directly; we keep it
-              in notes for now to avoid a model change. Leave a marker. */ }
-        : {}),
+      ...variantFields,
       unit: "rolls",
       rollLines,
       extraMeters: 0,
@@ -19612,8 +19722,6 @@ function SaleForm({
       unitPrice: finalPrice,
       totalAmount: total,
       paidAmount: paid,
-      // discountPerMeter is a sale-time field; not on the type yet but we
-      // attach it loosely so reports can show it.
       ...(discount > 0 ? { discountPerMeter: discount, basePrice } : {}),
     } as any);
   }
@@ -19716,12 +19824,18 @@ function SaleForm({
                               className="w-8 h-8 rounded border border-slate-200"
                               style={{ backgroundColor: row.hexColor }}
                             />
+                          ) : row.kind === "remainder" ? (
+                            <div className="w-8 h-8 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                              ♻
+                            </div>
                           ) : null}
                           <div>
                             <div className="font-mono font-medium text-xs">
                               {row.kind === "design"
                                 ? row.designNumber
-                                : row.colorName || row.hexColor}
+                                : row.kind === "remainder"
+                                  ? t("stockin.design.remainder")
+                                  : row.colorName || row.hexColor}
                             </div>
                             {row.designName && (
                               <div className="text-[10px] text-slate-500 truncate">
