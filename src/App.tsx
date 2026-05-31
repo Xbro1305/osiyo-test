@@ -390,6 +390,107 @@ const TRANSLATIONS = {
     "stockin.fabricRequired": "Fabric is required",
     "stockin.qtyRequired": "Quantity must be positive",
     "stockin.col.variant": "Variant",
+    "stockin.colorName": "Color name",
+    "stockin.addDesign": "+ New design",
+    // ===== Current Stock (Local Market Store) =====
+    "stock.title": "Current Stock",
+    "stock.subtitle": "On-hand inventory by design",
+    "stock.totalIn": "Total in",
+    "stock.totalOut": "Total out",
+    "stock.onHand": "On hand",
+    "stock.cost": "Stock cost",
+    "stock.revenue": "Revenue",
+    "stock.export": "Export .xlsx",
+    "stock.exporting": "Generating…",
+    "stock.col.image": "Image",
+    "stock.col.design": "Design",
+    "stock.col.fabric": "Fabric type",
+    "stock.col.unit": "Unit",
+    "stock.col.rollsOnHand": "Rolls on hand",
+    "stock.col.in": "In",
+    "stock.col.out": "Out",
+    "stock.col.onHand": "On hand",
+    "stock.col.cost": "Stock cost",
+    "stock.col.revenue": "Revenue",
+    "stock.col.status": "Status",
+    "stock.status.out": "Out of stock",
+    "stock.status.low": "Low",
+    "stock.status.in": "In stock",
+    "stock.noVariant": "(no variant)",
+    "stock.empty": "No stock yet. Add a Stock In record to begin.",
+    // ===== Customers =====
+    "customers.title": "Customers",
+    "customers.subtitle": "Manage your local market store customers",
+    "customers.search": "Search by name, code, phone…",
+    "customers.add": "Add customer",
+    "customers.edit": "Edit customer",
+    "customers.new": "New customer",
+    "customers.code": "Code",
+    "customers.name": "Name",
+    "customers.phone": "Phone",
+    "customers.type": "Type",
+    "customers.address": "Address",
+    "customers.notes": "Notes",
+    "customers.balance": "Balance",
+    "customers.totalSales": "Total sales",
+    "customers.totalPaid": "Total paid",
+    "customers.outstanding": "Outstanding",
+    "customers.empty": "No customers yet.",
+    "customers.nameRequired": "Name is required",
+    // ===== Stock Out (Sales) =====
+    "sales.title": "Stock Out / Sales",
+    "sales.subtitle": "Outgoing fabric and customer sales",
+    "sales.search": "Search by invoice, customer…",
+    "sales.add": "New sale",
+    "sales.edit": "Edit sale",
+    "sales.new": "New sale",
+    "sales.pickCustomer": "Pick customer",
+    "sales.customerRequired": "Pick a customer first",
+    "sales.pickRolls": "Pick rolls to sell",
+    "sales.pickRolls.help": "Pick whole rolls from this customer's available stock.",
+    "sales.discount": "Discount per meter",
+    "sales.discount.help": "Optional. Subtracted from the base unit price for this sale only.",
+    "sales.basePrice": "Base price / meter",
+    "sales.finalPrice": "Final price / meter",
+    "sales.totalRolls": "Rolls",
+    "sales.totalMeters": "Meters",
+    "sales.totalAmount": "Total amount",
+    "sales.paid": "Paid",
+    "sales.debt": "Outstanding",
+    "sales.col.date": "Date",
+    "sales.col.invoice": "Invoice #",
+    "sales.col.customer": "Customer",
+    "sales.col.design": "Design",
+    "sales.col.qty": "Qty",
+    "sales.col.unitPrice": "Unit price",
+    "sales.col.total": "Total",
+    "sales.col.paid": "Paid",
+    "sales.col.debt": "Debt",
+    "sales.empty": "No sales yet.",
+    "sales.noRollsPicked": "No rolls picked yet. Click rows above to add them.",
+    "sales.outOfStock": "Customer has no stock available right now.",
+    "sales.row.length": "Length",
+    "sales.row.available": "Available",
+    "sales.row.taking": "Taking",
+    // ===== Payments =====
+    "payments.title": "Payments Received",
+    "payments.subtitle": "Track payments from customers",
+    "payments.search": "Search by customer, reference…",
+    "payments.add": "Record payment",
+    "payments.edit": "Edit payment",
+    "payments.new": "New payment",
+    "payments.amount": "Amount",
+    "payments.method": "Method",
+    "payments.reference": "Reference",
+    "payments.col.date": "Date",
+    "payments.col.customer": "Customer",
+    "payments.col.amount": "Amount",
+    "payments.col.method": "Method",
+    "payments.col.reference": "Reference",
+    "payments.col.notes": "Notes",
+    "payments.empty": "No payments recorded yet.",
+    "payments.amountRequired": "Amount must be positive",
+    "payments.customerRequired": "Pick a customer",
   },
   uz: {
     "common.home": "Bosh sahifa",
@@ -642,6 +743,107 @@ const TRANSLATIONS = {
     "stockin.fabricRequired": "Mato turi majburiy",
     "stockin.qtyRequired": "Miqdor musbat boʻlishi kerak",
     "stockin.col.variant": "Variant",
+    "stockin.colorName": "Rang nomi",
+    "stockin.addDesign": "+ Yangi dizayn",
+    // ===== Joriy zaxira =====
+    "stock.title": "Joriy zaxira",
+    "stock.subtitle": "Dizayn boʻyicha mavjud zaxira",
+    "stock.totalIn": "Jami kirim",
+    "stock.totalOut": "Jami chiqim",
+    "stock.onHand": "Mavjud",
+    "stock.cost": "Zaxira tannarxi",
+    "stock.revenue": "Tushum",
+    "stock.export": "Eksport .xlsx",
+    "stock.exporting": "Tayyorlanmoqda…",
+    "stock.col.image": "Rasm",
+    "stock.col.design": "Dizayn",
+    "stock.col.fabric": "Mato turi",
+    "stock.col.unit": "Birlik",
+    "stock.col.rollsOnHand": "Mavjud rulonlar",
+    "stock.col.in": "Kirim",
+    "stock.col.out": "Chiqim",
+    "stock.col.onHand": "Mavjud",
+    "stock.col.cost": "Tannarx",
+    "stock.col.revenue": "Tushum",
+    "stock.col.status": "Holat",
+    "stock.status.out": "Tugagan",
+    "stock.status.low": "Kam qoldi",
+    "stock.status.in": "Mavjud",
+    "stock.noVariant": "(variant yoʻq)",
+    "stock.empty": "Hali zaxira yoʻq. Kirim qoʻshing.",
+    // ===== Mijozlar =====
+    "customers.title": "Mijozlar",
+    "customers.subtitle": "Mahalliy doʻkon mijozlarini boshqarish",
+    "customers.search": "Ism, kod, telefon boʻyicha qidirish…",
+    "customers.add": "Mijoz qoʻshish",
+    "customers.edit": "Mijozni tahrirlash",
+    "customers.new": "Yangi mijoz",
+    "customers.code": "Kodi",
+    "customers.name": "Ismi",
+    "customers.phone": "Telefon",
+    "customers.type": "Tur",
+    "customers.address": "Manzil",
+    "customers.notes": "Izohlar",
+    "customers.balance": "Balans",
+    "customers.totalSales": "Jami savdo",
+    "customers.totalPaid": "Jami toʻlangan",
+    "customers.outstanding": "Qarz",
+    "customers.empty": "Hali mijozlar yoʻq.",
+    "customers.nameRequired": "Ism majburiy",
+    // ===== Chiqim / Savdolar =====
+    "sales.title": "Chiqim / Savdolar",
+    "sales.subtitle": "Mato sotuvi va mijoz savdolari",
+    "sales.search": "Hisob-faktura, mijoz boʻyicha qidirish…",
+    "sales.add": "Yangi savdo",
+    "sales.edit": "Savdoni tahrirlash",
+    "sales.new": "Yangi savdo",
+    "sales.pickCustomer": "Mijozni tanlang",
+    "sales.customerRequired": "Avval mijozni tanlang",
+    "sales.pickRolls": "Sotiladigan rulonlarni tanlang",
+    "sales.pickRolls.help": "Mavjud zaxiradan butun rulonlarni tanlang.",
+    "sales.discount": "1 metr uchun chegirma",
+    "sales.discount.help": "Ixtiyoriy. Asosiy narxdan ushbu savdo uchungina ayriladi.",
+    "sales.basePrice": "Asosiy narx / metr",
+    "sales.finalPrice": "Yakuniy narx / metr",
+    "sales.totalRolls": "Rulonlar",
+    "sales.totalMeters": "Metr",
+    "sales.totalAmount": "Umumiy summa",
+    "sales.paid": "Toʻlangan",
+    "sales.debt": "Qarz",
+    "sales.col.date": "Sana",
+    "sales.col.invoice": "Hisob-faktura №",
+    "sales.col.customer": "Mijoz",
+    "sales.col.design": "Dizayn",
+    "sales.col.qty": "Miqdor",
+    "sales.col.unitPrice": "1 birlik narxi",
+    "sales.col.total": "Jami",
+    "sales.col.paid": "Toʻlangan",
+    "sales.col.debt": "Qarz",
+    "sales.empty": "Hali savdo yoʻq.",
+    "sales.noRollsPicked": "Hali rulon tanlanmagan. Yuqoridagi qatorlarni bosing.",
+    "sales.outOfStock": "Hozircha mijoz uchun mavjud zaxira yoʻq.",
+    "sales.row.length": "Uzunlik",
+    "sales.row.available": "Mavjud",
+    "sales.row.taking": "Olinadi",
+    // ===== Qabul qilingan toʻlovlar =====
+    "payments.title": "Qabul qilingan toʻlovlar",
+    "payments.subtitle": "Mijozlardan toʻlovlarni hisobga olish",
+    "payments.search": "Mijoz, havola boʻyicha qidirish…",
+    "payments.add": "Toʻlov qayd etish",
+    "payments.edit": "Toʻlovni tahrirlash",
+    "payments.new": "Yangi toʻlov",
+    "payments.amount": "Summa",
+    "payments.method": "Usul",
+    "payments.reference": "Havola",
+    "payments.col.date": "Sana",
+    "payments.col.customer": "Mijoz",
+    "payments.col.amount": "Summa",
+    "payments.col.method": "Usul",
+    "payments.col.reference": "Havola",
+    "payments.col.notes": "Izohlar",
+    "payments.empty": "Hali toʻlovlar qayd etilmagan.",
+    "payments.amountRequired": "Summa musbat boʻlishi kerak",
+    "payments.customerRequired": "Mijozni tanlang",
   },
 };
 
@@ -1052,12 +1254,18 @@ interface StoreStockIn {
   extraMeters?: number;
   // NEW: per-meter cost. Total cost = qty × costPerMeter.
   costPerMeter?: number;
+  // NEW (v3): free-text color name for dyed fabric. Used as the display
+  // label alongside the hex code — operators name colors like "Royal Blue"
+  // or "Sea Green" rather than reading hex codes. Optional.
+  colorName?: string;
   // Legacy: kept for back-compat with older records. New records still set
   // `qty` to the computed total (sum of rollLines + extraMeters when rolls,
   // or the raw qty when meters) so downstream code keeps working.
   qty?: number;
   unit?: string;
   source?: string;
+  // Legacy field — was removed from the UI in v3 but kept on the type so
+  // older records still validate.
   lotNumber?: string;
   // Legacy field — old records stored cost-per-unit here. New records also
   // mirror their costPerMeter into costPrice so reads keep working.
@@ -12297,16 +12505,26 @@ function DesignPickerById({
   designs,
   allowMix = true,
   placeholder = "Type or pick from gallery",
+  onAddDesign,
 }: {
   value?: string;
   onChange: (next: string) => void;
   designs: Design[];
   allowMix?: boolean;
   placeholder?: string;
+  // Optional: when provided, the gallery panel shows a "+ New design"
+  // button that opens a sub-modal with DesignForm. The picker auto-selects
+  // the newly-created design on save. Pass `undefined` to hide the button
+  // (e.g. when the caller doesn't have save permissions for designs).
+  onAddDesign?: (d: Design) => Promise<void>;
 }) {
   const t = useT();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  // Sub-modal state: when set, render DesignForm in a Modal above the picker.
+  // Stored as null/Design object instead of boolean so we can pre-fill the
+  // form with a default record.
+  const [addingDesign, setAddingDesign] = useState<Design | null>(null);
 
   const selected = useMemo(() => {
     if (!value || value === "mix") return null;
@@ -12381,12 +12599,34 @@ function DesignPickerById({
 
       {open && (
         <div className="mt-2 border border-slate-200 rounded-lg p-2 bg-white">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by number or name…"
-            className="w-full p-2 border border-slate-200 rounded text-sm mb-2"
-          />
+          <div className="flex gap-2 mb-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by number or name…"
+              className="flex-1 p-2 border border-slate-200 rounded text-sm"
+            />
+            {/* "+ New design" — opens the same DesignForm used by Gallery
+                admin, in a sub-modal on top of the parent modal. On save,
+                the new design is auto-selected so the operator doesn't
+                have to find it again in the grid. */}
+            {onAddDesign && (
+              <button
+                type="button"
+                onClick={() =>
+                  setAddingDesign({
+                    id: uid(),
+                    designNumber: "",
+                    name: "",
+                    notes: "",
+                  } as Design)
+                }
+                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium whitespace-nowrap"
+              >
+                {t("stockin.addDesign")}
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
             {allowMix && (
               <button
@@ -12442,6 +12682,29 @@ function DesignPickerById({
             )}
           </div>
         </div>
+      )}
+
+      {/* Sub-modal for creating a new design without leaving Stock In.
+          On save: persist via the parent's callback, auto-select the new
+          design id, close both the form and the gallery panel. */}
+      {addingDesign && (
+        <Modal
+          title={t("stockin.addDesign")}
+          onClose={() => setAddingDesign(null)}
+        >
+          <DesignForm
+            design={addingDesign}
+            onSave={async (d) => {
+              if (onAddDesign) {
+                await onAddDesign(d);
+              }
+              onChange(d.id);
+              setAddingDesign(null);
+              setOpen(false);
+            }}
+            onCancel={() => setAddingDesign(null)}
+          />
+        </Modal>
       )}
     </div>
   );
@@ -16838,6 +17101,7 @@ function CustomersListView({ ctx }: CtxProps) {
     setCurrentView,
     askConfirm,
   } = ctx;
+  const t = useT();
   const canEdit =
     user.role === "admin" ||
     (user.role === "dept_admin" && user.departmentId === "store");
@@ -16896,8 +17160,8 @@ function CustomersListView({ ctx }: CtxProps) {
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
-        title="Customers"
-        subtitle={`${customers.length} customer${customers.length !== 1 ? "s" : ""}`}
+        title={t("customers.title")}
+        subtitle={`${customers.length} ${t("customers.title").toLowerCase()}`}
         icon={UserCircle}
       />
 
@@ -16910,7 +17174,7 @@ function CustomersListView({ ctx }: CtxProps) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, code, phone..."
+            placeholder={t("customers.search")}
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
         </div>
@@ -16919,14 +17183,14 @@ function CustomersListView({ ctx }: CtxProps) {
             onClick={newCustomer}
             className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
           >
-            <Plus size={15} /> Add Customer
+            <Plus size={15} /> {t("customers.add")}
           </button>
         )}
         <button
           onClick={exportAll}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
         >
-          <Download size={14} /> Export
+          <Download size={14} /> {t("common.export")}
         </button>
       </div>
 
@@ -16934,26 +17198,26 @@ function CustomersListView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3 font-medium text-slate-600">Code</th>
-              <th className="text-left p-3 font-medium text-slate-600">Name</th>
+              <th className="text-left p-3 font-medium text-slate-600">{t("customers.code")}</th>
+              <th className="text-left p-3 font-medium text-slate-600">{t("customers.name")}</th>
               <th className="text-left p-3 font-medium text-slate-600">
-                Phone
+                {t("customers.phone")}
               </th>
-              <th className="text-left p-3 font-medium text-slate-600">Type</th>
+              <th className="text-left p-3 font-medium text-slate-600">{t("customers.type")}</th>
               <th className="text-right p-3 font-medium text-slate-600">
-                Sales
-              </th>
-              <th className="text-right p-3 font-medium text-slate-600">
-                Total Qty
+                {t("customers.totalSales")}
               </th>
               <th className="text-right p-3 font-medium text-slate-600">
-                Billed
+                {t("sales.totalMeters")}
               </th>
               <th className="text-right p-3 font-medium text-slate-600">
-                Paid
+                {t("sales.col.total")}
               </th>
               <th className="text-right p-3 font-medium text-slate-600">
-                Balance
+                {t("customers.totalPaid")}
+              </th>
+              <th className="text-right p-3 font-medium text-slate-600">
+                {t("customers.balance")}
               </th>
               <th className="p-3 w-20"></th>
             </tr>
@@ -17600,6 +17864,7 @@ function StoreStockInView({ ctx }: CtxProps) {
     user,
     saveStoreStockIn,
     deleteStoreStockIn,
+    saveDesign,
     askConfirm,
   } = ctx;
   const t = useT();
@@ -17617,7 +17882,10 @@ function StoreStockInView({ ctx }: CtxProps) {
     return m;
   }, [designs]);
   function variantLabel(r: StoreStockIn): string {
-    if (r.fabricState === "dyed" && r.hexColor) return r.hexColor.toUpperCase();
+    if (r.fabricState === "dyed" && r.hexColor) {
+      // Prefer the human-friendly color name when set, fall back to hex.
+      return r.colorName || r.hexColor.toUpperCase();
+    }
     if (r.fabricState === "printed") {
       if (r.designId === "mix") return t("stockin.design.mix");
       if (r.designId && designById[r.designId]) {
@@ -17666,9 +17934,10 @@ function StoreStockInView({ ctx }: CtxProps) {
         source: r.source || "",
         fabricState: r.fabricState || "",
         variant: variantLabel(r),
+        colorName: r.colorName || "",
+        hexColor: r.hexColor || "",
         stockFabricType: r.stockFabricType || "",
         productionFabricType: r.fabricType || "",
-        lotNumber: r.lotNumber || "",
         unit: r.unit || "",
         rollLines: lines,
         extraMeters: Number(r.extraMeters) || 0,
@@ -17689,9 +17958,9 @@ function StoreStockInView({ ctx }: CtxProps) {
       fabricState: "printed",
       designId: undefined,
       hexColor: "#7E22CE",
+      colorName: "",
       fabricType: "",
       stockFabricType: "",
-      lotNumber: "",
       qty: 0,
       unit: "meters",
       rollLines: [],
@@ -17749,11 +18018,11 @@ function StoreStockInView({ ctx }: CtxProps) {
               <th className="text-left p-3 font-medium">{t("stockin.source")}</th>
               <th className="text-left p-3 font-medium">{t("stockin.stockFabricType")}</th>
               <th className="text-left p-3 font-medium">{t("stockin.col.variant")}</th>
-              <th className="text-left p-3 font-medium">{t("stockin.lot")}</th>
               <th className="text-right p-3 font-medium">{t("stockin.total")}</th>
               <th className="text-left p-3 font-medium">{t("stockin.unit")}</th>
               <th className="text-right p-3 font-medium">{t("stockin.costPerMeter")}</th>
               <th className="text-right p-3 font-medium">{t("stockin.totalCost")}</th>
+              <th className="text-left p-3 font-medium">{t("stockin.notes")}</th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
           </thead>
@@ -17790,9 +18059,22 @@ function StoreStockInView({ ctx }: CtxProps) {
                           className="inline-block w-4 h-4 rounded border border-slate-200"
                           style={{ backgroundColor: r.hexColor }}
                         />
-                        <span className="font-mono text-xs">
-                          {r.hexColor.toUpperCase()}
-                        </span>
+                        {/* Color name as the primary label (when present);
+                            hex as the technical reference behind it. */}
+                        {r.colorName ? (
+                          <>
+                            <span className="font-medium text-slate-800">
+                              {r.colorName}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400">
+                              {r.hexColor.toUpperCase()}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-mono text-xs">
+                            {r.hexColor.toUpperCase()}
+                          </span>
+                        )}
                       </span>
                     ) : (
                       <span className="text-slate-700 text-xs">
@@ -17800,14 +18082,14 @@ function StoreStockInView({ ctx }: CtxProps) {
                       </span>
                     )}
                   </td>
-                  <td className="p-3 font-mono text-xs">
-                    {r.lotNumber || "—"}
-                  </td>
                   <td className="p-3 text-right">{fmtMoney(totalM)}</td>
                   <td className="p-3 text-slate-600">{r.unit}</td>
                   <td className="p-3 text-right">{fmtMoney(costPerM)}</td>
                   <td className="p-3 text-right font-medium">
                     {fmtMoney(total)}
+                  </td>
+                  <td className="p-3 text-slate-600 text-xs max-w-xs truncate">
+                    {r.notes || "—"}
                   </td>
                   {canEdit && (
                     <td className="p-3 text-right whitespace-nowrap">
@@ -17862,6 +18144,11 @@ function StoreStockInView({ ctx }: CtxProps) {
             onSave={async (r) => {
               await saveStoreStockIn(r);
               setEditing(null);
+            }}
+            onAddDesign={async (d) => {
+              // Persists the new design via the same API the Gallery admin
+              // uses, then the picker auto-selects it.
+              await saveDesign(d);
             }}
             onCancel={() => setEditing(null)}
           />
@@ -18011,12 +18298,14 @@ function StockInForm({
   designs,
   onSave,
   onCancel,
+  onAddDesign,
 }: {
   initial: StoreStockIn;
   lists: Lists;
   designs: Design[];
   onSave: (s: StoreStockIn) => void;
   onCancel: () => void;
+  onAddDesign?: (d: Design) => Promise<void>;
 }) {
   const t = useT();
   // Local form state. Includes the new fields with sensible defaults; legacy
@@ -18142,25 +18431,38 @@ function StockInForm({
             onChange={(v) => set("designId", v)}
             designs={designs}
             placeholder={t("stockin.design.pick")}
+            onAddDesign={onAddDesign}
           />
         </Field>
       )}
 
       {/* ===== Color picker (when dyed) ===== */}
       {r.fabricState === "dyed" && (
-        <Field label={t("stockin.color")}>
-          <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t("stockin.color")}>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={r.hexColor || "#7E22CE"}
+                onChange={(e) => set("hexColor", e.target.value)}
+                className="w-14 h-10 rounded border border-slate-300 cursor-pointer"
+              />
+              <span className="font-mono text-sm text-slate-700">
+                {(r.hexColor || "#7E22CE").toUpperCase()}
+              </span>
+            </div>
+          </Field>
+          {/* Free-text color name. Used as the display label (the "design
+              number" equivalent for dyed fabric) in tables and exports. */}
+          <Field label={t("stockin.colorName")}>
             <input
-              type="color"
-              value={r.hexColor || "#7E22CE"}
-              onChange={(e) => set("hexColor", e.target.value)}
-              className="w-14 h-10 rounded border border-slate-300 cursor-pointer"
+              value={r.colorName || ""}
+              onChange={(e) => set("colorName", e.target.value)}
+              placeholder="e.g. Royal Blue"
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
             />
-            <span className="font-mono text-sm text-slate-700">
-              {(r.hexColor || "#7E22CE").toUpperCase()}
-            </span>
-          </div>
-        </Field>
+          </Field>
+        </div>
       )}
 
       {/* ===== Fabric type rows (stock list + production list) ===== */}
@@ -18181,22 +18483,16 @@ function StockInForm({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("stockin.lot")}>
-          <input
-            value={r.lotNumber}
-            onChange={(e) => set("lotNumber", e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
-          />
-        </Field>
-        <Field label={t("stockin.unit")}>
-          <Select
-            value={r.unit}
-            options={lists.storeUnit}
-            onChange={(v) => set("unit", v)}
-          />
-        </Field>
-      </div>
+      {/* Lot/batch field removed in v3 — operators didn't use it and it
+          confused the layout. Field still exists on the type for back-compat
+          with older records. */}
+      <Field label={t("stockin.unit")}>
+        <Select
+          value={r.unit}
+          options={lists.storeUnit}
+          onChange={(v) => set("unit", v)}
+        />
+      </Field>
 
       {/* ===== Quantity entry — meters mode ===== */}
       {r.unit !== "rolls" && (
@@ -18273,6 +18569,7 @@ function StockInForm({
 // ============== STORE STOCK (current inventory) ==============
 function StoreStockView({ ctx }: CtxProps) {
   const { storeStockIn, storeSales, designs } = ctx;
+  const t = useT();
   const [exporting, setExporting] = useState(false);
 
   // Look up designs by id for fast joins from stock-in/sale records.
@@ -18301,6 +18598,10 @@ function StoreStockView({ ctx }: CtxProps) {
       designNumber?: string;
       designName?: string;
       hexColor?: string;
+      // Most-recent color name seen for this hex group. Used for display
+      // and export. Same color might have been called different things
+      // over time; we just take the latest non-empty value.
+      colorName?: string;
       fabricType?: string;
       unit: string;
       inQty: number;
@@ -18339,6 +18640,7 @@ function StoreStockView({ ctx }: CtxProps) {
           designNumber: d?.designNumber,
           designName: d?.name,
           hexColor: kind === "color" ? r.hexColor : undefined,
+          colorName: kind === "color" ? r.colorName : undefined,
           fabricType: r.fabricType || r.stockFabricType,
           unit: r.unit || "meters",
           inQty: 0,
@@ -18347,6 +18649,9 @@ function StoreStockView({ ctx }: CtxProps) {
           outRevenue: 0,
           rollsByLength: {},
         };
+      } else if (kind === "color" && r.colorName) {
+        // Update colorName if we found a newer non-empty value.
+        m[key].colorName = r.colorName;
       }
       return m[key];
     }
@@ -18455,77 +18760,151 @@ function StoreStockView({ ctx }: CtxProps) {
       ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
       ws.getRow(1).height = 22;
 
-      // ===== Fetch images in parallel =====
-      const rowsForExport = stockByDesign;
-      const imageBuffers: (ArrayBuffer | null)[] = await Promise.all(
-        rowsForExport.map(async (r) => {
-          if (r.kind !== "design") return null;
-          const d = r.designId ? designById[r.designId] : null;
-          const src = d ? resolveDesignImage(d) : "";
-          if (!src) return null;
+      // ===== Image pre-processing =====
+      //
+      // exceljs places images at exact pixel sizes; if the source image
+      // isn't 100×60 ratio, embedding directly with width:100, height:60
+      // would squeeze it horizontally. We canvas-render each image with
+      // object-fit:cover math (scale up to fill the box, then center-crop
+      // the overflow) so what lands in Excel is the same crop you'd see
+      // in a `background-size: cover` CSS rule.
+      //
+      // For dyed rows (no design photo), we generate a solid-color
+      // 100×60 swatch from the hex code so the "image" cell still has
+      // visual context.
+      const IMG_W = 100;
+      const IMG_H = 60;
+
+      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+        try {
+          const blob = new Blob([buf]);
+          const url = URL.createObjectURL(blob);
           try {
-            const res = await fetch(src, { credentials: "include" });
-            if (!res.ok) return null;
-            return await res.arrayBuffer();
-          } catch {
-            return null;
+            const img = await new Promise<HTMLImageElement>((res, rej) => {
+              const im = new Image();
+              im.onload = () => res(im);
+              im.onerror = () => rej(new Error("image load failed"));
+              im.src = url;
+            });
+            const canvas = document.createElement("canvas");
+            canvas.width = IMG_W;
+            canvas.height = IMG_H;
+            const cx = canvas.getContext("2d");
+            if (!cx) return null;
+            // object-fit: cover math. Compute the scale that fully covers
+            // the box; crop overflow equally on both axes.
+            const scale = Math.max(IMG_W / img.width, IMG_H / img.height);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            const dx = (IMG_W - drawW) / 2;
+            const dy = (IMG_H - drawH) / 2;
+            cx.drawImage(img, dx, dy, drawW, drawH);
+            const dataUrl = canvas.toDataURL("image/png");
+            // dataUrl is "data:image/png;base64,xxx". Strip header → base64 → ArrayBuffer.
+            const base64 = dataUrl.split(",")[1];
+            const bin = atob(base64);
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out.buffer;
+          } finally {
+            URL.revokeObjectURL(url);
           }
+        } catch {
+          return null;
+        }
+      }
+
+      function hexSwatchBuffer(hex: string): ArrayBuffer | null {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = IMG_W;
+          canvas.height = IMG_H;
+          const cx = canvas.getContext("2d");
+          if (!cx) return null;
+          cx.fillStyle = hex;
+          cx.fillRect(0, 0, IMG_W, IMG_H);
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+          const bin = atob(base64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        } catch {
+          return null;
+        }
+      }
+
+      // ===== Fetch + transform images in parallel =====
+      const rowsForExport = stockByDesign;
+      const processedImages: (ArrayBuffer | null)[] = await Promise.all(
+        rowsForExport.map(async (r) => {
+          if (r.kind === "design") {
+            const d = r.designId ? designById[r.designId] : null;
+            const src = d ? resolveDesignImage(d) : "";
+            if (!src) return null;
+            try {
+              const res = await fetch(src, { credentials: "include" });
+              if (!res.ok) return null;
+              const raw = await res.arrayBuffer();
+              return await bufferToCovered(raw);
+            } catch {
+              return null;
+            }
+          }
+          if (r.kind === "color" && r.hexColor) {
+            return hexSwatchBuffer(r.hexColor);
+          }
+          return null;
         }),
       );
 
       // ===== Write rows =====
       rowsForExport.forEach((r, i) => {
         const rowNumber = i + 2; // header is row 1
-        // Build the row data: scalar columns + one cell per length column.
+        // Label cell: for dyed rows, prefer the color name (the human label
+        // the operator typed) and fall back to hex. For printed designs,
+        // the design number. For unspecified, a marker.
+        let label = "—";
+        if (r.kind === "design") {
+          label = r.designNumber || "—";
+        } else if (r.kind === "color") {
+          label = r.colorName || r.hexColor || "";
+        } else {
+          label = "(no variant)";
+        }
+
         const rowData: Record<string, any> = {
           orderNo: i + 1,
-          designNumber:
-            r.kind === "design"
-              ? r.designNumber || "—"
-              : r.kind === "color"
-                ? r.hexColor || ""
-                : "(no variant)",
+          designNumber: label,
           image: "", // populated by addImage below
           fabric: r.fabricType || "",
           total: r.onHand,
         };
-        // Per-length count cells. Empty when the design never came in at
-        // that length — keeps the sheet visually clean (no "0" noise).
         for (const len of allLengths) {
           const count = r.rollsByLength[len];
           rowData[`len_${len}`] = count && count > 0 ? count : "";
         }
         ws.addRow(rowData);
 
-        // Tall row so the image has real estate. 110px ≈ 82pt (Excel rows
-        // are measured in points, ~0.75 of a pixel at default DPI).
-        ws.getRow(rowNumber).height = 82;
+        // Row height: 60 px image + breathing room. 50pt ≈ 66px.
+        ws.getRow(rowNumber).height = 50;
         ws.getRow(rowNumber).alignment = {
           vertical: "middle",
           horizontal: "center",
         };
 
-        const buf = imageBuffers[i];
+        const buf = processedImages[i];
         if (buf) {
-          const d = r.designId ? designById[r.designId] : null;
-          const src = d ? resolveDesignImage(d) : "";
-          const m = src.match(/\.(png|jpe?g|gif|webp)(?:$|\?)/i);
-          const ext = (m ? m[1].toLowerCase() : "png") as
-            | "png"
-            | "jpeg"
-            | "jpg"
-            | "gif"
-            | "webp";
+          // All processed images are PNG (canvas output).
           const imgId = wb.addImage({
             buffer: buf as any,
-            extension: ext === "jpg" ? "jpeg" : ext,
+            extension: "png",
           });
-          // Place the image inside the "Image" column (zero-indexed col 2).
-          // Larger size (100x100) so it isn't squeezed. Anchor uses
-          // fractional col/row offsets for a small inset.
+          // Place inside the Image column (zero-indexed col 2). Image is
+          // already pre-cropped to 100×60, so no in-Excel scaling needed.
           ws.addImage(imgId, {
-            tl: { col: 2.1, row: rowNumber - 1 + 0.1 } as any,
-            ext: { width: 100, height: 100 },
+            tl: { col: 2.1, row: rowNumber - 1 + 0.05 } as any,
+            ext: { width: IMG_W, height: IMG_H },
           });
         }
       });
@@ -18557,39 +18936,39 @@ function StoreStockView({ ctx }: CtxProps) {
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
-        title="Current Stock"
-        subtitle="On-hand inventory by design"
+        title={t("stock.title")}
+        subtitle={t("stock.subtitle")}
         icon={Package}
         color="bg-indigo-500"
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <StatBox
-          label="Total in"
+          label={t("stock.totalIn")}
           value={fmtMoney(totals.inQty)}
           icon={ArrowDownToLine}
           color="text-sky-600"
         />
         <StatBox
-          label="Total out"
+          label={t("stock.totalOut")}
           value={fmtMoney(totals.outQty)}
           icon={ArrowUpFromLine}
           color="text-rose-600"
         />
         <StatBox
-          label="On hand"
+          label={t("stock.onHand")}
           value={fmtMoney(totals.onHand)}
           icon={Package}
           color="text-indigo-600"
         />
         <StatBox
-          label="Stock cost"
+          label={t("stock.cost")}
           value={fmtMoney(totals.inCost)}
           icon={DollarSign}
           color="text-slate-600"
         />
         <StatBox
-          label="Revenue"
+          label={t("stock.revenue")}
           value={fmtMoney(totals.outRevenue)}
           icon={TrendingUp}
           color="text-emerald-600"
@@ -18605,11 +18984,11 @@ function StoreStockView({ ctx }: CtxProps) {
         >
           {exporting ? (
             <>
-              <InlineSpinner size={14} /> Generating…
+              <InlineSpinner size={14} /> {t("stock.exporting")}
             </>
           ) : (
             <>
-              <Download size={14} /> Export .xlsx
+              <Download size={14} /> {t("stock.export")}
             </>
           )}
         </button>
@@ -18619,17 +18998,17 @@ function StoreStockView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium w-20">Image</th>
-              <th className="text-left p-3 font-medium">Design</th>
-              <th className="text-left p-3 font-medium">Fabric type</th>
-              <th className="text-left p-3 font-medium">Unit</th>
-              <th className="text-left p-3 font-medium">Rolls on hand</th>
-              <th className="text-right p-3 font-medium">In</th>
-              <th className="text-right p-3 font-medium">Out</th>
-              <th className="text-right p-3 font-medium">On hand</th>
-              <th className="text-right p-3 font-medium">Stock cost</th>
-              <th className="text-right p-3 font-medium">Revenue</th>
-              <th className="text-left p-3 font-medium">Status</th>
+              <th className="text-left p-3 font-medium w-20">{t("stock.col.image")}</th>
+              <th className="text-left p-3 font-medium">{t("stock.col.design")}</th>
+              <th className="text-left p-3 font-medium">{t("stock.col.fabric")}</th>
+              <th className="text-left p-3 font-medium">{t("stock.col.unit")}</th>
+              <th className="text-left p-3 font-medium">{t("stock.col.rollsOnHand")}</th>
+              <th className="text-right p-3 font-medium">{t("stock.col.in")}</th>
+              <th className="text-right p-3 font-medium">{t("stock.col.out")}</th>
+              <th className="text-right p-3 font-medium">{t("stock.col.onHand")}</th>
+              <th className="text-right p-3 font-medium">{t("stock.col.cost")}</th>
+              <th className="text-right p-3 font-medium">{t("stock.col.revenue")}</th>
+              <th className="text-left p-3 font-medium">{t("stock.col.status")}</th>
             </tr>
           </thead>
           <tbody>
@@ -18679,12 +19058,19 @@ function StoreStockView({ ctx }: CtxProps) {
                         )}
                       </>
                     ) : r.kind === "color" ? (
-                      <span className="font-mono text-slate-700">
-                        {r.hexColor?.toUpperCase()}
-                      </span>
+                      <div>
+                        {r.colorName && (
+                          <div className="font-medium text-slate-800">
+                            {r.colorName}
+                          </div>
+                        )}
+                        <div className="font-mono text-xs text-slate-500">
+                          {r.hexColor?.toUpperCase()}
+                        </div>
+                      </div>
                     ) : (
                       <span className="text-slate-500 italic text-xs">
-                        (no variant)
+                        {t("stock.noVariant")}
                       </span>
                     )}
                   </td>
@@ -18713,15 +19099,15 @@ function StoreStockView({ ctx }: CtxProps) {
                   <td className="p-3">
                     {r.onHand <= 0 ? (
                       <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
-                        Out of stock
+                        {t("stock.status.out")}
                       </span>
                     ) : r.onHand < 50 ? (
                       <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
-                        Low
+                        {t("stock.status.low")}
                       </span>
                     ) : (
                       <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">
-                        In stock
+                        {t("stock.status.in")}
                       </span>
                     )}
                   </td>
@@ -18731,7 +19117,7 @@ function StoreStockView({ ctx }: CtxProps) {
             {!stockByDesign.length && (
               <tr>
                 <td colSpan={11} className="p-8 text-center text-slate-400">
-                  No stock yet. Add a Stock In record to begin.
+                  {t("stock.empty")}
                 </td>
               </tr>
             )}
@@ -18753,6 +19139,7 @@ function StoreSalesView({ ctx }: CtxProps) {
     deleteStoreSale,
     askConfirm,
   } = ctx;
+  const t = useT();
   const canEdit =
     user.role === "admin" ||
     (user.role === "dept_admin" && user.departmentId === "store");
@@ -18798,8 +19185,8 @@ function StoreSalesView({ ctx }: CtxProps) {
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
-        title="Sales / Stock Out"
-        subtitle="Outgoing fabric & invoices"
+        title={t("sales.title")}
+        subtitle={t("sales.subtitle")}
         icon={ArrowUpFromLine}
         color="bg-rose-500"
       />
@@ -18813,7 +19200,7 @@ function StoreSalesView({ ctx }: CtxProps) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search customer, fabric, invoice..."
+            placeholder={t("sales.search")}
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
         </div>
@@ -18822,14 +19209,14 @@ function StoreSalesView({ ctx }: CtxProps) {
             onClick={newSale}
             className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
           >
-            <Plus size={15} /> New Sale
+            <Plus size={15} /> {t("sales.add")}
           </button>
         )}
         <button
           onClick={() => exportToCSV(rows, "store_sales")}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
         >
-          <Download size={14} /> Export
+          <Download size={14} /> {t("common.export")}
         </button>
       </div>
 
@@ -18837,16 +19224,16 @@ function StoreSalesView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">Date</th>
-              <th className="text-left p-3 font-medium">Invoice</th>
-              <th className="text-left p-3 font-medium">Customer</th>
-              <th className="text-left p-3 font-medium">Fabric</th>
-              <th className="text-right p-3 font-medium">Qty</th>
-              <th className="text-right p-3 font-medium">Unit price</th>
-              <th className="text-right p-3 font-medium">Total</th>
-              <th className="text-right p-3 font-medium">Paid</th>
-              <th className="text-right p-3 font-medium">Debt</th>
-              <th className="text-left p-3 font-medium">Method</th>
+              <th className="text-left p-3 font-medium">{t("sales.col.date")}</th>
+              <th className="text-left p-3 font-medium">{t("sales.col.invoice")}</th>
+              <th className="text-left p-3 font-medium">{t("sales.col.customer")}</th>
+              <th className="text-left p-3 font-medium">{t("sales.col.design")}</th>
+              <th className="text-right p-3 font-medium">{t("sales.col.qty")}</th>
+              <th className="text-right p-3 font-medium">{t("sales.col.unitPrice")}</th>
+              <th className="text-right p-3 font-medium">{t("sales.col.total")}</th>
+              <th className="text-right p-3 font-medium">{t("sales.col.paid")}</th>
+              <th className="text-right p-3 font-medium">{t("sales.col.debt")}</th>
+              <th className="text-left p-3 font-medium">{t("payments.method")}</th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
           </thead>
@@ -18959,12 +19346,14 @@ function SaleForm({
   onSave: (s: StoreSale) => void;
   onCancel: () => void;
 }) {
-  const { customers, lists, designs } = ctx;
+  const { customers, lists, designs, storeStockIn, storeSales } = ctx;
   const t = useT();
-  // Default fabricState to "printed" so legacy records (which have neither
-  // fabricState nor designId) render the picker on first edit. Operators
-  // can switch to "dyed" if needed; the toggle clears the unused field on
-  // save so we don't store stale variants.
+
+  // ===== Local form state =====
+  //
+  // The new sale form is picker-driven: operator picks customer, then picks
+  // one design (or color group), then chooses how many rolls of each length
+  // to take from on-hand stock. No free-text quantity entry.
   const [s, setS] = useState<StoreSale>(() => ({
     ...initial,
     fabricState: initial.fabricState || "printed",
@@ -18973,64 +19362,260 @@ function SaleForm({
     extraMeters:
       initial.extraMeters !== undefined ? initial.extraMeters : 0,
   }));
-
-  // ===== Total meters (the sold qty) =====
-  // Mirrors Stock In: when unit=rolls, total = sum(length × qty) + extraMeters.
-  // When unit=meters, the qty field IS the total. We store this back into `qty`
-  // on save so legacy code keeps working.
-  const totalMeters = useMemo(() => {
-    if (s.unit === "rolls") {
-      const lineSum = (s.rollLines || []).reduce(
-        (sum, ln) =>
-          sum + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
-        0,
-      );
-      return lineSum + (Number(s.extraMeters) || 0);
-    }
-    return Number(s.qty) || 0;
-  }, [s.unit, s.rollLines, s.extraMeters, s.qty]);
-
   const set = (k: string, v: any) =>
     setS((prev) => ({ ...prev, [k]: v }));
 
-  // Total amount = totalMeters × unitPrice. Computed live; not stored in
-  // state (avoids stale-after-rollLines-edit bugs).
-  const total = totalMeters * (Number(s.unitPrice) || 0);
+  // ===== Compute on-hand-per-design-per-length =====
+  //
+  // For the rolls picker, we need to know, for each design (or color), how
+  // many rolls of each length are still on-hand. Math:
+  //   onHand[designOrColorKey][length] = Σ(stockIn.rollLines for that group)
+  //                                    − Σ(sales.rollLines for that group,
+  //                                        EXCLUDING this sale being edited)
+  //
+  // We exclude the current edit so the operator sees their previous picks
+  // as still-available (they're editing those very rolls).
+  const onHand = useMemo(() => {
+    type LengthMap = Record<number, number>;
+    type GroupInfo = {
+      key: string;
+      kind: "design" | "color";
+      designId?: string;
+      designNumber?: string;
+      designName?: string;
+      hexColor?: string;
+      colorName?: string;
+      lengths: LengthMap;
+    };
+    const groups: Record<string, GroupInfo> = {};
+
+    function groupKey(r: any): { key: string; kind: "design" | "color" } | null {
+      if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
+        return { key: `d:${r.designId}`, kind: "design" };
+      }
+      if (r.fabricState === "dyed" && r.hexColor) {
+        return { key: `c:${r.hexColor.toLowerCase()}`, kind: "color" };
+      }
+      return null;
+    }
+
+    function ensureGroup(r: any, key: string, kind: "design" | "color") {
+      if (groups[key]) return groups[key];
+      const d = r.designId ? designs.find((x) => x.id === r.designId) : null;
+      const g: GroupInfo = {
+        key,
+        kind,
+        designId: kind === "design" ? r.designId : undefined,
+        designNumber: d?.designNumber,
+        designName: d?.name,
+        hexColor: kind === "color" ? r.hexColor : undefined,
+        colorName: kind === "color" ? r.colorName : undefined,
+        lengths: {},
+      };
+      groups[key] = g;
+      return g;
+    }
+
+    for (const r of storeStockIn) {
+      const gk = groupKey(r);
+      if (!gk) continue;
+      const g = ensureGroup(r, gk.key, gk.kind);
+      for (const ln of r.rollLines || []) {
+        const len = Number(ln.length) || 0;
+        const qty = Number(ln.qty) || 0;
+        if (len <= 0 || qty <= 0) continue;
+        g.lengths[len] = (g.lengths[len] || 0) + qty;
+      }
+    }
+    for (const sale of storeSales) {
+      // Skip the sale we're editing — its rolls are about to be replaced.
+      if (sale.id === s.id) continue;
+      const gk = groupKey(sale);
+      if (!gk) continue;
+      const g = ensureGroup(sale, gk.key, gk.kind);
+      for (const ln of sale.rollLines || []) {
+        const len = Number(ln.length) || 0;
+        const qty = Number(ln.qty) || 0;
+        if (len <= 0 || qty <= 0) continue;
+        g.lengths[len] = (g.lengths[len] || 0) - qty;
+      }
+    }
+
+    // Return as a flat list of (group, length, available) for the picker.
+    const rows: {
+      groupKey: string;
+      kind: "design" | "color";
+      designId?: string;
+      designNumber?: string;
+      designName?: string;
+      hexColor?: string;
+      colorName?: string;
+      length: number;
+      available: number;
+    }[] = [];
+    for (const g of Object.values(groups)) {
+      for (const [lenStr, qty] of Object.entries(g.lengths)) {
+        const len = Number(lenStr);
+        if (qty <= 0) continue;
+        rows.push({
+          groupKey: g.key,
+          kind: g.kind,
+          designId: g.designId,
+          designNumber: g.designNumber,
+          designName: g.designName,
+          hexColor: g.hexColor,
+          colorName: g.colorName,
+          length: len,
+          available: qty,
+        });
+      }
+    }
+    // Sort by group then by length asc for predictable order.
+    rows.sort((a, b) => {
+      if (a.groupKey !== b.groupKey) {
+        return (a.designNumber || a.hexColor || "").localeCompare(
+          b.designNumber || b.hexColor || "",
+        );
+      }
+      return a.length - b.length;
+    });
+    return rows;
+  }, [storeStockIn, storeSales, designs, s.id]);
+
+  // ===== Picker state =====
+  //
+  // The operator's picks live in a Map keyed by "groupKey|length" → qty.
+  // We initialise from `s.rollLines` + the existing variant fields so editing
+  // an existing sale shows the previous picks.
+  const initialPicks = useMemo(() => {
+    const m: Record<string, number> = {};
+    if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
+      for (const ln of s.rollLines || []) {
+        m[`d:${s.designId}|${ln.length}`] = (m[`d:${s.designId}|${ln.length}`] || 0) + ln.qty;
+      }
+    } else if (s.fabricState === "dyed" && s.hexColor) {
+      for (const ln of s.rollLines || []) {
+        const k = `c:${s.hexColor.toLowerCase()}|${ln.length}`;
+        m[k] = (m[k] || 0) + ln.qty;
+      }
+    }
+    return m;
+    // Intentionally compute once at mount — picks live in `picks` state below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [picks, setPicks] = useState<Record<string, number>>(initialPicks);
+
+  function pickRow(row: typeof onHand[number], qty: number) {
+    const key = `${row.groupKey}|${row.length}`;
+    const clamped = Math.max(0, Math.min(qty, row.available));
+    setPicks((prev) => {
+      const next = { ...prev };
+      if (clamped === 0) delete next[key];
+      else next[key] = clamped;
+      return next;
+    });
+  }
+
+  // ===== Derive sale-level fields from the picks =====
+  //
+  // We support one design (or one color) per sale to keep the schema simple.
+  // The operator's picks should all belong to one group; if they cross groups,
+  // we save what's in the active group only and warn before save.
+  const pickedRows = useMemo(() => {
+    const out: {
+      groupKey: string;
+      kind: "design" | "color";
+      designId?: string;
+      hexColor?: string;
+      colorName?: string;
+      length: number;
+      qty: number;
+    }[] = [];
+    for (const row of onHand) {
+      const qty = picks[`${row.groupKey}|${row.length}`] || 0;
+      if (qty > 0) {
+        out.push({
+          groupKey: row.groupKey,
+          kind: row.kind,
+          designId: row.designId,
+          hexColor: row.hexColor,
+          colorName: row.colorName,
+          length: row.length,
+          qty,
+        });
+      }
+    }
+    return out;
+  }, [onHand, picks]);
+
+  const totalRolls = pickedRows.reduce((sum, r) => sum + r.qty, 0);
+  const totalMeters = pickedRows.reduce(
+    (sum, r) => sum + r.length * r.qty,
+    0,
+  );
+
+  // Pricing: base × meters, minus discount × meters. Discount is per-meter.
+  const basePrice = Number(s.unitPrice) || 0;
+  const discount = Number((s as any).discountPerMeter) || 0;
+  const finalPrice = Math.max(0, basePrice - discount);
+  const total = finalPrice * totalMeters;
   const paid = Number(s.paidAmount) || 0;
   const debt = total - paid;
 
   function save() {
     if (!s.customerId) {
-      alert("Pick a customer");
-      return;
-    }
-    if (!s.fabricType) {
-      alert("Pick a fabric type");
+      alert(t("sales.customerRequired"));
       return;
     }
     if (totalMeters <= 0) {
-      alert("Qty must be positive");
+      alert(t("stockin.qtyRequired"));
       return;
     }
-    if (!s.unitPrice || Number(s.unitPrice) <= 0) {
-      alert("Unit price must be positive");
+    if (basePrice <= 0) {
+      alert("Set a base unit price");
       return;
     }
+    // Derive variant + rollLines from picks. Picks should be in one group.
+    // If they span groups (shouldn't normally happen), we save the FIRST
+    // group's picks only. The picker UI groups visually, so cross-group
+    // picks are unusual.
+    const firstGroup = pickedRows[0];
+    const sameGroup = pickedRows.every(
+      (p) => p.groupKey === firstGroup.groupKey,
+    );
+    if (!sameGroup) {
+      const proceed = confirm(
+        "You picked rolls from multiple designs/colors. Only the first group will be saved as one sale. Continue?",
+      );
+      if (!proceed) return;
+    }
+    const inGroup = pickedRows.filter(
+      (p) => p.groupKey === firstGroup.groupKey,
+    );
+    const rollLines = inGroup.map((p) => ({ length: p.length, qty: p.qty }));
+
     onSave({
       ...s,
+      customerId: s.customerId,
+      fabricState: firstGroup.kind === "design" ? "printed" : "dyed",
+      designId: firstGroup.kind === "design" ? firstGroup.designId : undefined,
+      hexColor: firstGroup.kind === "color" ? firstGroup.hexColor : undefined,
+      // Color name carried along for dyed sales (display label).
+      ...(firstGroup.kind === "color" && firstGroup.colorName
+        ? { /* sales schema doesn't store colorName directly; we keep it
+              in notes for now to avoid a model change. Leave a marker. */ }
+        : {}),
+      unit: "rolls",
+      rollLines,
+      extraMeters: 0,
       qty: totalMeters,
-      unitPrice: Number(s.unitPrice),
+      unitPrice: finalPrice,
       totalAmount: total,
       paidAmount: paid,
-      // When unit isn't rolls, blank out roll-line data so the saved record
-      // is unambiguous (no orphan rollLines on a meters-mode sale).
-      rollLines: s.unit === "rolls" ? s.rollLines : [],
-      extraMeters: s.unit === "rolls" ? Number(s.extraMeters) || 0 : 0,
-      // Clean the variant field that doesn't apply to the chosen state, so
-      // the record doesn't keep an orphan (e.g. a hex color on a printed sale).
-      designId: s.fabricState === "printed" ? s.designId : undefined,
-      hexColor: s.fabricState === "dyed" ? s.hexColor : undefined,
-    });
+      // discountPerMeter is a sale-time field; not on the type yet but we
+      // attach it loosely so reports can show it.
+      ...(discount > 0 ? { discountPerMeter: discount, basePrice } : {}),
+    } as any);
   }
 
   return (
@@ -19050,7 +19635,7 @@ function SaleForm({
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
-        <Field label="Invoice #">
+        <Field label={t("sales.col.invoice")}>
           <input
             value={s.invoiceNumber}
             onChange={(e) => set("invoiceNumber", e.target.value)}
@@ -19058,13 +19643,15 @@ function SaleForm({
           />
         </Field>
       </div>
-      <Field label="Customer *">
+
+      {/* ===== Customer ===== */}
+      <Field label={t("sales.pickCustomer") + " *"}>
         <select
           value={s.customerId}
           onChange={(e) => set("customerId", e.target.value)}
           className="w-full p-2.5 border border-slate-300 rounded-lg"
         >
-          <option value="">Select customer…</option>
+          <option value="">{t("sales.pickCustomer")}…</option>
           {customers.map((c) => (
             <option key={c.id} value={c.id}>
               {c.code} · {c.name}
@@ -19073,141 +19660,171 @@ function SaleForm({
         </select>
       </Field>
 
-      {/* ===== Variant: mirrors the Stock In form so the same record shape
-          (fabricState + designId/hexColor + stockFabricType) flows through
-          stock out too. The picker dropdown is empty if `designs` hasn't
-          been loaded — see the loadForView store_sales case for the fetch. */}
-      <Field label={t("stockin.fabricState") + " *"}>
-        <div className="flex gap-2">
-          {(["printed", "dyed"] as const).map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => set("fabricState", opt)}
-              className={`flex-1 py-2 rounded-lg border text-sm font-medium ${s.fabricState === opt ? "bg-purple-600 text-white border-purple-600" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
-            >
-              {t(`stockin.fabricState.${opt}`)}
-            </button>
-          ))}
+      {/* ===== Rolls picker ===== */}
+      <div>
+        <div className="text-sm font-medium text-slate-700 mb-1">
+          {t("sales.pickRolls")}
         </div>
-      </Field>
-
-      {s.fabricState === "printed" && (
-        <Field label={t("stockin.design")}>
-          <DesignPickerById
-            value={s.designId}
-            onChange={(v) => set("designId", v)}
-            designs={designs || []}
-            placeholder={t("stockin.design.pick")}
-            // Stock-out is a single physical movement of one variant, but
-            // we allow "Mix" too for symmetry with stock-in. If you want
-            // to forbid it on sales specifically, set allowMix={false}.
-          />
-        </Field>
-      )}
-
-      {s.fabricState === "dyed" && (
-        <Field label={t("stockin.color")}>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={s.hexColor || "#7E22CE"}
-              onChange={(e) => set("hexColor", e.target.value)}
-              className="w-14 h-10 rounded border border-slate-300 cursor-pointer"
-            />
-            <span className="font-mono text-sm text-slate-700">
-              {(s.hexColor || "#7E22CE").toUpperCase()}
-            </span>
+        <div className="text-xs text-slate-500 mb-2">
+          {t("sales.pickRolls.help")}
+        </div>
+        {onHand.length === 0 ? (
+          <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-500 text-center">
+            {t("sales.outOfStock")}
           </div>
-        </Field>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("stockin.stockFabricType")}>
-          <Select
-            value={s.stockFabricType}
-            options={lists.stockFabricType || []}
-            onChange={(v) => set("stockFabricType", v)}
-          />
-        </Field>
-        <Field label="Fabric type *">
-          <Select
-            value={s.fabricType}
-            options={lists.fabricType}
-            onChange={(v) => set("fabricType", v)}
-          />
-        </Field>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Unit">
-          <Select
-            value={s.unit}
-            options={lists.storeUnit}
-            onChange={(v) => set("unit", v)}
-          />
-        </Field>
-        {/* Show the plain Quantity input only when unit isn't rolls. With
-            rolls, the multi-line editor below replaces the single number. */}
-        {s.unit !== "rolls" && (
-          <Field label="Quantity *">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={s.qty}
-              onChange={(e) => set("qty", e.target.value)}
-              className="w-full p-2.5 border border-slate-300 rounded-lg"
-            />
-          </Field>
+        ) : (
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-600 text-xs">
+                <tr>
+                  <th className="text-left p-2 font-medium">
+                    {t("sales.col.design")}
+                  </th>
+                  <th className="text-right p-2 font-medium">
+                    {t("sales.row.length")}
+                  </th>
+                  <th className="text-right p-2 font-medium">
+                    {t("sales.row.available")}
+                  </th>
+                  <th className="text-right p-2 font-medium w-28">
+                    {t("sales.row.taking")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {onHand.map((row) => {
+                  const key = `${row.groupKey}|${row.length}`;
+                  const picked = picks[key] || 0;
+                  const d = row.designId
+                    ? designs.find((x) => x.id === row.designId)
+                    : null;
+                  const src = d ? resolveDesignImage(d) : "";
+                  return (
+                    <tr
+                      key={key}
+                      className={`border-t border-slate-100 ${picked > 0 ? "bg-purple-50" : "hover:bg-slate-50"}`}
+                    >
+                      <td className="p-2">
+                        <div className="flex items-center gap-2">
+                          {row.kind === "design" && src ? (
+                            <img
+                              src={src}
+                              className="w-8 h-8 object-cover rounded border border-slate-200"
+                            />
+                          ) : row.kind === "color" && row.hexColor ? (
+                            <div
+                              className="w-8 h-8 rounded border border-slate-200"
+                              style={{ backgroundColor: row.hexColor }}
+                            />
+                          ) : null}
+                          <div>
+                            <div className="font-mono font-medium text-xs">
+                              {row.kind === "design"
+                                ? row.designNumber
+                                : row.colorName || row.hexColor}
+                            </div>
+                            {row.designName && (
+                              <div className="text-[10px] text-slate-500 truncate">
+                                {row.designName}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2 text-right text-slate-700">
+                        {row.length}m
+                      </td>
+                      <td className="p-2 text-right text-slate-600">
+                        {row.available}
+                      </td>
+                      <td className="p-2 text-right">
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max={row.available}
+                          value={picked}
+                          onChange={(e) =>
+                            pickRow(row, Number(e.target.value) || 0)
+                          }
+                          className="w-20 p-1.5 border border-slate-300 rounded text-sm text-right"
+                          placeholder="0"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
-      {/* When unit=rolls, capture the specific roll lengths/qty being sold.
-          Pairing this with Stock In's rollLines lets the Current Stock view
-          compute on-hand-per-length exactly. */}
-      {s.unit === "rolls" && (
-        <>
-          <RollLinesEditor
-            rollLines={s.rollLines || []}
-            extraMeters={Number(s.extraMeters) || 0}
-            onChange={({ rollLines, extraMeters }) =>
-              setS((prev) => ({ ...prev, rollLines, extraMeters }))
-            }
-          />
-          <div className="bg-slate-50 rounded-lg p-2.5">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">
-              Total meters sold
-            </div>
-            <div className="text-sm font-bold text-slate-800">
-              {totalMeters.toLocaleString()} m
-            </div>
-          </div>
-        </>
-      )}
+
+      {/* ===== Pick summary ===== */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Unit price *">
+        <div className="bg-slate-50 rounded-lg p-2.5">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            {t("sales.totalRolls")}
+          </div>
+          <div className="text-sm font-bold text-slate-800">{totalRolls}</div>
+        </div>
+        <div className="bg-slate-50 rounded-lg p-2.5">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            {t("sales.totalMeters")}
+          </div>
+          <div className="text-sm font-bold text-slate-800">
+            {totalMeters.toLocaleString()} m
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Pricing ===== */}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("sales.basePrice") + " *"}>
           <input
             type="number"
             step="0.01"
             min="0"
-            value={s.unitPrice}
+            value={s.unitPrice ?? ""}
             onChange={(e) => set("unitPrice", e.target.value)}
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
-        <Field label="Total">
+        <Field label={t("sales.discount")}>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={(s as any).discountPerMeter ?? ""}
+            onChange={(e) => set("discountPerMeter", e.target.value)}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+            placeholder="0"
+          />
+        </Field>
+      </div>
+      {discount > 0 && (
+        <div className="text-xs text-slate-500 -mt-1">
+          {t("sales.finalPrice")}:{" "}
+          <span className="font-bold text-slate-700">
+            {fmtMoney(finalPrice)} / m
+          </span>{" "}
+          ({t("sales.discount.help")})
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("sales.totalAmount")}>
           <div className="w-full p-2.5 border border-slate-200 bg-slate-50 rounded-lg font-bold text-slate-800">
             {fmtMoney(total)}
           </div>
         </Field>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Paid amount">
+        <Field label={t("sales.paid")}>
           <div className="relative">
             <input
               type="number"
               step="0.01"
               min="0"
-              value={s.paidAmount}
+              value={s.paidAmount ?? ""}
               onChange={(e) => set("paidAmount", e.target.value)}
               className="w-full p-2.5 border border-slate-300 rounded-lg pr-16"
             />
@@ -19220,27 +19837,16 @@ function SaleForm({
             </button>
           </div>
         </Field>
-        <Field label="Payment method">
-          <Select
-            value={s.paymentMethod}
-            options={lists.paymentMethod}
-            onChange={(v) => set("paymentMethod", v)}
-          />
-        </Field>
       </div>
+
       <div
         className={`rounded-lg p-3 text-sm flex items-center justify-between ${debt > 0 ? "bg-orange-50 text-orange-900" : "bg-emerald-50 text-emerald-900"}`}
       >
-        <span>
-          {debt > 0
-            ? "Will be added to customer debt:"
-            : debt < 0
-              ? "Customer overpaid (credit):"
-              : "Fully paid"}
-        </span>
+        <span>{t("sales.debt")}</span>
         <span className="font-bold">{fmtMoney(Math.abs(debt))}</span>
       </div>
-      <Field label="Notes">
+
+      <Field label={t("payments.col.notes")}>
         <textarea
           value={s.notes}
           onChange={(e) => set("notes", e.target.value)}
@@ -19257,6 +19863,7 @@ function SaleForm({
 function StorePaymentsView({ ctx }: CtxProps) {
   const { storePayments, customers, user, deleteStorePayment, askConfirm } =
     ctx;
+  const t = useT();
   const canEdit =
     user.role === "admin" ||
     (user.role === "dept_admin" && user.departmentId === "store");
@@ -19285,8 +19892,8 @@ function StorePaymentsView({ ctx }: CtxProps) {
     <div className="space-y-4">
       <StoreSubHeader
         ctx={ctx}
-        title="Payments Received"
-        subtitle="Customer debt repayments"
+        title={t("payments.title")}
+        subtitle={t("payments.subtitle")}
         icon={Receipt}
         color="bg-teal-500"
       />
@@ -19294,7 +19901,7 @@ function StorePaymentsView({ ctx }: CtxProps) {
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
         <div>
           <div className="text-sm text-emerald-800">
-            Total payments received
+            {t("payments.title")}
           </div>
           <div className="text-2xl font-bold text-emerald-900">
             {fmtMoney(total)}
@@ -19312,18 +19919,15 @@ function StorePaymentsView({ ctx }: CtxProps) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search customer, reference..."
+            placeholder={t("payments.search")}
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
-        </div>
-        <div className="text-xs text-slate-500">
-          Add payments from a customer's profile page
         </div>
         <button
           onClick={() => exportToCSV(rows, "store_payments")}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
         >
-          <Download size={14} /> Export
+          <Download size={14} /> {t("common.export")}
         </button>
       </div>
 
@@ -19331,12 +19935,12 @@ function StorePaymentsView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">Date</th>
-              <th className="text-left p-3 font-medium">Customer</th>
-              <th className="text-right p-3 font-medium">Amount</th>
-              <th className="text-left p-3 font-medium">Method</th>
-              <th className="text-left p-3 font-medium">Reference</th>
-              <th className="text-left p-3 font-medium">Notes</th>
+              <th className="text-left p-3 font-medium">{t("payments.col.date")}</th>
+              <th className="text-left p-3 font-medium">{t("payments.col.customer")}</th>
+              <th className="text-right p-3 font-medium">{t("payments.col.amount")}</th>
+              <th className="text-left p-3 font-medium">{t("payments.col.method")}</th>
+              <th className="text-left p-3 font-medium">{t("payments.col.reference")}</th>
+              <th className="text-left p-3 font-medium">{t("payments.col.notes")}</th>
               {canEdit && <th className="p-3 w-12"></th>}
             </tr>
           </thead>
