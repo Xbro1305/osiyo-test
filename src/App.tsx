@@ -1103,17 +1103,22 @@ const DEFAULT_LISTS = {
   // Granular fabric-type list for the local market store. Separate from the
   // production fabricType because the store sells finished fabric in
   // commercial categories that don't map 1:1 to what production tracks.
+  //
+  // v4 shape: { name, cost } per entry. Cost is per-meter and used as the
+  // canonical selling/cost price for every record of that type. Legacy
+  // string-only entries are still tolerated by the read helpers
+  // (fabricCostMap / fabricNames / getFabricCost).
   stockFabricType: [
-    "Plain Cotton",
-    "Printed Cotton",
-    "Cotton Satin",
-    "Voile",
-    "Crepe",
-    "Chiffon",
-    "Linen",
-    "Polyester",
-    "Mixed Blend",
-  ],
+    { name: "Plain Cotton", cost: 0 },
+    { name: "Printed Cotton", cost: 0 },
+    { name: "Cotton Satin", cost: 0 },
+    { name: "Voile", cost: 0 },
+    { name: "Crepe", cost: 0 },
+    { name: "Chiffon", cost: 0 },
+    { name: "Linen", cost: 0 },
+    { name: "Polyester", cost: 0 },
+    { name: "Mixed Blend", cost: 0 },
+  ] as any,
 };
 
 // ============== STORAGE HELPERS ==============
@@ -1307,7 +1312,10 @@ interface ProductionRecord {
 type RecordsMap = Record<string, ProductionRecord[]>;
 
 // --- Lists (dropdowns) ---
-type Lists = Record<string, string[]>;
+// Lists are keyed by name. Most entries are simple string arrays (legacy
+// shape). `stockFabricType` is the exception — v4 uses `{name, cost}[]`.
+// We declare the type loosely (any[]) and let the call sites narrow.
+type Lists = Record<string, any[]>;
 
 // --- Numbering settings ---
 interface NumberingConfig {
@@ -5918,19 +5926,45 @@ function ListsAdmin({ ctx }: CtxProps) {
                 <Edit2 size={13} /> Edit
               </button>
             </div>
-            <div className="flex flex-wrap gap-1">
-              {(lists[key] || []).map((v) => (
-                <span
-                  key={v}
-                  className="text-xs bg-slate-100 px-2 py-0.5 rounded"
-                >
-                  {v}
-                </span>
-              ))}
-              {!(lists[key] || []).length && (
-                <span className="text-xs text-slate-400">No options yet</span>
-              )}
-            </div>
+            {/* stockFabricType uses the v4 shape {name, cost}. Render each
+                entry with the cost next to it. All other lists render as
+                plain string chips. */}
+            {key === "stockFabricType" ? (
+              <div className="space-y-1">
+                {(lists[key] || []).map((v: any, i: number) => {
+                  const name = typeof v === "string" ? v : v?.name;
+                  const cost = typeof v === "string" ? 0 : Number(v?.cost) || 0;
+                  return (
+                    <div
+                      key={`${name}-${i}`}
+                      className="flex items-center justify-between text-xs bg-slate-50 rounded px-2 py-1"
+                    >
+                      <span className="font-medium text-slate-700">{name}</span>
+                      <span className="font-mono text-slate-500">
+                        {cost > 0 ? `${fmtMoney(cost)} / m` : "no cost"}
+                      </span>
+                    </div>
+                  );
+                })}
+                {!(lists[key] || []).length && (
+                  <span className="text-xs text-slate-400">No options yet</span>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1">
+                {(lists[key] || []).map((v) => (
+                  <span
+                    key={v}
+                    className="text-xs bg-slate-100 px-2 py-0.5 rounded"
+                  >
+                    {v}
+                  </span>
+                ))}
+                {!(lists[key] || []).length && (
+                  <span className="text-xs text-slate-400">No options yet</span>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -5940,16 +5974,180 @@ function ListsAdmin({ ctx }: CtxProps) {
           title={`Edit: ${labels[editingKey]}`}
           onClose={() => setEditingKey(null)}
         >
-          <ListEditor
-            values={lists[editingKey] || []}
-            onSave={async (vals) => {
-              await saveLists({ ...lists, [editingKey]: vals });
-              setEditingKey(null);
-            }}
-            onCancel={() => setEditingKey(null)}
-          />
+          {editingKey === "stockFabricType" ? (
+            <StockFabricTypeEditor
+              values={(lists[editingKey] || []) as any}
+              onSave={async (vals) => {
+                await saveLists({ ...lists, [editingKey]: vals } as any);
+                setEditingKey(null);
+              }}
+              onCancel={() => setEditingKey(null)}
+            />
+          ) : (
+            <ListEditor
+              values={lists[editingKey] || []}
+              onSave={async (vals) => {
+                await saveLists({ ...lists, [editingKey]: vals });
+                setEditingKey(null);
+              }}
+              onCancel={() => setEditingKey(null)}
+            />
+          )}
         </Modal>
       )}
+    </div>
+  );
+}
+
+// ===== StockFabricTypeEditor =====
+//
+// Special editor for the stockFabricType list. Each entry is {name, cost}.
+// The cost is per-meter and applied as the canonical price for every
+// stock-in and sale of that fabric type. Operators add/edit/remove rows
+// here; no other admin UI touches this list.
+function StockFabricTypeEditor({
+  values,
+  onSave,
+  onCancel,
+}: {
+  values: Array<{ name: string; cost: number } | string>;
+  onSave: (v: Array<{ name: string; cost: number }>) => void;
+  onCancel: () => void;
+}) {
+  // Normalise legacy string entries on mount so the editor only ever deals
+  // with the rich shape. Strings show up as { name, cost: 0 } for the
+  // operator to fill in.
+  const [items, setItems] = useState<Array<{ name: string; cost: number }>>(
+    () =>
+      (values || []).map((v) =>
+        typeof v === "string"
+          ? { name: v, cost: 0 }
+          : { name: v.name || "", cost: Number(v.cost) || 0 },
+      ),
+  );
+  const [newName, setNewName] = useState("");
+  const [newCost, setNewCost] = useState("");
+
+  function addItem() {
+    const n = newName.trim();
+    if (!n) return;
+    if (items.some((it) => it.name.toLowerCase() === n.toLowerCase())) {
+      alert("This fabric type already exists.");
+      return;
+    }
+    setItems([...items, { name: n, cost: Number(newCost) || 0 }]);
+    setNewName("");
+    setNewCost("");
+  }
+
+  function updateAt(i: number, key: "name" | "cost", value: string) {
+    setItems((prev) => {
+      const next = [...prev];
+      next[i] = {
+        ...next[i],
+        [key]: key === "cost" ? Number(value) || 0 : value,
+      };
+      return next;
+    });
+  }
+
+  function removeAt(i: number) {
+    setItems((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5 max-h-72 overflow-y-auto">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="grid grid-cols-12 gap-2 items-center bg-slate-50 rounded p-2"
+          >
+            <input
+              value={it.name}
+              onChange={(e) => updateAt(i, "name", e.target.value)}
+              placeholder="Fabric type name"
+              className="col-span-6 p-2 border border-slate-300 rounded text-sm"
+            />
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={it.cost}
+              onChange={(e) => updateAt(i, "cost", e.target.value)}
+              placeholder="Cost / m"
+              className="col-span-4 p-2 border border-slate-300 rounded text-sm text-right"
+            />
+            <span className="col-span-1 text-xs text-slate-500">/ m</span>
+            <button
+              type="button"
+              onClick={() => removeAt(i)}
+              className="col-span-1 text-slate-400 hover:text-red-600"
+              title="Remove"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+        {!items.length && (
+          <div className="text-xs text-slate-400 italic px-2 py-3 text-center">
+            No fabric types yet. Add one below.
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-12 gap-2 items-center pt-2 border-t border-slate-200">
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
+          placeholder="New fabric type"
+          className="col-span-6 p-2 border border-slate-300 rounded text-sm"
+        />
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={newCost}
+          onChange={(e) => setNewCost(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
+          placeholder="Cost"
+          className="col-span-4 p-2 border border-slate-300 rounded text-sm text-right"
+        />
+        <button
+          type="button"
+          onClick={addItem}
+          className="col-span-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm py-2 font-medium"
+        >
+          Add
+        </button>
+      </div>
+
+      <div className="flex gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            // Strip empties on save so empty rows don't pollute the list.
+            const clean = items
+              .map((it) => ({
+                name: (it.name || "").trim(),
+                cost: Number(it.cost) || 0,
+              }))
+              .filter((it) => it.name);
+            onSave(clean);
+          }}
+          className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium"
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 }
@@ -17022,6 +17220,55 @@ function fmtMoney(n) {
   return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
+// ===== Stock fabric type cost lookup =====
+//
+// In v4 the cost-per-meter lives on the stock fabric type list, not on
+// individual records. The list shape is `Array<{ name, cost }>`. These
+// helpers normalise the lookup and provide a legacy fallback so old
+// stock-in records (which had their own `costPerMeter`) still display
+// sensibly when the list doesn't have a matching entry yet.
+//
+// `fabricCostMap(lists)` returns a name → cost map. Cheap; call inside
+// useMemo if you're using it heavily.
+function fabricCostMap(lists: Lists): Record<string, number> {
+  const raw = (lists?.stockFabricType as any) || [];
+  const out: Record<string, number> = {};
+  for (const entry of raw) {
+    if (typeof entry === "string") {
+      // Legacy string-only entry (pre-v4); cost unknown → 0. The fallback
+      // logic in getFabricCost prefers the record's own cost in this case.
+      out[entry] = 0;
+    } else if (entry && typeof entry.name === "string") {
+      out[entry.name] = Number(entry.cost) || 0;
+    }
+  }
+  return out;
+}
+
+// `fabricNames(lists)` returns the list of names regardless of whether
+// the list is in legacy string form or v4 object form. Use this anywhere
+// you'd render a dropdown of fabric types.
+function fabricNames(lists: Lists): string[] {
+  const raw = (lists?.stockFabricType as any) || [];
+  return raw.map((e: any) => (typeof e === "string" ? e : e?.name)).filter(Boolean);
+}
+
+// `getFabricCost(name, lists, fallback)` returns the cost for a given
+// fabric type. If the list has the type with a non-zero cost, that wins.
+// Otherwise we fall back to `fallback` (typically the record's own
+// `costPerMeter`/`costPrice` so legacy records still display correctly).
+function getFabricCost(
+  name: string | undefined,
+  lists: Lists,
+  fallback: number = 0,
+): number {
+  if (!name) return fallback;
+  const map = fabricCostMap(lists);
+  const v = map[name];
+  if (v && v > 0) return v;
+  return fallback;
+}
+
 // Build a per-customer ledger summary from all sales + payments.
 // Each customer has: totalPurchased (qty), totalBilled, totalPaid, balance (debt).
 type CustomerLedgerEntry = Customer & {
@@ -17964,7 +18211,11 @@ function StoreStockInView({ ctx }: CtxProps) {
               (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
               0,
             ) + (Number(r.extraMeters) || 0);
-      const costPerM = Number(r.costPerMeter ?? r.costPrice) || 0;
+      const costPerM = getFabricCost(
+        r.stockFabricType,
+        lists,
+        Number(r.costPerMeter ?? r.costPrice) || 0,
+      );
       return {
         date: r.date || "",
         source: r.source || "",
@@ -18073,7 +18324,13 @@ function StoreStockInView({ ctx }: CtxProps) {
                     0,
                   ) + (Number(r.extraMeters) || 0)
                 : Number(r.qty) || 0;
-              const costPerM = Number(r.costPerMeter ?? r.costPrice) || 0;
+              // v4: cost comes from the fabric type list. Legacy records
+              // without a matching list entry fall back to their stored cost.
+              const costPerM = getFabricCost(
+                r.stockFabricType,
+                lists,
+                Number(r.costPerMeter ?? r.costPrice) || 0,
+              );
               const total = totalM * costPerM;
               const isDyed = r.fabricState === "dyed";
               return (
@@ -18376,7 +18633,22 @@ function StockInForm({
     return Number(r.qty) || 0;
   }, [r.unit, r.rollLines, r.extraMeters, r.qty]);
 
-  const totalCost = totalMeters * (Number(r.costPerMeter) || 0);
+  // ===== Cost from stock fabric type =====
+  // v4: cost lives on the list, not on the record. Operator just picks the
+  // fabric type; the per-meter cost is looked up and applied for display
+  // and totals. Old records that still carry their own costPerMeter use
+  // it as a fallback so historical displays don't change retroactively
+  // (until the operator re-saves under the new model).
+  const inferredCost = useMemo(
+    () =>
+      getFabricCost(
+        r.stockFabricType,
+        lists,
+        Number(r.costPerMeter ?? r.costPrice) || 0,
+      ),
+    [r.stockFabricType, r.costPerMeter, r.costPrice, lists],
+  );
+  const totalCost = totalMeters * inferredCost;
 
   // (Roll-line editing helpers moved into the shared RollLinesEditor component.)
 
@@ -18393,13 +18665,16 @@ function StockInForm({
       return;
     }
     // Project to the canonical shape: mirror the computed total into `qty`
-    // so any legacy code that reads `qty` keeps working. Also mirror
-    // costPerMeter into costPrice for the same reason.
+    // so any legacy code that reads `qty` keeps working. We also store the
+    // resolved cost into costPerMeter/costPrice as a SNAPSHOT — if the
+    // fabric type's cost changes later, this record still reflects what was
+    // priced at save time. New reads still use getFabricCost() so the
+    // canonical price (from the list) wins for live displays.
     const out: StoreStockIn = {
       ...r,
       qty: totalMeters,
-      costPrice: Number(r.costPerMeter) || 0,
-      costPerMeter: Number(r.costPerMeter) || 0,
+      costPrice: inferredCost,
+      costPerMeter: inferredCost,
       extraMeters: Number(r.extraMeters) || 0,
     };
     // Clean fields that don't apply to the current state. Don't strip them
@@ -18504,9 +18779,11 @@ function StockInForm({
       {/* ===== Fabric type rows (stock list + production list) ===== */}
       <div className="grid grid-cols-2 gap-3">
         <Field label={t("stockin.stockFabricType") + " *"}>
+          {/* fabricNames() normalises both v4 ({name,cost}) and legacy
+              (string) entries to a string array suitable for <Select>. */}
           <Select
             value={r.stockFabricType}
-            options={lists.stockFabricType || []}
+            options={fabricNames(lists)}
             onChange={(v) => set("stockFabricType", v)}
           />
         </Field>
@@ -18555,36 +18832,39 @@ function StockInForm({
         />
       )}
 
-      {/* ===== Total + cost summary ===== */}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("stockin.costPerMeter")}>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={r.costPerMeter ?? 0}
-            onChange={(e) =>
-              set("costPerMeter", Number(e.target.value) || 0)
-            }
-            className="w-full p-2.5 border border-slate-300 rounded-lg"
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-2 items-end">
-          <div className="bg-slate-50 rounded-lg p-2.5">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">
-              {t("stockin.total")}
-            </div>
-            <div className="text-sm font-bold text-slate-800">
-              {totalMeters.toLocaleString()} m
-            </div>
+      {/* ===== Total + cost summary =====
+          Cost / meter is read-only — it comes from the selected stock fabric
+          type's `cost` field. Operator sees what's about to be saved and
+          can change it ONLY by editing the fabric type in Lists admin. */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-slate-50 rounded-lg p-2.5">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            {t("stockin.costPerMeter")}
           </div>
-          <div className="bg-slate-50 rounded-lg p-2.5">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">
-              {t("stockin.totalCost")}
-            </div>
-            <div className="text-sm font-bold text-slate-800">
-              {fmtMoney(totalCost)}
-            </div>
+          <div className="text-sm font-bold text-slate-800">
+            {inferredCost > 0 ? (
+              fmtMoney(inferredCost)
+            ) : (
+              <span className="text-amber-600 text-xs">
+                Set cost in Lists admin
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="bg-slate-50 rounded-lg p-2.5">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            {t("stockin.total")}
+          </div>
+          <div className="text-sm font-bold text-slate-800">
+            {totalMeters.toLocaleString()} m
+          </div>
+        </div>
+        <div className="bg-slate-50 rounded-lg p-2.5">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            {t("stockin.totalCost")}
+          </div>
+          <div className="text-sm font-bold text-slate-800">
+            {fmtMoney(totalCost)}
           </div>
         </div>
       </div>
@@ -18604,7 +18884,7 @@ function StockInForm({
 
 // ============== STORE STOCK (current inventory) ==============
 function StoreStockView({ ctx }: CtxProps) {
-  const { storeStockIn, storeSales, designs } = ctx;
+  const { storeStockIn, storeSales, designs, lists } = ctx;
   const t = useT();
   const [exporting, setExporting] = useState(false);
 
@@ -18717,7 +18997,11 @@ function StoreStockView({ ctx }: CtxProps) {
       const { key, kind } = keyFor(r);
       const row = ensure(r, kind, key);
       row.inQty += Number(r.qty) || 0;
-      const cpm = Number(r.costPerMeter ?? r.costPrice) || 0;
+      const cpm = getFabricCost(
+        r.stockFabricType,
+        lists,
+        Number(r.costPerMeter ?? r.costPrice) || 0,
+      );
       row.inCost += (Number(r.qty) || 0) * cpm;
       applyRollLines(row, r.rollLines, 1);
     }
@@ -18732,7 +19016,7 @@ function StoreStockView({ ctx }: CtxProps) {
     return Object.values(m)
       .map((x) => ({ ...x, onHand: x.inQty - x.outQty }))
       .sort((a, b) => b.onHand - a.onHand);
-  }, [storeStockIn, storeSales, designById]);
+  }, [storeStockIn, storeSales, designById, lists]);
 
   // All distinct roll lengths across all rows, sorted ascending. Used to
   // build the dynamic per-length columns in the xlsx export.
@@ -18756,6 +19040,23 @@ function StoreStockView({ ctx }: CtxProps) {
     }),
     [stockByDesign],
   );
+
+  // ===== Sortable headers =====
+  // Default sort: most on-hand first. Operators sort by clicking column
+  // headers (SortableTh). The accessor for "Design" sorts by the display
+  // label so design rows, color rows, and remainder rows interleave
+  // alphabetically — same as visual order.
+  const [sort, setSort] = useState<SortSpec>({ key: "onHand", dir: "desc" });
+  const sortedRows = useSortableRows(stockByDesign, sort, {
+    designLabel: (r: any) =>
+      r.kind === "design"
+        ? r.designNumber || ""
+        : r.kind === "color"
+          ? r.colorName || r.hexColor || ""
+          : r.kind === "remainder"
+            ? "~remainder" // sort to bottom alphabetically
+            : "",
+  });
 
   // ===== xlsx export with embedded images =====
   //
@@ -19075,20 +19376,70 @@ function StoreStockView({ ctx }: CtxProps) {
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left p-3 font-medium w-20">{t("stock.col.image")}</th>
-              <th className="text-left p-3 font-medium">{t("stock.col.design")}</th>
-              <th className="text-left p-3 font-medium">{t("stock.col.fabric")}</th>
-              <th className="text-left p-3 font-medium">{t("stock.col.unit")}</th>
+              <SortableTh
+                sortKey="designLabel"
+                label={t("stock.col.design")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="fabricType"
+                label={t("stock.col.fabric")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="unit"
+                label={t("stock.col.unit")}
+                sort={sort}
+                setSort={setSort}
+              />
               <th className="text-left p-3 font-medium">{t("stock.col.rollsOnHand")}</th>
-              <th className="text-right p-3 font-medium">{t("stock.col.in")}</th>
-              <th className="text-right p-3 font-medium">{t("stock.col.out")}</th>
-              <th className="text-right p-3 font-medium">{t("stock.col.onHand")}</th>
-              <th className="text-right p-3 font-medium">{t("stock.col.cost")}</th>
-              <th className="text-right p-3 font-medium">{t("stock.col.revenue")}</th>
+              <SortableTh
+                sortKey="inQty"
+                label={t("stock.col.in")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
+              <SortableTh
+                sortKey="outQty"
+                label={t("stock.col.out")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
+              <SortableTh
+                sortKey="onHand"
+                label={t("stock.col.onHand")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
+              <SortableTh
+                sortKey="inCost"
+                label={t("stock.col.cost")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
+              <SortableTh
+                sortKey="outRevenue"
+                label={t("stock.col.revenue")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
               <th className="text-left p-3 font-medium">{t("stock.col.status")}</th>
             </tr>
           </thead>
           <tbody>
-            {stockByDesign.map((r) => {
+            {sortedRows.map((r) => {
               const d = r.designId ? designById[r.designId] : null;
               const src = d ? resolveDesignImage(d) : "";
               // Per-length on-hand summary, e.g. "30m × 12, 50m × 5". Sort
@@ -19449,13 +19800,20 @@ function SaleForm({
   const set = (k: string, v: any) =>
     setS((prev) => ({ ...prev, [k]: v }));
 
-  // ===== Compute on-hand-per-design-per-length =====
+  // ===== Compute on-hand-per-design-per-length-per-fabricType =====
   //
-  // For the rolls picker, we need to know, for each design (or color), how
-  // many rolls of each length are still on-hand. Math:
-  //   onHand[designOrColorKey][length] = Σ(stockIn.rollLines for that group)
-  //                                    − Σ(sales.rollLines for that group,
-  //                                        EXCLUDING this sale being edited)
+  // For the rolls picker we need to know, for each combination of
+  // (design-or-color, fabric-type, length), how many rolls are still
+  // on-hand. Math:
+  //   onHand[group|fabricType|length] = Σ(stockIn.rollLines for that combo)
+  //                                   − Σ(sales.rollLines for that combo,
+  //                                       EXCLUDING this sale being edited)
+  //
+  // Why include fabric-type in the key: v4 prices are per-fabric-type, so a
+  // sale of "Design 042 in Plain Cotton" prices differently from "Design 042
+  // in Cotton Satin." Keeping them separate rows lets pricing stay exact.
+  // In practice a design tends to be stocked under one fabric type, so most
+  // rows just have one fabricType value — but we don't assume.
   //
   // We exclude the current edit so the operator sees their previous picks
   // as still-available (they're editing those very rolls).
@@ -19469,13 +19827,14 @@ function SaleForm({
       designName?: string;
       hexColor?: string;
       colorName?: string;
+      fabricType: string;
       lengths: LengthMap;
     };
+    // Composite key: `${groupKey}::${fabricType}`. Two stock-ins of the same
+    // design under different fabric types end up as different groups.
     const groups: Record<string, GroupInfo> = {};
 
     function groupKey(r: any): { key: string; kind: "design" | "color" | "remainder" } | null {
-      // Remainder bin: pooled across all stock-ins with designId === "remainder".
-      // One global group in the picker.
       if (r.designId === "remainder") {
         return { key: "r:remainder", kind: "remainder" };
       }
@@ -19488,27 +19847,39 @@ function SaleForm({
       return null;
     }
 
-    function ensureGroup(r: any, key: string, kind: "design" | "color" | "remainder") {
-      if (groups[key]) return groups[key];
+    function compositeKey(gk: string, fabricType: string): string {
+      return `${gk}::${fabricType || "(none)"}`;
+    }
+
+    function ensureGroup(
+      r: any,
+      gk: string,
+      kind: "design" | "color" | "remainder",
+      fabricType: string,
+    ) {
+      const ck = compositeKey(gk, fabricType);
+      if (groups[ck]) return groups[ck];
       const d = r.designId && kind === "design" ? designs.find((x) => x.id === r.designId) : null;
       const g: GroupInfo = {
-        key,
+        key: ck,
         kind,
         designId: kind === "design" ? r.designId : undefined,
         designNumber: d?.designNumber,
         designName: d?.name,
         hexColor: kind === "color" ? r.hexColor : undefined,
         colorName: kind === "color" ? r.colorName : undefined,
+        fabricType,
         lengths: {},
       };
-      groups[key] = g;
+      groups[ck] = g;
       return g;
     }
 
     for (const r of storeStockIn) {
       const gk = groupKey(r);
       if (!gk) continue;
-      const g = ensureGroup(r, gk.key, gk.kind);
+      const ft = r.stockFabricType || "";
+      const g = ensureGroup(r, gk.key, gk.kind, ft);
       for (const ln of r.rollLines || []) {
         const len = Number(ln.length) || 0;
         const qty = Number(ln.qty) || 0;
@@ -19517,11 +19888,11 @@ function SaleForm({
       }
     }
     for (const sale of storeSales) {
-      // Skip the sale we're editing — its rolls are about to be replaced.
       if (sale.id === s.id) continue;
       const gk = groupKey(sale);
       if (!gk) continue;
-      const g = ensureGroup(sale, gk.key, gk.kind);
+      const ft = (sale as any).stockFabricType || "";
+      const g = ensureGroup(sale, gk.key, gk.kind, ft);
       for (const ln of sale.rollLines || []) {
         const len = Number(ln.length) || 0;
         const qty = Number(ln.qty) || 0;
@@ -19530,37 +19901,43 @@ function SaleForm({
       }
     }
 
-    // Return as a flat list of (group, length, available) for the picker.
+    // Return as a flat list of (group, fabricType, length, available).
     const rows: {
+      compositeKey: string; // groupKey::fabricType
       groupKey: string;
-      kind: "design" | "color";
+      kind: "design" | "color" | "remainder";
       designId?: string;
       designNumber?: string;
       designName?: string;
       hexColor?: string;
       colorName?: string;
+      fabricType: string;
       length: number;
       available: number;
     }[] = [];
     for (const g of Object.values(groups)) {
+      // Recover the bare groupKey from the composite (everything before "::").
+      const bareGroupKey = g.key.split("::")[0];
       for (const [lenStr, qty] of Object.entries(g.lengths)) {
         const len = Number(lenStr);
         if (qty <= 0) continue;
         rows.push({
-          groupKey: g.key,
+          compositeKey: g.key,
+          groupKey: bareGroupKey,
           kind: g.kind,
           designId: g.designId,
           designNumber: g.designNumber,
           designName: g.designName,
           hexColor: g.hexColor,
           colorName: g.colorName,
+          fabricType: g.fabricType,
           length: len,
           available: qty,
         });
       }
     }
-    // Sort by group then by length asc. Remainder bin always sinks to the
-    // bottom regardless of name, since it's the catch-all.
+    // Sort: remainder always last; otherwise by design number/color asc, then
+    // fabric type, then length asc.
     rows.sort((a, b) => {
       if (a.kind === "remainder" && b.kind !== "remainder") return 1;
       if (b.kind === "remainder" && a.kind !== "remainder") return -1;
@@ -19569,6 +19946,9 @@ function SaleForm({
           b.designNumber || b.hexColor || "",
         );
       }
+      if (a.fabricType !== b.fabricType) {
+        return a.fabricType.localeCompare(b.fabricType);
+      }
       return a.length - b.length;
     });
     return rows;
@@ -19576,35 +19956,37 @@ function SaleForm({
 
   // ===== Picker state =====
   //
-  // The operator's picks live in a Map keyed by "groupKey|length" → qty.
-  // We initialise from `s.rollLines` + the existing variant fields so editing
-  // an existing sale shows the previous picks.
+  // Picks are keyed by `${compositeKey}|${length}` where compositeKey is
+  // `groupKey::fabricType`. This way two rolls of the same design under
+  // different fabric types are tracked separately (and priced separately).
+  //
+  // When editing an existing sale we reconstruct from `s.rollLines` + the
+  // sale's stored fabric type. If the fabric type changed since the sale
+  // was made, the picks won't line up — that's OK, we just don't pre-fill.
   const initialPicks = useMemo(() => {
     const m: Record<string, number> = {};
-    // Remainder sale: rollLines come from the shared "r:remainder" group.
+    const ft = (s as any).stockFabricType || "";
+    let baseKey: string | null = null;
     if (s.designId === "remainder") {
-      for (const ln of s.rollLines || []) {
-        const k = `r:remainder|${ln.length}`;
-        m[k] = (m[k] || 0) + ln.qty;
-      }
+      baseKey = `r:remainder::${ft || "(none)"}`;
     } else if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
-      for (const ln of s.rollLines || []) {
-        m[`d:${s.designId}|${ln.length}`] = (m[`d:${s.designId}|${ln.length}`] || 0) + ln.qty;
-      }
+      baseKey = `d:${s.designId}::${ft || "(none)"}`;
     } else if (s.fabricState === "dyed" && s.hexColor) {
+      baseKey = `c:${s.hexColor.toLowerCase()}::${ft || "(none)"}`;
+    }
+    if (baseKey) {
       for (const ln of s.rollLines || []) {
-        const k = `c:${s.hexColor.toLowerCase()}|${ln.length}`;
+        const k = `${baseKey}|${ln.length}`;
         m[k] = (m[k] || 0) + ln.qty;
       }
     }
     return m;
-    // Intentionally compute once at mount — picks live in `picks` state below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [picks, setPicks] = useState<Record<string, number>>(initialPicks);
 
   function pickRow(row: typeof onHand[number], qty: number) {
-    const key = `${row.groupKey}|${row.length}`;
+    const key = `${row.compositeKey}|${row.length}`;
     const clamped = Math.max(0, Math.min(qty, row.available));
     setPicks((prev) => {
       const next = { ...prev };
@@ -19614,30 +19996,63 @@ function SaleForm({
     });
   }
 
+  // ===== Picker filters =====
+  // Search box: free-text substring match against design number, color
+  // name/hex, fabric type, and length (typed as a string).
+  // Fabric type chips: narrows to a single stock fabric type. Empty string
+  // means "all".
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [fabricFilter, setFabricFilter] = useState("");
+  const filteredOnHand = useMemo(() => {
+    const term = pickerSearch.trim().toLowerCase();
+    return onHand.filter((row) => {
+      if (fabricFilter && row.fabricType !== fabricFilter) return false;
+      if (!term) return true;
+      const hay = [
+        row.designNumber,
+        row.designName,
+        row.hexColor,
+        row.colorName,
+        row.fabricType,
+        String(row.length),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(term);
+    });
+  }, [onHand, pickerSearch, fabricFilter]);
+
   // ===== Derive sale-level fields from the picks =====
   //
-  // We support one design (or one color) per sale to keep the schema simple.
-  // The operator's picks should all belong to one group; if they cross groups,
-  // we save what's in the active group only and warn before save.
+  // Each picked row carries its fabricType — needed for pricing. A sale can
+  // legitimately span multiple fabric types if the same design was stocked
+  // under different types. We allow that, but for the stored variant fields
+  // (designId / hexColor) we use the FIRST group's identity; the picked
+  // rolls are saved as `rollLines[]` carrying length+qty only.
   const pickedRows = useMemo(() => {
     const out: {
+      compositeKey: string;
       groupKey: string;
       kind: "design" | "color" | "remainder";
       designId?: string;
       hexColor?: string;
       colorName?: string;
+      fabricType: string;
       length: number;
       qty: number;
     }[] = [];
     for (const row of onHand) {
-      const qty = picks[`${row.groupKey}|${row.length}`] || 0;
+      const qty = picks[`${row.compositeKey}|${row.length}`] || 0;
       if (qty > 0) {
         out.push({
+          compositeKey: row.compositeKey,
           groupKey: row.groupKey,
           kind: row.kind,
           designId: row.designId,
           hexColor: row.hexColor,
           colorName: row.colorName,
+          fabricType: row.fabricType,
           length: row.length,
           qty,
         });
@@ -19652,11 +20067,64 @@ function SaleForm({
     0,
   );
 
-  // Pricing: base × meters, minus discount × meters. Discount is per-meter.
-  const basePrice = Number(s.unitPrice) || 0;
-  const discount = Number((s as any).discountPerMeter) || 0;
-  const finalPrice = Math.max(0, basePrice - discount);
-  const total = finalPrice * totalMeters;
+  // ===== Per-fabric-type breakdown =====
+  //
+  // Group picked rows by fabric type. For each group:
+  //   meters     = Σ(length × qty)
+  //   basePrice  = getFabricCost(fabricType) — from the list
+  //   discount   = operator-set, per-fabric-type
+  //   final      = max(0, base − discount)
+  //   subtotal   = final × meters
+  //
+  // The discount is stored on the sale as `discountsByFabric: Record<name, number>`.
+  // Single-fabric sales reduce to one line; multi-fabric show one per type.
+  const discounts: Record<string, number> = useMemo(
+    () => ((s as any).discountsByFabric || {}) as Record<string, number>,
+    [s],
+  );
+  function setDiscountFor(fabricType: string, value: number) {
+    setS((prev) => {
+      const cur = { ...(((prev as any).discountsByFabric || {}) as Record<string, number>) };
+      if (value > 0) cur[fabricType] = value;
+      else delete cur[fabricType];
+      return { ...prev, discountsByFabric: cur } as any;
+    });
+  }
+
+  type FabricSummary = {
+    fabricType: string;
+    meters: number;
+    basePrice: number;
+    discount: number;
+    finalPrice: number;
+    subtotal: number;
+  };
+  const byFabric: FabricSummary[] = useMemo(() => {
+    const map: Record<string, FabricSummary> = {};
+    for (const r of pickedRows) {
+      const ft = r.fabricType || "(unspecified)";
+      if (!map[ft]) {
+        const base = getFabricCost(ft, lists, 0);
+        const disc = Number(discounts[ft]) || 0;
+        const final = Math.max(0, base - disc);
+        map[ft] = {
+          fabricType: ft,
+          meters: 0,
+          basePrice: base,
+          discount: disc,
+          finalPrice: final,
+          subtotal: 0,
+        };
+      }
+      map[ft].meters += r.length * r.qty;
+      map[ft].subtotal = map[ft].meters * map[ft].finalPrice;
+    }
+    return Object.values(map).sort((a, b) =>
+      a.fabricType.localeCompare(b.fabricType),
+    );
+  }, [pickedRows, discounts, lists]);
+
+  const total = byFabric.reduce((sum, x) => sum + x.subtotal, 0);
   const paid = Number(s.paidAmount) || 0;
   const debt = total - paid;
 
@@ -19669,14 +20137,20 @@ function SaleForm({
       alert(t("stockin.qtyRequired"));
       return;
     }
-    if (basePrice <= 0) {
-      alert("Set a base unit price");
-      return;
+    // No base-price check — price comes from each fabric type's cost. If
+    // the operator's picks span fabric types with no configured cost, we
+    // warn but allow the save (subtotal will just be zero for those rows).
+    const missingPrice = byFabric.find((b) => b.basePrice <= 0);
+    if (missingPrice) {
+      const proceed = confirm(
+        `No price configured for fabric type "${missingPrice.fabricType}". Set it in Lists admin. Save anyway with 0 price?`,
+      );
+      if (!proceed) return;
     }
-    // Derive variant + rollLines from picks. Picks should be in one group.
-    // If they span groups (shouldn't normally happen), we save the FIRST
-    // group's picks only. The picker UI groups visually, so cross-group
-    // picks are unusual.
+    // Derive variant + rollLines from picks. Picks may span multiple fabric
+    // types within ONE design/color group, which is fine. If they span
+    // multiple GROUPS (different designs), we warn — that's a multi-design
+    // sale and the schema only stores one designId.
     const firstGroup = pickedRows[0];
     const sameGroup = pickedRows.every(
       (p) => p.groupKey === firstGroup.groupKey,
@@ -19692,10 +20166,6 @@ function SaleForm({
     );
     const rollLines = inGroup.map((p) => ({ length: p.length, qty: p.qty }));
 
-    // Variant fields based on the picked group's kind. Remainder is stored
-    // as designId="remainder" + fabricState="printed" — mirroring how the
-    // stock-in side encodes it, so the grouping logic finds these sales
-    // and subtracts them from the remainder bin.
     const variantFields: Partial<StoreSale> =
       firstGroup.kind === "remainder"
         ? { fabricState: "printed", designId: "remainder", hexColor: undefined }
@@ -19711,18 +20181,25 @@ function SaleForm({
               hexColor: firstGroup.hexColor,
             };
 
+    // Store unitPrice as the weighted average final price (total / meters)
+    // so reports that look at unitPrice still get a sensible number. The
+    // detailed per-fabric breakdown is persisted in discountsByFabric.
+    const effectiveUnitPrice = totalMeters > 0 ? total / totalMeters : 0;
+
     onSave({
       ...s,
       customerId: s.customerId,
       ...variantFields,
+      stockFabricType: firstGroup.fabricType,
       unit: "rolls",
       rollLines,
       extraMeters: 0,
       qty: totalMeters,
-      unitPrice: finalPrice,
+      unitPrice: effectiveUnitPrice,
       totalAmount: total,
       paidAmount: paid,
-      ...(discount > 0 ? { discountPerMeter: discount, basePrice } : {}),
+      // Persisted: per-fabric-type discounts at sale time.
+      ...(Object.keys(discounts).length > 0 ? { discountsByFabric: discounts } : {}),
     } as any);
   }
 
@@ -19776,17 +20253,70 @@ function SaleForm({
         <div className="text-xs text-slate-500 mb-2">
           {t("sales.pickRolls.help")}
         </div>
-        {onHand.length === 0 ? (
+
+        {/* Search + fabric type filter. Search narrows by design number,
+            color name, hex code, or fabric type substring. Filter chips
+            narrow to one stock fabric type (use case: "show me only
+            Plain Cotton stock"). */}
+        <div className="flex flex-wrap gap-2 mb-2 items-center">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={14}
+            />
+            <input
+              value={pickerSearch}
+              onChange={(e) => setPickerSearch(e.target.value)}
+              placeholder={t("common.search") + "…"}
+              className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
+            />
+          </div>
+          {/* Render one chip per distinct fabric type present in on-hand. */}
+          {(() => {
+            const types = Array.from(
+              new Set(onHand.map((r) => r.fabricType).filter(Boolean)),
+            ).sort();
+            if (!types.length) return null;
+            return (
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFabricFilter("")}
+                  className={`text-xs px-2 py-1 rounded-full ${fabricFilter === "" ? "bg-purple-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+                >
+                  All
+                </button>
+                {types.map((ft) => (
+                  <button
+                    type="button"
+                    key={ft}
+                    onClick={() =>
+                      setFabricFilter(fabricFilter === ft ? "" : ft)
+                    }
+                    className={`text-xs px-2 py-1 rounded-full ${fabricFilter === ft ? "bg-purple-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+                  >
+                    {ft}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        {filteredOnHand.length === 0 ? (
           <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-500 text-center">
-            {t("sales.outOfStock")}
+            {onHand.length === 0 ? t("sales.outOfStock") : t("common.noResults", "No matching rolls")}
           </div>
         ) : (
-          <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs">
+              <thead className="bg-slate-50 text-slate-600 text-xs sticky top-0">
                 <tr>
                   <th className="text-left p-2 font-medium">
                     {t("sales.col.design")}
+                  </th>
+                  <th className="text-left p-2 font-medium">
+                    {t("stockin.stockFabricType")}
                   </th>
                   <th className="text-right p-2 font-medium">
                     {t("sales.row.length")}
@@ -19794,19 +20324,23 @@ function SaleForm({
                   <th className="text-right p-2 font-medium">
                     {t("sales.row.available")}
                   </th>
+                  <th className="text-right p-2 font-medium">
+                    Price / m
+                  </th>
                   <th className="text-right p-2 font-medium w-28">
                     {t("sales.row.taking")}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {onHand.map((row) => {
-                  const key = `${row.groupKey}|${row.length}`;
+                {filteredOnHand.map((row) => {
+                  const key = `${row.compositeKey}|${row.length}`;
                   const picked = picks[key] || 0;
                   const d = row.designId
                     ? designs.find((x) => x.id === row.designId)
                     : null;
                   const src = d ? resolveDesignImage(d) : "";
+                  const rowPrice = getFabricCost(row.fabricType, lists, 0);
                   return (
                     <tr
                       key={key}
@@ -19845,11 +20379,21 @@ function SaleForm({
                           </div>
                         </div>
                       </td>
+                      <td className="p-2 text-xs text-slate-600">
+                        {row.fabricType || "—"}
+                      </td>
                       <td className="p-2 text-right text-slate-700">
                         {row.length}m
                       </td>
                       <td className="p-2 text-right text-slate-600">
                         {row.available}
+                      </td>
+                      <td className="p-2 text-right text-slate-700">
+                        {rowPrice > 0 ? fmtMoney(rowPrice) : (
+                          <span className="text-amber-600 text-[10px]">
+                            no price
+                          </span>
+                        )}
                       </td>
                       <td className="p-2 text-right">
                         <input
@@ -19892,37 +20436,77 @@ function SaleForm({
         </div>
       </div>
 
-      {/* ===== Pricing ===== */}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("sales.basePrice") + " *"}>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={s.unitPrice ?? ""}
-            onChange={(e) => set("unitPrice", e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg"
-          />
-        </Field>
-        <Field label={t("sales.discount")}>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={(s as any).discountPerMeter ?? ""}
-            onChange={(e) => set("discountPerMeter", e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg"
-            placeholder="0"
-          />
-        </Field>
-      </div>
-      {discount > 0 && (
-        <div className="text-xs text-slate-500 -mt-1">
-          {t("sales.finalPrice")}:{" "}
-          <span className="font-bold text-slate-700">
-            {fmtMoney(finalPrice)} / m
-          </span>{" "}
-          ({t("sales.discount.help")})
+      {/* ===== Pricing breakdown by fabric type =====
+          v4 model: each picked roll's price is locked to its stock fabric
+          type's cost (from Lists admin). The only thing operator controls
+          is a per-fabric-type discount. The breakdown table shows one row
+          per fabric type with picks, with its meters, base price, discount
+          input, final price, and subtotal. */}
+      {byFabric.length > 0 && (
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600 text-xs">
+              <tr>
+                <th className="text-left p-2 font-medium">
+                  {t("stockin.stockFabricType")}
+                </th>
+                <th className="text-right p-2 font-medium">
+                  {t("sales.totalMeters")}
+                </th>
+                <th className="text-right p-2 font-medium">
+                  {t("sales.basePrice")}
+                </th>
+                <th className="text-right p-2 font-medium w-28">
+                  {t("sales.discount")}
+                </th>
+                <th className="text-right p-2 font-medium">
+                  {t("sales.finalPrice")}
+                </th>
+                <th className="text-right p-2 font-medium">
+                  {t("sales.col.total")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {byFabric.map((b) => (
+                <tr key={b.fabricType} className="border-t border-slate-100">
+                  <td className="p-2 font-medium text-slate-700">
+                    {b.fabricType}
+                  </td>
+                  <td className="p-2 text-right text-slate-700">
+                    {b.meters.toLocaleString()} m
+                  </td>
+                  <td className="p-2 text-right text-slate-700">
+                    {b.basePrice > 0 ? fmtMoney(b.basePrice) : (
+                      <span className="text-amber-600 text-[10px]">
+                        no price
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2 text-right">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={b.basePrice}
+                      value={b.discount || ""}
+                      onChange={(e) =>
+                        setDiscountFor(b.fabricType, Number(e.target.value) || 0)
+                      }
+                      className="w-20 p-1 border border-slate-300 rounded text-sm text-right"
+                      placeholder="0"
+                    />
+                  </td>
+                  <td className="p-2 text-right font-medium text-slate-800">
+                    {fmtMoney(b.finalPrice)}
+                  </td>
+                  <td className="p-2 text-right font-bold text-slate-800">
+                    {fmtMoney(b.subtotal)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
