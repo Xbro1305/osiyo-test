@@ -355,7 +355,7 @@ const TRANSLATIONS = {
     // ===== Stock In (Local Market Store) =====
     "stockin.title": "Stock In",
     "stockin.subtitle": "Incoming fabric to the store",
-    "stockin.search": "Search fabric, lot, source…",
+    "stockin.search": "Search design #, date, color, fabric…",
     "stockin.add": "Add Stock In",
     "stockin.edit": "Edit Stock In",
     "stockin.new": "New Stock In",
@@ -710,7 +710,7 @@ const TRANSLATIONS = {
     // ===== Stock In (Mahalliy Bozor Doʻkoni) =====
     "stockin.title": "Kirim",
     "stockin.subtitle": "Doʻkonga kirayotgan mato",
-    "stockin.search": "Mato, partiya, manba boʻyicha qidirish…",
+    "stockin.search": "Dizayn №, sana, rang, mato boʻyicha qidirish…",
     "stockin.add": "Kirim qoʻshish",
     "stockin.edit": "Kirimni tahrirlash",
     "stockin.new": "Yangi kirim",
@@ -18155,6 +18155,7 @@ function StoreStockInView({ ctx }: CtxProps) {
     (user.role === "dept_admin" && user.departmentId === "store");
   const [editing, setEditing] = useState<StoreStockIn | null>(null);
   const [search, setSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   // Helper: resolve a row's "variant" label (design number or hex color)
   // for display + export. Returns short text for the table cell.
@@ -18178,19 +18179,96 @@ function StoreStockInView({ ctx }: CtxProps) {
     return "—";
   }
 
-  const rows = useMemo(() => {
+  // ===== Search + filters + sort =====
+  // Search hits every meaningful surface field: design number (resolved
+  // from designId via designById), color name, hex, fabric types, source,
+  // notes, date string, and any roll-line length. Operators search by
+  // whatever's in their head — design number AND date are the most common,
+  // but the broader matcher costs nothing.
+  // Fabric filter narrows to a single stock fabric type (chip-driven).
+  const [fabricFilter, setFabricFilter] = useState("");
+  const [sort, setSort] = useState<SortSpec>({ key: "date", dir: "desc" });
+
+  const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return storeStockIn
-      .filter(
-        (r) =>
-          !term ||
-          r.fabricType?.toLowerCase().includes(term) ||
-          r.stockFabricType?.toLowerCase().includes(term) ||
-          r.source?.toLowerCase().includes(term) ||
-          r.lotNumber?.toLowerCase().includes(term),
-      )
-      .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  }, [storeStockIn, search]);
+    return storeStockIn.filter((r) => {
+      if (fabricFilter && r.stockFabricType !== fabricFilter) return false;
+      if (!term) return true;
+      const designNumber =
+        r.designId && designById[r.designId]
+          ? designById[r.designId].designNumber
+          : "";
+      const rollLinesStr = (r.rollLines || [])
+        .map((ln) => `${ln.length}m`)
+        .join(" ");
+      const hay = [
+        r.date,
+        designNumber,
+        r.colorName,
+        r.hexColor,
+        r.stockFabricType,
+        r.fabricType,
+        r.source,
+        r.lotNumber,
+        r.notes,
+        rollLinesStr,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(term);
+    });
+  }, [storeStockIn, search, fabricFilter, designById]);
+
+  // ===== Sortable rows =====
+  // Custom accessors so the table sorts by what you'd expect rather than
+  // raw field values. Variant: design number > color name > "—". Total
+  // meters: compute from rollLines+extraMeters or fall back to qty.
+  // Total cost: per-row computed cost (canonical from getFabricCost).
+  const rows = useSortableRows(filteredRows, sort, {
+    variant: (r: StoreStockIn) => variantLabel(r),
+    totalMeters: (r: StoreStockIn) => {
+      const hasLines = (r.rollLines || []).length > 0;
+      return hasLines
+        ? (r.rollLines || []).reduce(
+            (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+            0,
+          ) + (Number(r.extraMeters) || 0)
+        : Number(r.qty) || 0;
+    },
+    costPerMeter: (r: StoreStockIn) =>
+      getFabricCost(
+        r.stockFabricType,
+        lists,
+        Number(r.costPerMeter ?? r.costPrice) || 0,
+      ),
+    totalCost: (r: StoreStockIn) => {
+      const hasLines = (r.rollLines || []).length > 0;
+      const m = hasLines
+        ? (r.rollLines || []).reduce(
+            (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+            0,
+          ) + (Number(r.extraMeters) || 0)
+        : Number(r.qty) || 0;
+      const c = getFabricCost(
+        r.stockFabricType,
+        lists,
+        Number(r.costPerMeter ?? r.costPrice) || 0,
+      );
+      return m * c;
+    },
+  });
+
+  // ===== Fabric filter chip set =====
+  // Show one chip per distinct stockFabricType actually present in the
+  // records (plus "All"). Sorted alphabetically.
+  const fabricChips = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of storeStockIn) {
+      if (r.stockFabricType) set.add(r.stockFabricType);
+    }
+    return [...set].sort();
+  }, [storeStockIn]);
 
   // ===== CSV export — flatten the rich shape into spreadsheet-friendly columns =====
   //
@@ -18199,42 +18277,278 @@ function StoreStockInView({ ctx }: CtxProps) {
   // Here we explicitly project each row into scalar columns: roll lines are
   // serialised into a readable "30m×34 + 50m×23" string in one column, with
   // separate columns for the structural fields the user filters on.
-  function exportRows() {
-    const out = rows.map((r) => {
-      const lines = (r.rollLines || [])
-        .map((ln) => `${ln.length}m×${ln.qty}`)
-        .join(" + ");
-      const total =
-        r.qty !== undefined
-          ? Number(r.qty) || 0
-          : (r.rollLines || []).reduce(
-              (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
-              0,
-            ) + (Number(r.extraMeters) || 0);
-      const costPerM = getFabricCost(
-        r.stockFabricType,
-        lists,
-        Number(r.costPerMeter ?? r.costPrice) || 0,
-      );
-      return {
-        date: r.date || "",
-        source: r.source || "",
-        fabricState: r.fabricState || "",
-        variant: variantLabel(r),
-        colorName: r.colorName || "",
-        hexColor: r.hexColor || "",
-        stockFabricType: r.stockFabricType || "",
-        productionFabricType: r.fabricType || "",
-        unit: r.unit || "",
-        rollLines: lines,
-        extraMeters: Number(r.extraMeters) || 0,
-        totalMeters: total,
-        costPerMeter: costPerM,
-        totalCost: total * costPerM,
-        notes: r.notes || "",
-      };
-    });
-    exportToCSV(out, "store_stock_in");
+  // ===== xlsx export — per fabric type, one sheet each =====
+  //
+  // Each fabric type gets its own worksheet, named after the type. Columns
+  // are Date, #, Design #, Image, then dynamic per-length count columns
+  // (only the lengths present in THIS fabric type's records), then Total.
+  // One row per stock-in record — same design appearing twice on different
+  // dates produces two rows. Operators wanted to see each load separately,
+  // not aggregated.
+  //
+  // Lazy-imports exceljs the same way Current Stock does so the bundle
+  // isn't loaded until someone actually exports.
+  async function exportRows() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const ExcelJSMod: any = await import("exceljs");
+      const ExcelJS = ExcelJSMod.default || ExcelJSMod;
+      const wb = new ExcelJS.Workbook();
+
+      const IMG_W = 100;
+      const IMG_H = 60;
+
+      // Reuse the same image transformers as Current Stock (cover-crop +
+      // hex swatch + remainder swatch). Defined locally so this export
+      // stays a self-contained unit.
+      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+        try {
+          const blob = new Blob([buf]);
+          const url = URL.createObjectURL(blob);
+          try {
+            const img = await new Promise<HTMLImageElement>((res, rej) => {
+              const im = new Image();
+              im.onload = () => res(im);
+              im.onerror = () => rej(new Error("image load failed"));
+              im.src = url;
+            });
+            const canvas = document.createElement("canvas");
+            canvas.width = IMG_W;
+            canvas.height = IMG_H;
+            const cx = canvas.getContext("2d");
+            if (!cx) return null;
+            const scale = Math.max(IMG_W / img.width, IMG_H / img.height);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            const dx = (IMG_W - drawW) / 2;
+            const dy = (IMG_H - drawH) / 2;
+            cx.drawImage(img, dx, dy, drawW, drawH);
+            const dataUrl = canvas.toDataURL("image/png");
+            const base64 = dataUrl.split(",")[1];
+            const bin = atob(base64);
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out.buffer;
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        } catch {
+          return null;
+        }
+      }
+      function hexSwatchBuffer(hex: string): ArrayBuffer | null {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = IMG_W;
+          canvas.height = IMG_H;
+          const cx = canvas.getContext("2d");
+          if (!cx) return null;
+          cx.fillStyle = hex;
+          cx.fillRect(0, 0, IMG_W, IMG_H);
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+          const bin = atob(base64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        } catch {
+          return null;
+        }
+      }
+      function remainderSwatchBuffer(): ArrayBuffer | null {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = IMG_W;
+          canvas.height = IMG_H;
+          const cx = canvas.getContext("2d");
+          if (!cx) return null;
+          const g = cx.createLinearGradient(0, 0, IMG_W, IMG_H);
+          g.addColorStop(0, "#fef3c7");
+          g.addColorStop(1, "#fed7aa");
+          cx.fillStyle = g;
+          cx.fillRect(0, 0, IMG_W, IMG_H);
+          cx.fillStyle = "#92400e";
+          cx.font = "32px sans-serif";
+          cx.textAlign = "center";
+          cx.textBaseline = "middle";
+          cx.fillText("♻", IMG_W / 2, IMG_H / 2);
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+          const bin = atob(base64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        } catch {
+          return null;
+        }
+      }
+
+      function sheetNameFor(fabricType: string): string {
+        const raw = fabricType || "(none)";
+        const cleaned = raw.replace(/[:\\/\?\*\[\]]/g, "_");
+        return cleaned.length > 31 ? cleaned.slice(0, 31) : cleaned;
+      }
+
+      // Group `rows` (the current sorted/filtered set) by stock fabric
+      // type. Iterating `rows` instead of raw storeStockIn means the
+      // export honours the operator's current filter + sort.
+      const groupsByFabric: Record<string, StoreStockIn[]> = {};
+      for (const r of rows) {
+        const ft = r.stockFabricType || "(none)";
+        if (!groupsByFabric[ft]) groupsByFabric[ft] = [];
+        groupsByFabric[ft].push(r);
+      }
+      const fabricKeys = Object.keys(groupsByFabric).sort();
+
+      if (fabricKeys.length === 0) {
+        wb.addWorksheet("Empty");
+      }
+
+      for (const fabricType of fabricKeys) {
+        const recs = groupsByFabric[fabricType];
+
+        // Lengths present in THIS fabric type's records.
+        const sheetLengths = new Set<number>();
+        for (const r of recs) {
+          for (const ln of r.rollLines || []) {
+            const len = Number(ln.length) || 0;
+            const qty = Number(ln.qty) || 0;
+            if (len > 0 && qty > 0) sheetLengths.add(len);
+          }
+        }
+        const sheetLengthArr = [...sheetLengths].sort((a, b) => a - b);
+
+        const ws = wb.addWorksheet(sheetNameFor(fabricType));
+        const lengthColumns = sheetLengthArr.map((len) => ({
+          header: `${len}m`,
+          key: `len_${len}`,
+          width: 8,
+        }));
+        ws.columns = [
+          { header: "Date", key: "date", width: 12 },
+          { header: "#", key: "orderNo", width: 5 },
+          { header: "Design #", key: "designNumber", width: 16 },
+          { header: "Image", key: "image", width: 18 },
+          ...lengthColumns,
+          { header: "Total (m)", key: "total", width: 12 },
+        ];
+        ws.getRow(1).font = { bold: true };
+        ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+        ws.getRow(1).height = 22;
+
+        // Fetch + transform images for these rows in parallel.
+        const processedImages: (ArrayBuffer | null)[] = await Promise.all(
+          recs.map(async (r) => {
+            if (r.designId === "remainder") return remainderSwatchBuffer();
+            if (
+              r.fabricState === "printed" &&
+              r.designId &&
+              r.designId !== "mix" &&
+              r.designId !== "remainder"
+            ) {
+              const d = designById[r.designId];
+              const src = d ? resolveDesignImage(d) : "";
+              if (!src) return null;
+              try {
+                const res = await fetch(src, { credentials: "include" });
+                if (!res.ok) return null;
+                const raw = await res.arrayBuffer();
+                return await bufferToCovered(raw);
+              } catch {
+                return null;
+              }
+            }
+            if (r.fabricState === "dyed" && r.hexColor) {
+              return hexSwatchBuffer(r.hexColor);
+            }
+            return null;
+          }),
+        );
+
+        recs.forEach((r, i) => {
+          const rowNumber = i + 2; // 1 is the header
+
+          // Per-length cells from the record's own rollLines.
+          const perLength: Record<number, number> = {};
+          let totalFromLines = 0;
+          for (const ln of r.rollLines || []) {
+            const len = Number(ln.length) || 0;
+            const qty = Number(ln.qty) || 0;
+            if (len <= 0 || qty <= 0) continue;
+            perLength[len] = (perLength[len] || 0) + qty;
+            totalFromLines += len * qty;
+          }
+          const total =
+            totalFromLines > 0 || (r.extraMeters && r.extraMeters > 0)
+              ? totalFromLines + (Number(r.extraMeters) || 0)
+              : Number(r.qty) || 0;
+
+          // Label cell.
+          let label = "—";
+          if (r.designId === "remainder") {
+            label = t("stockin.design.remainder");
+          } else if (r.fabricState === "printed") {
+            if (r.designId === "mix") label = t("stockin.design.mix");
+            else if (r.designId && designById[r.designId]) {
+              label = designById[r.designId].designNumber;
+            }
+          } else if (r.fabricState === "dyed") {
+            label = r.colorName || r.hexColor || "";
+          }
+
+          const rowData: Record<string, any> = {
+            date: r.date || "",
+            orderNo: i + 1,
+            designNumber: label,
+            image: "",
+            total,
+          };
+          for (const len of sheetLengthArr) {
+            const count = perLength[len];
+            rowData[`len_${len}`] = count && count > 0 ? count : "";
+          }
+          ws.addRow(rowData);
+
+          ws.getRow(rowNumber).height = 50;
+          ws.getRow(rowNumber).alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+
+          const buf = processedImages[i];
+          if (buf) {
+            const imgId = wb.addImage({
+              buffer: buf as any,
+              extension: "png",
+            });
+            // Image column is index 3 (Date=0, #=1, Design#=2, Image=3).
+            ws.addImage(imgId, {
+              tl: { col: 3.1, row: rowNumber - 1 + 0.05 } as any,
+              ext: { width: IMG_W, height: IMG_H },
+            });
+          }
+        });
+      }
+
+      const out = await wb.xlsx.writeBuffer();
+      const blob = new Blob([out], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `store_stock_in_${todayISO()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("xlsx export failed", e);
+      alert("Export failed — see console.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   function newEntry() {
@@ -18291,24 +18605,102 @@ function StoreStockInView({ ctx }: CtxProps) {
         )}
         <button
           onClick={exportRows}
-          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          disabled={exporting || !rows.length}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${exporting || !rows.length ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
         >
-          <Download size={14} /> {t("common.export")}
+          {exporting ? (
+            <>
+              <InlineSpinner size={14} /> {t("stock.exporting")}
+            </>
+          ) : (
+            <>
+              <Download size={14} /> {t("common.export")}
+            </>
+          )}
         </button>
       </div>
+
+      {/* Fabric type filter chips — one per distinct stock fabric type in
+          the records, plus an "All" chip. Click again on the active chip
+          to clear the filter. Hidden when no records exist (avoids an
+          empty chip row on a fresh install). */}
+      {fabricChips.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-1">
+          <button
+            type="button"
+            onClick={() => setFabricFilter("")}
+            className={`text-xs px-2 py-1 rounded-full ${fabricFilter === "" ? "bg-sky-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+          >
+            All
+          </button>
+          {fabricChips.map((ft) => (
+            <button
+              type="button"
+              key={ft}
+              onClick={() =>
+                setFabricFilter(fabricFilter === ft ? "" : ft)
+              }
+              className={`text-xs px-2 py-1 rounded-full ${fabricFilter === ft ? "bg-sky-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+            >
+              {ft}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">{t("stockin.date")}</th>
-              <th className="text-left p-3 font-medium">{t("stockin.source")}</th>
-              <th className="text-left p-3 font-medium">{t("stockin.stockFabricType")}</th>
-              <th className="text-left p-3 font-medium">{t("stockin.col.variant")}</th>
-              <th className="text-right p-3 font-medium">{t("stockin.total")}</th>
+              <SortableTh
+                sortKey="date"
+                label={t("stockin.date")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="source"
+                label={t("stockin.source")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="stockFabricType"
+                label={t("stockin.stockFabricType")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="variant"
+                label={t("stockin.col.variant")}
+                sort={sort}
+                setSort={setSort}
+              />
+              <SortableTh
+                sortKey="totalMeters"
+                label={t("stockin.total")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
               <th className="text-left p-3 font-medium">{t("stockin.unit")}</th>
-              <th className="text-right p-3 font-medium">{t("stockin.costPerMeter")}</th>
-              <th className="text-right p-3 font-medium">{t("stockin.totalCost")}</th>
+              <SortableTh
+                sortKey="costPerMeter"
+                label={t("stockin.costPerMeter")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
+              <SortableTh
+                sortKey="totalCost"
+                label={t("stockin.totalCost")}
+                sort={sort}
+                setSort={setSort}
+                numeric
+                className="text-right"
+              />
               <th className="text-left p-3 font-medium">{t("stockin.notes")}</th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
@@ -18933,27 +19325,36 @@ function StoreStockView({ ctx }: CtxProps) {
     };
     const m: Record<string, Row> = {};
 
-    function keyFor(r: { fabricState?: string; designId?: string; hexColor?: string; fabricType?: string }): {
+    function keyFor(r: { fabricState?: string; designId?: string; hexColor?: string; fabricType?: string; stockFabricType?: string }): {
       key: string;
       kind: "design" | "color" | "fabric" | "remainder";
     } {
-      // Mixed Remainder bucket: pooled across ALL stock-ins with
-      // designId === "remainder". Single global row.
+      // ===== Split by stock fabric type =====
+      // A design stocked under multiple fabric types (e.g. 378 rolls Poplin
+      // + 224 rolls Flanel of the same design number) becomes multiple rows
+      // — one per fabric type. Same logic for color groups and the
+      // remainder bin. The fabric type is appended to the key.
+      const ft = (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
       if (r.designId === "remainder") {
-        return { key: "r:remainder", kind: "remainder" };
+        return { key: `r:remainder::${ft}`, kind: "remainder" };
       }
       if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
-        return { key: `d:${r.designId}`, kind: "design" };
+        return { key: `d:${r.designId}::${ft}`, kind: "design" };
       }
       if (r.fabricState === "dyed" && r.hexColor) {
-        return { key: `c:${r.hexColor.toLowerCase()}`, kind: "color" };
+        return { key: `c:${r.hexColor.toLowerCase()}::${ft}`, kind: "color" };
       }
-      return { key: `f:${r.fabricType || "(unspecified)"}`, kind: "fabric" };
+      return { key: `f:${ft}`, kind: "fabric" };
     }
 
     function ensure(r: any, kind: "design" | "color" | "fabric" | "remainder", key: string): Row {
       if (!m[key]) {
         const d = r.designId && kind === "design" ? designById[r.designId] : null;
+        // Always pull fabric type from the record's stockFabricType
+        // (authoritative for the store) with the legacy `fabricType` as a
+        // last-ditch fallback. The grouping key was already built using
+        // the same logic, so the row's stored fabricType matches its key.
+        const ft = (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
         m[key] = {
           key,
           kind,
@@ -18962,7 +19363,7 @@ function StoreStockView({ ctx }: CtxProps) {
           designName: d?.name,
           hexColor: kind === "color" ? r.hexColor : undefined,
           colorName: kind === "color" ? r.colorName : undefined,
-          fabricType: r.fabricType || r.stockFabricType,
+          fabricType: ft,
           unit: r.unit || "meters",
           inQty: 0,
           inCost: 0,
@@ -19074,35 +19475,8 @@ function StoreStockView({ ctx }: CtxProps) {
       const ExcelJSMod: any = await import("exceljs");
       const ExcelJS = ExcelJSMod.default || ExcelJSMod;
       const wb = new ExcelJS.Workbook();
-      const ws = wb.addWorksheet("Current Stock");
 
-      // ===== Column layout =====
-      //
-      // Order requested: orderNo, designNo, designImg, fabricType,
-      // <dynamic per-length count columns…>, total.
-      //
-      // orderNo is a 1-based row index — purely for human reference in the
-      // exported sheet. Image column width is generous to host a 100px image
-      // without squeezing. Per-length columns get a fixed width of 8 chars
-      // (enough for "999" with breathing room).
-      const lengthColumns = allLengths.map((len) => ({
-        header: `${len}m`,
-        key: `len_${len}`,
-        width: 8,
-      }));
-      ws.columns = [
-        { header: "#", key: "orderNo", width: 5 },
-        { header: "Design #", key: "designNumber", width: 16 },
-        { header: "Image", key: "image", width: 18 },
-        { header: "Fabric Type", key: "fabric", width: 18 },
-        ...lengthColumns,
-        { header: "Total (m)", key: "total", width: 12 },
-      ];
-      ws.getRow(1).font = { bold: true };
-      ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
-      ws.getRow(1).height = 22;
-
-      // ===== Image pre-processing =====
+      // ===== Image pre-processing helpers =====
       //
       // exceljs places images at exact pixel sizes; if the source image
       // isn't 100×60 ratio, embedding directly with width:100, height:60
@@ -19111,9 +19485,8 @@ function StoreStockView({ ctx }: CtxProps) {
       // the overflow) so what lands in Excel is the same crop you'd see
       // in a `background-size: cover` CSS rule.
       //
-      // For dyed rows (no design photo), we generate a solid-color
-      // 100×60 swatch from the hex code so the "image" cell still has
-      // visual context.
+      // For dyed rows we render a solid-color swatch from the hex; for
+      // remainder rows, an amber-gradient swatch with the ♻ glyph.
       const IMG_W = 100;
       const IMG_H = 60;
 
@@ -19133,8 +19506,6 @@ function StoreStockView({ ctx }: CtxProps) {
             canvas.height = IMG_H;
             const cx = canvas.getContext("2d");
             if (!cx) return null;
-            // object-fit: cover math. Compute the scale that fully covers
-            // the box; crop overflow equally on both axes.
             const scale = Math.max(IMG_W / img.width, IMG_H / img.height);
             const drawW = img.width * scale;
             const drawH = img.height * scale;
@@ -19142,7 +19513,6 @@ function StoreStockView({ ctx }: CtxProps) {
             const dy = (IMG_H - drawH) / 2;
             cx.drawImage(img, dx, dy, drawW, drawH);
             const dataUrl = canvas.toDataURL("image/png");
-            // dataUrl is "data:image/png;base64,xxx". Strip header → base64 → ArrayBuffer.
             const base64 = dataUrl.split(",")[1];
             const bin = atob(base64);
             const out = new Uint8Array(bin.length);
@@ -19176,10 +19546,6 @@ function StoreStockView({ ctx }: CtxProps) {
         }
       }
 
-      // ===== Fetch + transform images in parallel =====
-      const rowsForExport = stockByDesign;
-      // Render the "remainder" cell as a static amber gradient swatch with
-      // the ♻ glyph centered. Generated once and reused via closure.
       function remainderSwatchBuffer(): ArrayBuffer | null {
         try {
           const canvas = document.createElement("canvas");
@@ -19208,83 +19574,134 @@ function StoreStockView({ ctx }: CtxProps) {
         }
       }
 
-      const processedImages: (ArrayBuffer | null)[] = await Promise.all(
-        rowsForExport.map(async (r) => {
-          if (r.kind === "design") {
-            const d = r.designId ? designById[r.designId] : null;
-            const src = d ? resolveDesignImage(d) : "";
-            if (!src) return null;
-            try {
-              const res = await fetch(src, { credentials: "include" });
-              if (!res.ok) return null;
-              const raw = await res.arrayBuffer();
-              return await bufferToCovered(raw);
-            } catch {
-              return null;
+      // Excel worksheet names can't be longer than 31 chars and can't contain
+      // any of these: : \ / ? * [ ]. Sanitise the fabric type name before
+      // using it as a sheet title.
+      function sheetNameFor(fabricType: string): string {
+        const raw = fabricType || "(none)";
+        const cleaned = raw.replace(/[:\\/\?\*\[\]]/g, "_");
+        return cleaned.length > 31 ? cleaned.slice(0, 31) : cleaned;
+      }
+
+      // ===== Group rows by fabric type =====
+      // Each fabric type goes on its own worksheet. Rows within a sheet
+      // keep the same order they had in the on-screen table (sorted by
+      // current sort spec → sortedRows). We iterate sortedRows so the
+      // export matches what the operator sees.
+      const groupsByFabric: Record<string, typeof sortedRows> = {};
+      for (const r of sortedRows) {
+        const ft = r.fabricType || "(none)";
+        if (!groupsByFabric[ft]) groupsByFabric[ft] = [];
+        groupsByFabric[ft].push(r);
+      }
+      const fabricKeys = Object.keys(groupsByFabric).sort();
+
+      if (fabricKeys.length === 0) {
+        // Edge case: nothing to export. Add a placeholder sheet so the
+        // file isn't empty (Excel refuses to open zero-sheet workbooks).
+        wb.addWorksheet("Empty");
+      }
+
+      // Process each fabric type → one worksheet.
+      for (const fabricType of fabricKeys) {
+        const rowsInGroup = groupsByFabric[fabricType];
+
+        // Per-sheet length set: only the lengths that actually appear in
+        // this fabric type's rows. Keeps each sheet tight; no empty
+        // columns just because some OTHER fabric type uses 35m rolls.
+        const sheetLengths = new Set<number>();
+        for (const r of rowsInGroup) {
+          for (const len of Object.keys(r.rollsByLength)) {
+            const n = Number(len);
+            if (r.rollsByLength[n] > 0) sheetLengths.add(n);
+          }
+        }
+        const sheetLengthArr = [...sheetLengths].sort((a, b) => a - b);
+
+        const ws = wb.addWorksheet(sheetNameFor(fabricType));
+
+        const lengthColumns = sheetLengthArr.map((len) => ({
+          header: `${len}m`,
+          key: `len_${len}`,
+          width: 8,
+        }));
+        ws.columns = [
+          { header: "#", key: "orderNo", width: 5 },
+          { header: "Design #", key: "designNumber", width: 16 },
+          { header: "Image", key: "image", width: 18 },
+          ...lengthColumns,
+          { header: "Total (m)", key: "total", width: 12 },
+        ];
+        ws.getRow(1).font = { bold: true };
+        ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+        ws.getRow(1).height = 22;
+
+        // Fetch + transform images for THIS sheet's rows in parallel.
+        const processedImages: (ArrayBuffer | null)[] = await Promise.all(
+          rowsInGroup.map(async (r) => {
+            if (r.kind === "design") {
+              const d = r.designId ? designById[r.designId] : null;
+              const src = d ? resolveDesignImage(d) : "";
+              if (!src) return null;
+              try {
+                const res = await fetch(src, { credentials: "include" });
+                if (!res.ok) return null;
+                const raw = await res.arrayBuffer();
+                return await bufferToCovered(raw);
+              } catch {
+                return null;
+              }
             }
+            if (r.kind === "color" && r.hexColor) {
+              return hexSwatchBuffer(r.hexColor);
+            }
+            if (r.kind === "remainder") {
+              return remainderSwatchBuffer();
+            }
+            return null;
+          }),
+        );
+
+        rowsInGroup.forEach((r, i) => {
+          const rowNumber = i + 2;
+          let label = "—";
+          if (r.kind === "design") label = r.designNumber || "—";
+          else if (r.kind === "color") label = r.colorName || r.hexColor || "";
+          else if (r.kind === "remainder") label = t("stockin.design.remainder");
+          else label = "(no variant)";
+
+          const rowData: Record<string, any> = {
+            orderNo: i + 1,
+            designNumber: label,
+            image: "",
+            total: r.onHand,
+          };
+          for (const len of sheetLengthArr) {
+            const count = r.rollsByLength[len];
+            rowData[`len_${len}`] = count && count > 0 ? count : "";
           }
-          if (r.kind === "color" && r.hexColor) {
-            return hexSwatchBuffer(r.hexColor);
+          ws.addRow(rowData);
+
+          ws.getRow(rowNumber).height = 50;
+          ws.getRow(rowNumber).alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+
+          const buf = processedImages[i];
+          if (buf) {
+            const imgId = wb.addImage({
+              buffer: buf as any,
+              extension: "png",
+            });
+            // Image lives in column 2 (zero-indexed). Same offset as before.
+            ws.addImage(imgId, {
+              tl: { col: 2.1, row: rowNumber - 1 + 0.05 } as any,
+              ext: { width: IMG_W, height: IMG_H },
+            });
           }
-          if (r.kind === "remainder") {
-            return remainderSwatchBuffer();
-          }
-          return null;
-        }),
-      );
-
-      // ===== Write rows =====
-      rowsForExport.forEach((r, i) => {
-        const rowNumber = i + 2; // header is row 1
-        // Label cell: for dyed rows, prefer the color name (the human label
-        // the operator typed) and fall back to hex. For printed designs,
-        // the design number. For remainder, the localised label. Else, a marker.
-        let label = "—";
-        if (r.kind === "design") {
-          label = r.designNumber || "—";
-        } else if (r.kind === "color") {
-          label = r.colorName || r.hexColor || "";
-        } else if (r.kind === "remainder") {
-          label = t("stockin.design.remainder");
-        } else {
-          label = "(no variant)";
-        }
-
-        const rowData: Record<string, any> = {
-          orderNo: i + 1,
-          designNumber: label,
-          image: "", // populated by addImage below
-          fabric: r.fabricType || "",
-          total: r.onHand,
-        };
-        for (const len of allLengths) {
-          const count = r.rollsByLength[len];
-          rowData[`len_${len}`] = count && count > 0 ? count : "";
-        }
-        ws.addRow(rowData);
-
-        // Row height: 60 px image + breathing room. 50pt ≈ 66px.
-        ws.getRow(rowNumber).height = 50;
-        ws.getRow(rowNumber).alignment = {
-          vertical: "middle",
-          horizontal: "center",
-        };
-
-        const buf = processedImages[i];
-        if (buf) {
-          // All processed images are PNG (canvas output).
-          const imgId = wb.addImage({
-            buffer: buf as any,
-            extension: "png",
-          });
-          // Place inside the Image column (zero-indexed col 2). Image is
-          // already pre-cropped to 100×60, so no in-Excel scaling needed.
-          ws.addImage(imgId, {
-            tl: { col: 2.1, row: rowNumber - 1 + 0.05 } as any,
-            ext: { width: IMG_W, height: IMG_H },
-          });
-        }
-      });
+        });
+      }
 
       // Write and trigger download.
       const out = await wb.xlsx.writeBuffer();
