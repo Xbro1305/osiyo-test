@@ -42,6 +42,7 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useRef,
   useContext,
   createContext,
 } from "react";
@@ -1218,12 +1219,27 @@ interface StoreSale {
   // all designs — has its own row on Current Stock and is sellable).
   designId?: string | "mix" | "remainder";
   hexColor?: string;
-  // ----- Roll-line capture (v3) -----
+  // ----- Roll-line capture (v3 + multi-design v5) -----
   // When unit=rolls, sales record which specific roll lengths are being
   // sold (e.g. "5 × 30m + 2 × 50m"). Pairing this with Stock In's
   // rollLines lets the on-hand-per-length math be exact rather than a
-  // FIFO guess. Legacy sales with only `qty` still validate.
-  rollLines?: { length: number; qty: number }[];
+  // FIFO guess.
+  //
+  // v5: each line now optionally carries its OWN variant info (designId,
+  // hexColor, colorName, fabricType). This lets a single sale span
+  // multiple designs/colors/fabric types. When per-line variant is
+  // present, the sale's top-level variant fields are treated as a hint
+  // only — the canonical source is each line. Legacy sales without per-
+  // line variant still work: readers fall back to the top-level fields.
+  rollLines?: {
+    length: number;
+    qty: number;
+    // v5 — multi-design per line. All optional for back-compat.
+    designId?: string;
+    hexColor?: string;
+    colorName?: string;
+    fabricType?: string;
+  }[];
   extraMeters?: number;
   qty?: number;
   unit?: string;
@@ -3282,6 +3298,10 @@ function AppInner() {
         break;
       case "store_sales":
         tasks.push(loadStoreSales());
+        // The Sale form's rolls picker shows on-hand stock computed from
+        // storeStockIn minus other sales. Without this fetch the picker is
+        // empty even though there's stock in the database.
+        tasks.push(loadStoreStockIn());
         if (!isPolling) {
           tasks.push(loadCustomers());
           // Sale form has a design picker (mirrors Stock In's). Without
@@ -19279,6 +19299,7 @@ function StoreStockView({ ctx }: CtxProps) {
   const { storeStockIn, storeSales, designs, lists } = ctx;
   const t = useT();
   const [exporting, setExporting] = useState(false);
+  const [printing, setPrinting] = useState(false);
 
   // Look up designs by id for fast joins from stock-in/sale records.
   const designById = useMemo(() => {
@@ -19406,12 +19427,81 @@ function StoreStockView({ ctx }: CtxProps) {
       row.inCost += (Number(r.qty) || 0) * cpm;
       applyRollLines(row, r.rollLines, 1);
     }
+    // ===== Apply sales =====
+    //
+    // Two modes here:
+    //   - Multi-design (v5): each rollLine carries its own designId / hexColor
+    //     / fabricType. We subtract per line into the correct group.
+    //   - Legacy (pre-v5): rollLines are unattributed; the sale's top-level
+    //     fabricState/designId/hexColor identifies the variant. We subtract
+    //     the whole sale into one group.
+    //
+    // Detection: if ANY rollLine has its own designId or hexColor, we treat
+    // the whole sale as v5. Otherwise legacy.
+    //
+    // For revenue + outQty: those stay at the SALE level. We can't split
+    // them per-line because the sale stores one totalAmount and one qty
+    // (which is the sum across lines). Assigning revenue to one group when
+    // the sale crossed multiple groups would be misleading; for now we
+    // attribute the whole sale's revenue to the FIRST group represented
+    // in its lines (or sale top-level if legacy). If you need per-design
+    // revenue, that requires a separate breakdown.
     for (const s of storeSales) {
-      const { key, kind } = keyFor(s as any);
-      const row = ensure(s, kind, key);
-      row.outQty += Number(s.qty) || 0;
-      row.outRevenue += Number(s.totalAmount) || 0;
-      applyRollLines(row, (s as any).rollLines, -1);
+      const lines = ((s as any).rollLines || []) as Array<any>;
+      const hasPerLineVariant = lines.some(
+        (ln) => ln.designId || ln.hexColor || ln.fabricType,
+      );
+
+      if (hasPerLineVariant) {
+        // Per-line: build a synthetic record for each line so keyFor()
+        // sees the right variant. fabricType per line wins; fall back to
+        // the sale's stockFabricType.
+        for (const ln of lines) {
+          const synthetic = {
+            fabricState: ln.designId
+              ? ln.designId === "remainder"
+                ? "printed"
+                : "printed"
+              : "dyed",
+            designId: ln.designId,
+            hexColor: ln.hexColor,
+            colorName: ln.colorName,
+            stockFabricType: ln.fabricType || (s as any).stockFabricType,
+            fabricType: ln.fabricType || s.fabricType,
+          };
+          const { key, kind } = keyFor(synthetic);
+          const row = ensure(synthetic, kind, key);
+          const lenN = Number(ln.length) || 0;
+          const qtyN = Number(ln.qty) || 0;
+          if (lenN > 0 && qtyN > 0) {
+            row.rollsByLength[lenN] = (row.rollsByLength[lenN] || 0) - qtyN;
+          }
+        }
+        // Aggregate outQty + outRevenue against the first line's group
+        // (best we can do without splitting the sale's monetary totals).
+        const firstLine = lines[0];
+        if (firstLine) {
+          const synthetic = {
+            fabricState: firstLine.designId ? "printed" : "dyed",
+            designId: firstLine.designId,
+            hexColor: firstLine.hexColor,
+            colorName: firstLine.colorName,
+            stockFabricType: firstLine.fabricType || (s as any).stockFabricType,
+            fabricType: firstLine.fabricType || s.fabricType,
+          };
+          const { key, kind } = keyFor(synthetic);
+          const row = ensure(synthetic, kind, key);
+          row.outQty += Number(s.qty) || 0;
+          row.outRevenue += Number(s.totalAmount) || 0;
+        }
+      } else {
+        // Legacy: single-variant sale. Sub-tract the whole sale into one group.
+        const { key, kind } = keyFor(s as any);
+        const row = ensure(s, kind, key);
+        row.outQty += Number(s.qty) || 0;
+        row.outRevenue += Number(s.totalAmount) || 0;
+        applyRollLines(row, (s as any).rollLines, -1);
+      }
     }
 
     return Object.values(m)
@@ -19726,6 +19816,155 @@ function StoreStockView({ ctx }: CtxProps) {
     }
   }
 
+  // ===== Barcode PDF generator =====
+  //
+  // One label per roll, coding `{designNumber}-{length}` (CODE128). The PDF
+  // is laid out as a grid on A4 — 2 columns × 5 rows per page = 10 labels
+  // per page (~10cm × 5.5cm each, generous for handheld scanners). Each
+  // label has the barcode + the human-readable design # and length in
+  // text below.
+  //
+  // Data source: stockByDesign's rollsByLength. For each (design, length)
+  // we render N labels where N = count of rolls. Color groups and the
+  // remainder bin are skipped — they have no designNumber to encode.
+  //
+  // Lazy-imports jsbarcode + jspdf so the dependencies don't bloat the
+  // main bundle. Both libs are commonly available; the catch block
+  // surfaces a hint to install them if missing.
+  async function printBarcodes() {
+    if (printing) return;
+    setPrinting(true);
+    try {
+      const [JsBarcodeMod, jsPDFMod]: any = await Promise.all([
+        import("jsbarcode"),
+        import("jspdf"),
+      ]);
+      const JsBarcode = JsBarcodeMod.default || JsBarcodeMod;
+      const jsPDF = jsPDFMod.jsPDF || jsPDFMod.default || jsPDFMod;
+
+      // Build the flat list of (designNumber, length) pairs to render.
+      // ONE label per unique (design, length) combination — the barcode
+      // identifies the SKU, not an individual roll. A design with 12 rolls
+      // of 30m gets ONE `D042-30m` label; the scanner increments the picker
+      // by 1 per scan, so the same label is reused for every physical roll.
+      //
+      // We also dedupe across rows: the same (designNumber, length) appearing
+      // under different fabric types collapses to one label, since the
+      // barcode encoding doesn't include fabric type.
+      type Label = { designNumber: string; length: number };
+      const seen = new Set<string>();
+      const labels: Label[] = [];
+      for (const r of stockByDesign) {
+        if (r.kind !== "design") continue; // skip color + remainder
+        if (!r.designNumber) continue;
+        for (const [lenStr, qty] of Object.entries(r.rollsByLength)) {
+          const len = Number(lenStr);
+          const count = Number(qty) || 0;
+          if (len <= 0 || count <= 0) continue;
+          const key = `${r.designNumber}|${len}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          labels.push({ designNumber: r.designNumber, length: len });
+        }
+      }
+      // Sort: by design number, then by length asc. Predictable order
+      // makes finding a specific label on the printed sheet easy.
+      labels.sort(
+        (a, b) =>
+          a.designNumber.localeCompare(b.designNumber) || a.length - b.length,
+      );
+      if (labels.length === 0) {
+        alert("Nothing to print — no on-hand printed-design rolls.");
+        return;
+      }
+
+      // ===== Page layout =====
+      //
+      // 40 × 30 mm landscape, one barcode per page. Matches the physical
+      // label-roll sticker size operators print to. With this little space
+      // we forgo borders and gutters — the page IS the sticker.
+      //
+      // Stack inside each page (top to bottom):
+      //   - 1.5 mm top inset
+      //   - barcode strip ~17 mm tall, ~36 mm wide
+      //   - 0.5 mm gap
+      //   - code text (e.g. "D042-30m") ~3.5 mm tall, 9pt
+      //   - design name (if known) ~2.5 mm, 6pt
+      //   - 1.5 mm bottom inset
+      const PAGE_W = 40;
+      const PAGE_H = 30;
+      const INSET = 1.5;
+      const BAR_W = PAGE_W - 2 * INSET;
+      const BAR_H = 17;
+
+      const pdf = new jsPDF({
+        unit: "mm",
+        format: [PAGE_W, PAGE_H],
+        orientation: "landscape",
+      });
+
+      // Render each barcode to a hidden canvas → dataURL → embed.
+      // JsBarcode wants an SVG or canvas element; canvas is easier.
+      const tmpCanvas = document.createElement("canvas");
+
+      labels.forEach((lbl, i) => {
+        // First label uses the implicit first page; subsequent labels add
+        // a new page each (one barcode per page).
+        if (i > 0) pdf.addPage([PAGE_W, PAGE_H], "landscape");
+
+        const code = `${lbl.designNumber}-${lbl.length}m`;
+        try {
+          JsBarcode(tmpCanvas, code, {
+            format: "CODE128",
+            // narrow-bar width is in canvas pixels; higher = sharper PDF
+            // (the PDF stretches the bitmap to BAR_W mm). 2px gives good
+            // sharpness without making the canvas absurdly large.
+            width: 2,
+            height: 80,
+            displayValue: false,
+            margin: 0,
+          });
+        } catch {
+          // JsBarcode throws on invalid chars; skip this label.
+          return;
+        }
+        const dataUrl = tmpCanvas.toDataURL("image/png");
+
+        // Barcode strip — full inner width, 17 mm tall.
+        pdf.addImage(dataUrl, "PNG", INSET, INSET, BAR_W, BAR_H);
+
+        // Code text below the barcode (the human-readable equivalent).
+        pdf.setFontSize(9);
+        pdf.setTextColor(20);
+        pdf.text(code, PAGE_W / 2, INSET + BAR_H + 3.5, { align: "center" });
+
+        // Optional: design name on a second line, smaller. Truncated to
+        // fit roughly within the page width at 6pt.
+        const d = designs.find(
+          (dd) => dd.designNumber === lbl.designNumber,
+        );
+        if (d?.name) {
+          pdf.setFontSize(6);
+          pdf.setTextColor(120);
+          const name =
+            d.name.length > 28 ? d.name.slice(0, 28) + "…" : d.name;
+          pdf.text(name, PAGE_W / 2, INSET + BAR_H + 7, {
+            align: "center",
+          });
+        }
+      });
+
+      pdf.save(`roll_barcodes_${todayISO()}.pdf`);
+    } catch (err) {
+      console.error("barcode PDF failed:", err);
+      alert(
+        "Barcode generation failed. Check the console. If libraries are missing, run `npm install jsbarcode jspdf`.",
+      );
+    } finally {
+      setPrinting(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <StoreSubHeader
@@ -19769,7 +20008,23 @@ function StoreStockView({ ctx }: CtxProps) {
         />
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={printBarcodes}
+          disabled={printing || !stockByDesign.length}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${printing || !stockByDesign.length ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-700 hover:bg-slate-800 text-white"}`}
+          title="Generate a printable PDF of roll barcodes (one per roll)"
+        >
+          {printing ? (
+            <>
+              <InlineSpinner size={14} /> Building PDF…
+            </>
+          ) : (
+            <>
+              <Download size={14} /> Print barcodes
+            </>
+          )}
+        </button>
         <button
           onClick={exportXlsx}
           disabled={exporting || !stockByDesign.length}
@@ -20001,16 +20256,23 @@ function StoreSalesView({ ctx }: CtxProps) {
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
     return storeSales
-      .map((s) => ({
-        ...s,
-        customerName:
-          customers.find((c) => c.id === s.customerId)?.name || "(deleted)",
-      }))
+      .map((s) => {
+        const c = customers.find((c) => c.id === s.customerId);
+        return {
+          ...s,
+          customerName: c?.name || "(deleted)",
+          customerCode: c?.code || "",
+          customerType: c?.type || "",
+        };
+      })
       .filter(
         (s) =>
           !term ||
           s.customerName.toLowerCase().includes(term) ||
+          s.customerCode.toLowerCase().includes(term) ||
+          s.customerType.toLowerCase().includes(term) ||
           s.fabricType?.toLowerCase().includes(term) ||
+          s.stockFabricType?.toLowerCase().includes(term) ||
           s.invoiceNumber?.toLowerCase().includes(term),
       )
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -20102,10 +20364,71 @@ function StoreSalesView({ ctx }: CtxProps) {
                     {s.date}
                   </td>
                   <td className="p-3 font-mono text-xs">{s.invoiceNumber}</td>
-                  <td className="p-3 font-medium text-slate-800">
-                    {s.customerName}
+                  <td className="p-3">
+                    {/* Customer cell: code + name + type as three lines so
+                        operators can scan a long list quickly. Code is the
+                        primary identifier (often shorter); name secondary;
+                        type sub-classification. */}
+                    {s.customerCode && (
+                      <div className="font-mono font-semibold text-xs text-slate-700">
+                        {s.customerCode}
+                      </div>
+                    )}
+                    <div className="font-medium text-slate-800">
+                      {s.customerName}
+                    </div>
+                    {s.customerType && (
+                      <div className="text-[10px] text-slate-500">
+                        {s.customerType}
+                      </div>
+                    )}
                   </td>
-                  <td className="p-3 text-slate-700">{s.fabricType}</td>
+                  <td className="p-3 text-slate-700">
+                    {/* Fabric type cell: prefer stockFabricType (v4
+                        authoritative), fall back to the legacy
+                        production fabricType. For multi-design sales,
+                        list the variants per line below. */}
+                    <div className="text-xs font-medium">
+                      {s.stockFabricType || s.fabricType || "—"}
+                    </div>
+                    {Array.isArray(s.rollLines) && s.rollLines.length > 0 && (
+                      <div className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                        {s.rollLines.map((ln, i) => {
+                          // Per-line variant label. If the line has its own
+                          // designId (multi-design schema), prefer it; else
+                          // fall back to the sale's top-level variant.
+                          const lnDesignId = (ln as any).designId || s.designId;
+                          const lnHex = (ln as any).hexColor || s.hexColor;
+                          let label = "";
+                          if (lnDesignId === "remainder") {
+                            label = "♻";
+                          } else if (lnDesignId === "mix") {
+                            label = "Mix";
+                          } else if (
+                            lnDesignId &&
+                            customers /* designById lookup needs another source */ &&
+                            (ctx.designs || []).find((d) => d.id === lnDesignId)
+                          ) {
+                            label = (ctx.designs || []).find(
+                              (d) => d.id === lnDesignId,
+                            )!.designNumber;
+                          } else if (lnHex) {
+                            label = lnHex;
+                          }
+                          return (
+                            <span key={i}>
+                              {label && (
+                                <span className="font-mono">{label}</span>
+                              )}
+                              {label ? " · " : ""}
+                              {ln.length}m × {ln.qty}
+                              {i < s.rollLines!.length - 1 ? ", " : ""}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-3 text-right">
                     {fmtMoney(s.qty)} {s.unit}
                   </td>
@@ -20306,15 +20629,41 @@ function SaleForm({
     }
     for (const sale of storeSales) {
       if (sale.id === s.id) continue;
-      const gk = groupKey(sale);
-      if (!gk) continue;
-      const ft = (sale as any).stockFabricType || "";
-      const g = ensureGroup(sale, gk.key, gk.kind, ft);
-      for (const ln of sale.rollLines || []) {
-        const len = Number(ln.length) || 0;
-        const qty = Number(ln.qty) || 0;
-        if (len <= 0 || qty <= 0) continue;
-        g.lengths[len] = (g.lengths[len] || 0) - qty;
+      const lines = (sale as any).rollLines || [];
+      // v5 multi-design detection: if any line carries its own variant,
+      // treat each line independently.
+      const hasPerLine = lines.some(
+        (ln: any) => ln.designId || ln.hexColor || ln.fabricType,
+      );
+      if (hasPerLine) {
+        for (const ln of lines) {
+          const synthetic = {
+            fabricState: ln.designId ? "printed" : "dyed",
+            designId: ln.designId,
+            hexColor: ln.hexColor,
+            colorName: ln.colorName,
+            stockFabricType: ln.fabricType || (sale as any).stockFabricType,
+          };
+          const gk = groupKey(synthetic);
+          if (!gk) continue;
+          const ft = ln.fabricType || (sale as any).stockFabricType || "";
+          const g = ensureGroup(synthetic, gk.key, gk.kind, ft);
+          const len = Number(ln.length) || 0;
+          const qty = Number(ln.qty) || 0;
+          if (len <= 0 || qty <= 0) continue;
+          g.lengths[len] = (g.lengths[len] || 0) - qty;
+        }
+      } else {
+        const gk = groupKey(sale);
+        if (!gk) continue;
+        const ft = (sale as any).stockFabricType || "";
+        const g = ensureGroup(sale, gk.key, gk.kind, ft);
+        for (const ln of lines) {
+          const len = Number(ln.length) || 0;
+          const qty = Number(ln.qty) || 0;
+          if (len <= 0 || qty <= 0) continue;
+          g.lengths[len] = (g.lengths[len] || 0) - qty;
+        }
       }
     }
 
@@ -20377,24 +20726,57 @@ function SaleForm({
   // `groupKey::fabricType`. This way two rolls of the same design under
   // different fabric types are tracked separately (and priced separately).
   //
-  // When editing an existing sale we reconstruct from `s.rollLines` + the
-  // sale's stored fabric type. If the fabric type changed since the sale
-  // was made, the picks won't line up — that's OK, we just don't pre-fill.
+  // When editing an existing sale we reconstruct from `s.rollLines`. v5
+  // multi-design sales have per-line variant fields → use those. Legacy
+  // single-variant sales use the top-level fields. Detection: if any line
+  // has a designId/hexColor/fabricType, treat the whole sale as v5.
   const initialPicks = useMemo(() => {
     const m: Record<string, number> = {};
-    const ft = (s as any).stockFabricType || "";
-    let baseKey: string | null = null;
-    if (s.designId === "remainder") {
-      baseKey = `r:remainder::${ft || "(none)"}`;
-    } else if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
-      baseKey = `d:${s.designId}::${ft || "(none)"}`;
-    } else if (s.fabricState === "dyed" && s.hexColor) {
-      baseKey = `c:${s.hexColor.toLowerCase()}::${ft || "(none)"}`;
+    const lines = (s.rollLines || []) as any[];
+    const hasPerLine = lines.some(
+      (ln) => ln.designId || ln.hexColor || ln.fabricType,
+    );
+
+    function makeKey(
+      designId: string | undefined,
+      hexColor: string | undefined,
+      fabricType: string,
+    ): string | null {
+      const ft = fabricType || "(none)";
+      if (designId === "remainder") return `r:remainder::${ft}`;
+      if (designId && designId !== "mix") return `d:${designId}::${ft}`;
+      if (hexColor) return `c:${hexColor.toLowerCase()}::${ft}`;
+      return null;
     }
-    if (baseKey) {
-      for (const ln of s.rollLines || []) {
+
+    if (hasPerLine) {
+      // Per-line reconstruction.
+      for (const ln of lines) {
+        const baseKey = makeKey(
+          ln.designId,
+          ln.hexColor,
+          ln.fabricType || (s as any).stockFabricType || "",
+        );
+        if (!baseKey) continue;
         const k = `${baseKey}|${ln.length}`;
         m[k] = (m[k] || 0) + ln.qty;
+      }
+    } else {
+      // Legacy single-variant sale.
+      const ft = (s as any).stockFabricType || "";
+      let baseKey: string | null = null;
+      if (s.designId === "remainder") {
+        baseKey = `r:remainder::${ft || "(none)"}`;
+      } else if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
+        baseKey = `d:${s.designId}::${ft || "(none)"}`;
+      } else if (s.fabricState === "dyed" && s.hexColor) {
+        baseKey = `c:${s.hexColor.toLowerCase()}::${ft || "(none)"}`;
+      }
+      if (baseKey) {
+        for (const ln of lines) {
+          const k = `${baseKey}|${ln.length}`;
+          m[k] = (m[k] || 0) + ln.qty;
+        }
       }
     }
     return m;
@@ -20412,6 +20794,148 @@ function SaleForm({
       return next;
     });
   }
+
+  // ===== Barcode scanner support =====
+  //
+  // Barcodes on rolls encode `{designNumber}-{length}` (e.g. "D042-30" or
+  // "D042-30m"). The scanner can either send into a dedicated input
+  // (preferred) or, if no input is focused, into the document — we catch
+  // both. On a valid scan we find the matching picker row, increment its
+  // taking by 1, and scroll it into view with a brief highlight.
+  //
+  // Parsing is forgiving: matches strip a trailing "m" from the length
+  // segment, ignore case, and pick the FIRST row matching the parsed
+  // design number + length (even if multiple fabric types exist for that
+  // design — the operator can fine-tune after).
+  const [scanInput, setScanInput] = useState("");
+  const [scanFeedback, setScanFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [flashKey, setFlashKey] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  function parseBarcode(raw: string): { designNumber: string; length: number } | null {
+    const code = raw.trim();
+    if (!code) return null;
+    // Accept formats:
+    //   D042-30
+    //   D042-30m
+    //   d042-30M
+    //   D042_30  (in case the scanner is configured with underscore as separator)
+    const m = code.match(/^(.+?)[-_](\d+(?:\.\d+)?)\s*m?$/i);
+    if (!m) return null;
+    const designNumber = m[1].trim();
+    const length = Number(m[2]);
+    if (!Number.isFinite(length) || length <= 0) return null;
+    return { designNumber, length };
+  }
+
+  function processBarcode(raw: string) {
+    const parsed = parseBarcode(raw);
+    if (!parsed) {
+      setScanFeedback({ msg: `Unrecognised code: ${raw}`, ok: false });
+      return;
+    }
+    // Find a matching on-hand row. Match on designNumber (case-insensitive
+    // exact) and length. Among matches with available stock, prefer one
+    // that already has picks (so repeat-scanning the same code accumulates).
+    const candidates = onHand.filter(
+      (r) =>
+        r.kind === "design" &&
+        r.designNumber &&
+        r.designNumber.toLowerCase() === parsed.designNumber.toLowerCase() &&
+        r.length === parsed.length &&
+        r.available > 0,
+    );
+    if (candidates.length === 0) {
+      setScanFeedback({
+        msg: `${parsed.designNumber} · ${parsed.length}m — no stock available`,
+        ok: false,
+      });
+      return;
+    }
+    // Prefer a candidate that already has picks (consistent accumulation
+    // when scanning the same code multiple times).
+    const target =
+      candidates.find((r) => (picks[`${r.compositeKey}|${r.length}`] || 0) > 0) ||
+      candidates[0];
+    const key = `${target.compositeKey}|${target.length}`;
+    const current = picks[key] || 0;
+    if (current >= target.available) {
+      setScanFeedback({
+        msg: `${parsed.designNumber} · ${parsed.length}m — already at max (${target.available})`,
+        ok: false,
+      });
+      return;
+    }
+    pickRow(target, current + 1);
+    setScanFeedback({
+      msg: `+ ${parsed.designNumber} · ${parsed.length}m`,
+      ok: true,
+    });
+    // Scroll into view and briefly highlight.
+    setFlashKey(key);
+    const el = rowRefs.current[key];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    // Clear flash after a moment.
+    window.setTimeout(() => setFlashKey(null), 800);
+  }
+
+  // ===== Global keystroke listener =====
+  //
+  // Most USB barcode scanners emulate a keyboard: they type the code very
+  // fast then press Enter. We catch this at the modal level by listening
+  // on document for `keypress`. We buffer characters; on Enter we treat
+  // the buffer as a barcode (if it's longer than 3 chars — single Enter
+  // presses shouldn't trigger anything).
+  //
+  // If the operator has typed into another input recently (within 100ms
+  // of the buffered keystroke), we skip — that prevents normal typing
+  // from being interpreted as a scan.
+  //
+  // The dedicated `scanInput` field is the primary path; this listener
+  // is a backup for when the operator forgets to focus it.
+  const scanBufferRef = useRef<string>("");
+  const lastKeyTimeRef = useRef<number>(0);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const now = Date.now();
+      const gap = now - lastKeyTimeRef.current;
+      lastKeyTimeRef.current = now;
+
+      // Only act when focus is on body / a non-form element. If the user is
+      // typing into an input/textarea, those events belong to that input.
+      const target = e.target as HTMLElement | null;
+      const tag = (target?.tagName || "").toLowerCase();
+      const isFormField = tag === "input" || tag === "textarea" || tag === "select";
+
+      if (e.key === "Enter") {
+        if (isFormField) return; // form's own handler deals with Enter
+        const buf = scanBufferRef.current;
+        scanBufferRef.current = "";
+        if (buf.length >= 3) {
+          e.preventDefault();
+          processBarcode(buf);
+        }
+        return;
+      }
+      // Only buffer printable chars; ignore modifier keys.
+      if (e.key.length !== 1) return;
+      if (isFormField) {
+        scanBufferRef.current = ""; // reset; the form has focus
+        return;
+      }
+      // Gaps between keystrokes that are too large signal HUMAN typing —
+      // reset the buffer in that case. Scanners send <10ms between chars.
+      if (gap > 100 && scanBufferRef.current.length > 0) {
+        scanBufferRef.current = "";
+      }
+      scanBufferRef.current += e.key;
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onHand, picks]);
 
   // ===== Picker filters =====
   // Search box: free-text substring match against design number, color
@@ -20564,25 +21088,31 @@ function SaleForm({
       );
       if (!proceed) return;
     }
-    // Derive variant + rollLines from picks. Picks may span multiple fabric
-    // types within ONE design/color group, which is fine. If they span
-    // multiple GROUPS (different designs), we warn — that's a multi-design
-    // sale and the schema only stores one designId.
-    const firstGroup = pickedRows[0];
-    const sameGroup = pickedRows.every(
-      (p) => p.groupKey === firstGroup.groupKey,
-    );
-    if (!sameGroup) {
-      const proceed = confirm(
-        "You picked rolls from multiple designs/colors. Only the first group will be saved as one sale. Continue?",
-      );
-      if (!proceed) return;
-    }
-    const inGroup = pickedRows.filter(
-      (p) => p.groupKey === firstGroup.groupKey,
-    );
-    const rollLines = inGroup.map((p) => ({ length: p.length, qty: p.qty }));
 
+    // ===== v5 multi-design save =====
+    //
+    // Each picked roll becomes a rollLine with its own variant fields
+    // (designId/hexColor/colorName/fabricType). This lets one sale carry
+    // multiple designs natively. The sale's TOP-LEVEL variant fields are
+    // set from the first pick — purely as a "primary" indicator for
+    // legacy readers that don't yet understand per-line variants. Old
+    // sale records (single-design) still validate because per-line
+    // variant is optional.
+    const firstGroup = pickedRows[0];
+    const rollLines = pickedRows.map((p) => ({
+      length: p.length,
+      qty: p.qty,
+      // Per-line variant. Stored as undefined where not applicable so we
+      // don't carry empty strings into the DB.
+      designId: p.kind === "design" || p.kind === "remainder" ? p.designId : undefined,
+      hexColor: p.kind === "color" ? p.hexColor : undefined,
+      colorName: p.kind === "color" ? p.colorName : undefined,
+      fabricType: p.fabricType,
+    }));
+
+    // Top-level variant: take from the first pick. Operators editing a
+    // multi-design sale will see this in the legacy "Variant" column;
+    // the multi-design detail lives in rollLines.
     const variantFields: Partial<StoreSale> =
       firstGroup.kind === "remainder"
         ? { fabricState: "printed", designId: "remainder", hexColor: undefined }
@@ -20669,6 +21199,41 @@ function SaleForm({
         </div>
         <div className="text-xs text-slate-500 mb-2">
           {t("sales.pickRolls.help")}
+        </div>
+
+        {/* Dedicated scan input. Auto-focused on modal mount, accepts the
+            barcode string + Enter. Operators can also just point a USB
+            scanner anywhere in the modal — the document-level listener
+            picks it up too. */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-purple-500 text-sm">
+              ⇩
+            </span>
+            <input
+              value={scanInput}
+              onChange={(e) => setScanInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (scanInput.trim()) {
+                    processBarcode(scanInput);
+                    setScanInput("");
+                  }
+                }
+              }}
+              placeholder="Scan barcode (e.g. D042-30)…"
+              className="w-full pl-8 pr-2 py-1.5 border border-purple-200 bg-purple-50/30 rounded text-sm font-mono"
+              autoFocus
+            />
+          </div>
+          {scanFeedback && (
+            <div
+              className={`text-xs px-2 py-1 rounded ${scanFeedback.ok ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}
+            >
+              {scanFeedback.msg}
+            </div>
+          )}
         </div>
 
         {/* Search + fabric type filter. Search narrows by design number,
@@ -20761,7 +21326,10 @@ function SaleForm({
                   return (
                     <tr
                       key={key}
-                      className={`border-t border-slate-100 ${picked > 0 ? "bg-purple-50" : "hover:bg-slate-50"}`}
+                      ref={(el) => {
+                        rowRefs.current[key] = el;
+                      }}
+                      className={`border-t border-slate-100 transition-colors ${flashKey === key ? "bg-yellow-100" : picked > 0 ? "bg-purple-50" : "hover:bg-slate-50"}`}
                     >
                       <td className="p-2">
                         <div className="flex items-center gap-2">
@@ -20852,6 +21420,83 @@ function SaleForm({
           </div>
         </div>
       </div>
+
+      {/* ===== Selected rolls panel =====
+          A separate overview of what's been picked so far, with thumbnails
+          and a small "remove" button per line. Useful for multi-design
+          sales (the picker can scroll a lot; this is the at-a-glance list
+          of everything in the basket). */}
+      {pickedRows.length > 0 && (
+        <div className="border border-purple-200 rounded-lg overflow-hidden">
+          <div className="bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-800">
+            Selected rolls ({pickedRows.length} line{pickedRows.length === 1 ? "" : "s"})
+          </div>
+          <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
+            {pickedRows.map((p) => {
+              const d = p.designId
+                ? designs.find((x) => x.id === p.designId)
+                : null;
+              const src = d ? resolveDesignImage(d) : "";
+              const rowPrice = getFabricCost(p.fabricType, lists, 0);
+              const discount = Number(discounts[p.fabricType]) || 0;
+              const finalPrice = Math.max(0, rowPrice - discount);
+              const subtotal = finalPrice * p.length * p.qty;
+              const key = `${p.compositeKey}|${p.length}`;
+              return (
+                <div
+                  key={key}
+                  className="flex items-center gap-2 px-3 py-2 text-sm"
+                >
+                  {p.kind === "design" && src ? (
+                    <img
+                      src={src}
+                      className="w-9 h-9 object-cover rounded border border-slate-200 shrink-0"
+                    />
+                  ) : p.kind === "color" && p.hexColor ? (
+                    <div
+                      className="w-9 h-9 rounded border border-slate-200 shrink-0"
+                      style={{ backgroundColor: p.hexColor }}
+                    />
+                  ) : p.kind === "remainder" ? (
+                    <div className="w-9 h-9 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
+                      ♻
+                    </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded bg-slate-100 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mono text-xs font-semibold text-slate-800 truncate">
+                      {p.kind === "design"
+                        ? d?.designNumber
+                        : p.kind === "remainder"
+                          ? t("stockin.design.remainder")
+                          : p.colorName || p.hexColor}
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate">
+                      {p.fabricType} · {p.length}m × {p.qty} · {fmtMoney(finalPrice)}/m
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-bold text-slate-800">
+                      {fmtMoney(subtotal)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => pickRow(
+                        onHand.find((r) => r.compositeKey === p.compositeKey && r.length === p.length)!,
+                        0,
+                      )}
+                      className="text-[10px] text-rose-600 hover:text-rose-800"
+                    >
+                      remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== Pricing breakdown by fabric type =====
           v4 model: each picked roll's price is locked to its stock fabric
