@@ -60,6 +60,7 @@ import {
   Printer,
   Flame,
   Sparkles,
+  Archive,
   Layers,
   Package,
   Truck,
@@ -1404,6 +1405,16 @@ interface AppContext {
   saveNumbering: (n: NumberingSettings) => Promise<void>;
   saveRecord: (stationKey: string, rec: ProductionRecord) => Promise<void>;
   deleteRecord: (stationKey: string, id: string) => Promise<void>;
+  archiveRecords: (
+    stationKey: string,
+    ids: string[],
+    unarchive?: boolean,
+  ) => Promise<void>;
+  archiveRecordsBefore: (
+    stationKey: string,
+    before: string,
+    unarchive?: boolean,
+  ) => Promise<{ modified: number }>;
   saveCustomer: (c: Customer) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
   saveStoreSale: (s: StoreSale) => Promise<void>;
@@ -2271,6 +2282,30 @@ const monthCode = (d = new Date()) =>
     "DEC",
   ][d.getMonth()];
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+// ============================================================================
+//  Default date-range helper for printing station filters
+// ----------------------------------------------------------------------------
+//  Printing station lists default to "the last 90 days" rather than "all
+//  time". With months of records accumulated, all-time queries return
+//  thousands of rows the operator doesn't care about. The 90-day window
+//  is just a default value on the date filter inputs — operators can
+//  clear the dates to see everything, or change them freely.
+//
+//  Returns { dateFrom, dateTo } as YYYY-MM-DD strings.
+// ============================================================================
+function defaultDateRange(windowDays = 90) {
+  const today = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - windowDays);
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  };
+  return { dateFrom: fmt(from), dateTo: fmt(today) };
+}
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
 // ============== ROUT CARD NUMBERING ==============
@@ -2749,26 +2784,92 @@ async function exportStationXlsx({
     // Pre-resolve every row's image up front so we can decorate cells in
     // a tight loop afterwards. Resolves to null for any row where the
     // design has no image, the fetch fails, or the canvas pipeline errors.
+    //
+    // Two image-source shapes are possible:
+    //   1. `imageData` — a `data:image/...;base64,...` URL embedded in the
+    //      Design record. No network call needed; decode directly.
+    //   2. `imageUrl`  — an absolute or relative URL pointing at the
+    //      backend's `/uploads/designs/...` route. Fetched over the wire.
+    //
+    // Counts are tracked so we can surface a helpful warning if photos
+    // didn't make it (the previous version silently failed).
     let imageBuffers: (ArrayBuffer | null)[] = [];
+    let imgAttempted = 0;
+    let imgFailedFetch = 0;
+    let imgFailedDecode = 0;
+    let imgMissingDesign = 0;
     if (imageColumn) {
       imageBuffers = await Promise.all(
         rows.map(async (r) => {
           const designId = imageColumn.getDesignId(r);
-          if (!designId) return null;
+          if (!designId) return null; // row has no design — fine, blank cell
           const d = imageColumn.designById[designId];
-          if (!d) return null;
+          if (!d) {
+            imgMissingDesign++;
+            return null;
+          }
           const src = imageColumn.resolveDesignImage(d);
           if (!src) return null;
+          imgAttempted++;
           try {
-            const res = await fetch(src, { credentials: "include" });
-            if (!res.ok) return null;
+            // Data-URL fast path: convert base64 to bytes directly, no
+            // network round-trip. Works in any browser.
+            if (src.startsWith("data:")) {
+              const commaIdx = src.indexOf(",");
+              if (commaIdx === -1) return null;
+              const meta = src.slice(5, commaIdx); // "image/png;base64"
+              const payload = src.slice(commaIdx + 1);
+              if (!meta.includes("base64")) return null;
+              const bin = atob(payload);
+              const out = new Uint8Array(bin.length);
+              for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+              try {
+                return await bufferToCovered(out.buffer);
+              } catch (e) {
+                imgFailedDecode++;
+                return null;
+              }
+            }
+            // HTTP(S) URL — fetch without credentials. The /uploads route
+            // is typically public; sending credentials here was the
+            // common cause of silent failures (CORS preflight rejection
+            // when the backend didn't set Access-Control-Allow-Credentials).
+            const res = await fetch(src);
+            if (!res.ok) {
+              imgFailedFetch++;
+              console.warn(
+                `[xlsx export] image fetch ${res.status} for design ${designId}: ${src}`,
+              );
+              return null;
+            }
             const raw = await res.arrayBuffer();
             return await bufferToCovered(raw);
-          } catch {
+          } catch (e: any) {
+            imgFailedFetch++;
+            console.warn(
+              `[xlsx export] image fetch error for design ${designId}:`,
+              e?.message || e,
+            );
             return null;
           }
         }),
       );
+      // If we got nothing back and we tried, raise a visible warning.
+      // Operators previously had no way to know photos hadn't embedded.
+      const successCount = imageBuffers.filter(Boolean).length;
+      if (imgAttempted > 0 && successCount === 0) {
+        console.warn(
+          `[xlsx export] All ${imgAttempted} image fetches failed. ` +
+            `Likely cause: CORS / public-uploads route blocked. ` +
+            `Check the network tab for /uploads/designs/* requests.`,
+        );
+      } else if (imgAttempted > 0 && successCount < imgAttempted) {
+        console.info(
+          `[xlsx export] embedded ${successCount}/${imgAttempted} images ` +
+            `(failed fetch: ${imgFailedFetch}, decode: ${imgFailedDecode}, ` +
+            `missing design: ${imgMissingDesign})`,
+        );
+      }
     }
 
     // ===== Write rows =====
@@ -2883,6 +2984,8 @@ function viewToPath(view: any): string {
       // `hubId` — so on reload / direct nav the StationHubView received
       // hubId === undefined and rendered the "Hub not found" fallback.
       return `/hub/${encodeURIComponent(view.hubId || "")}`;
+    case "archive":
+      return "/printing/archive";
     default:
       // Unknown types from older code paths (e.g. tl.id from a top-link button)
       // map to a generic /view/<type> so navigation still works even if the
@@ -2923,6 +3026,10 @@ function pathToView(pathname: string): any {
   if (a === "hub" && b) {
     // Merged-station hub URL → view. Mirrors the viewToPath encoding.
     return { type: "station_hub", hubId: decodeURIComponent(b) };
+  }
+  // Records archive admin page.
+  if (a === "printing" && b === "archive") {
+    return { type: "archive" };
   }
   if (a === "view" && b) {
     return { type: decodeURIComponent(b) };
@@ -3539,6 +3646,11 @@ function AppInner() {
           tasks.push(loadDesigns());
         }
         break;
+
+      // ===== Mid-pipeline live-stock pages =====
+      //
+      // (removed per operator request — finishing/calendering/folding
+      // stock pages weren't a fit for this pipeline's mental model.)
       case "store_payments":
         tasks.push(loadStorePayments());
         if (!isPolling) tasks.push(loadCustomers());
@@ -3638,6 +3750,76 @@ function AppInner() {
           : [...list, rec];
       return { ...prev, [stationKey]: newList };
     });
+  }
+
+  // ===== Batch archive =====
+  //
+  // Soft-hide a set of records by id. Hits the backend's
+  // /api/records/:station/archive-batch endpoint. The frontend
+  // immediately reflects the change by setting `archived: true` on each
+  // affected record in local state — saves a round-trip refetch.
+  //
+  // `unarchive` reverses the operation (sets archived: false).
+  async function archiveRecords(stationKey, ids, unarchive = false) {
+    if (!Array.isArray(ids) || !ids.length) return;
+    if (!storage.isApiMode) {
+      // Local storage mode — mutate each record directly.
+      for (const id of ids) {
+        const r = (records[stationKey] || []).find((x) => x.id === id);
+        if (r) await saveRecord(stationKey, { ...r, archived: !unarchive });
+      }
+      return;
+    }
+    // API mode — single batch request.
+    await apiFetch(
+      `/records/${encodeURIComponent(stationKey)}/archive-batch`,
+      {
+        method: "POST",
+        body: JSON.stringify({ ids, archived: !unarchive }),
+      },
+    );
+    // Reflect in local state so the UI updates without a refetch.
+    setRecords((prev) => {
+      const list = prev[stationKey] || [];
+      const idSet = new Set(ids);
+      const newList = list.map((r) =>
+        idSet.has(r.id) ? { ...r, archived: !unarchive } : r,
+      );
+      return { ...prev, [stationKey]: newList };
+    });
+  }
+
+  // Archive everything at a station with date <= cutoff. Used by the
+  // admin Archive page for batch cleanup.
+  async function archiveRecordsBefore(stationKey, before, unarchive = false) {
+    if (!before) return { modified: 0 };
+    if (!storage.isApiMode) {
+      // Local storage mode — iterate.
+      let modified = 0;
+      for (const r of records[stationKey] || []) {
+        if (r.date && r.date <= before && r.archived !== !unarchive) {
+          await saveRecord(stationKey, { ...r, archived: !unarchive });
+          modified++;
+        }
+      }
+      return { modified };
+    }
+    const result = await apiFetch(
+      `/records/${encodeURIComponent(stationKey)}/archive-batch`,
+      {
+        method: "POST",
+        body: JSON.stringify({ before, archived: !unarchive }),
+      },
+    );
+    // Local state — flip every record at/before the cutoff.
+    setRecords((prev) => {
+      const list = prev[stationKey] || [];
+      const newList = list.map((r) =>
+        r.date && r.date <= before ? { ...r, archived: !unarchive } : r,
+      );
+      return { ...prev, [stationKey]: newList };
+    });
+    return result;
   }
 
   // ===== TRASH BIN — SOFT DELETE INFRASTRUCTURE (item #4) =====
@@ -3911,6 +4093,8 @@ function AppInner() {
     deleteMachine,
     saveRecord,
     deleteRecord,
+    archiveRecords,
+    archiveRecordsBefore,
     saveCustomer,
     deleteCustomer,
     saveStoreStockIn,
@@ -4362,6 +4546,10 @@ function Shell({ ctx }: CtxProps) {
         )}
         {safeView.type === "store_payments" && !isOperator && (
           <StorePaymentsView ctx={ctx} />
+        )}
+        {/* Records pileup — admin batch archive page. */}
+        {safeView.type === "archive" && !isOperator && (
+          <ArchivePage ctx={ctx} />
         )}
       </main>
       {/* Credits — pinned to the bottom of the viewport via the parent flex layout.
@@ -5030,13 +5218,28 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   }, []);
 
   const stats = useMemo(() => {
-    const counts = statsResp.counts || {};
-    const sums = statsResp.sums || {};
+    const monthSums = statsResp.monthSums || {};
+    // SING&DES card: meters input THIS MONTH (was: total record count).
+    // Operators wanted a production-volume number, not a row count.
+    const inputMetersMTD = monthSums.input?.meters || 0;
+    // Printing: meters printed this month.
+    const printedQtyMTD = monthSums.printing?.printedQty || 0;
+    // Folding inspected breakdown for the month. % calculations are done
+    // at render time against the total inspected (sum of all 4 buckets).
+    const f = monthSums.folding || {};
+    const firstQty = f.firstQty || 0;
+    const secondQty = f.secondQty || 0;
+    const rejectQty = f.rejectQty || 0;
+    const incompleteQty = f.incompleteQty || 0;
+    const inspectedTotal = firstQty + secondQty + rejectQty + incompleteQty;
     return {
-      inputBatches: counts.input || 0,
-      printedQty: sums.printing?.printedQty || 0,
-      finishedQty: sums.finishing?.finishedQty || 0,
-      dispatched: sums.dispatch_out?.qty || 0,
+      inputMetersMTD,
+      printedQtyMTD,
+      inspectedTotal,
+      firstQty,
+      secondQty,
+      rejectQty,
+      incompleteQty,
     };
   }, [statsResp]);
 
@@ -5086,31 +5289,86 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
 
       <DepartmentHeader dept={dept} ctx={ctx} />
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {/* SING&DES — meters input this month. Operators care about
+            production volume, not the number of batch records typed. */}
         <StatBox
-          label={t("stage.input")}
-          value={stats.inputBatches}
+          label={`${t("stage.input")} (m, ${t("daily.month", "this month")})`}
+          value={Math.round(stats.inputMetersMTD).toLocaleString()}
           icon={Factory}
           color="text-slate-600"
         />
+        {/* Printing — meters printed this month. */}
         <StatBox
-          label={`${t("stage.printing")} (m)`}
-          value={stats.printedQty.toLocaleString()}
+          label={`${t("stage.printing")} (m, ${t("daily.month", "this month")})`}
+          value={Math.round(stats.printedQtyMTD).toLocaleString()}
           icon={Printer}
           color="text-purple-600"
         />
-        <StatBox
-          label={`${t("stage.finishing").split(" ")[0]} (m)`}
-          value={stats.finishedQty.toLocaleString()}
-          icon={Sparkles}
-          color="text-pink-600"
-        />
-        <StatBox
-          label={`${t("stage.dispatch").split(" ")[0]} (m)`}
-          value={stats.dispatched.toLocaleString()}
-          icon={Truck}
-          color="text-green-600"
-        />
+        {/* Inspected fabric breakdown (folding station). Spans two columns
+            because it carries four sub-stats. % rendered against the
+            inspected total, not the month's input — gives a quality
+            picture of what's been processed through to inspection. */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm md:col-span-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+              Inspected (m, this month)
+            </div>
+            <Sparkles className="text-pink-600" size={16} />
+          </div>
+          <div className="text-2xl font-bold text-slate-800">
+            {Math.round(stats.inspectedTotal).toLocaleString()}
+          </div>
+          {stats.inspectedTotal > 0 ? (
+            <div className="grid grid-cols-4 gap-2 mt-3 text-xs">
+              {[
+                {
+                  label: "Fresh",
+                  v: stats.firstQty,
+                  cls: "text-emerald-700",
+                },
+                {
+                  label: "2nd sort",
+                  v: stats.secondQty,
+                  cls: "text-amber-700",
+                },
+                {
+                  label: "Reject",
+                  v: stats.rejectQty,
+                  cls: "text-rose-700",
+                },
+                {
+                  label: "Incomplete",
+                  v: stats.incompleteQty,
+                  cls: "text-slate-600",
+                },
+              ].map((b) => {
+                const pct =
+                  stats.inspectedTotal > 0
+                    ? (b.v / stats.inspectedTotal) * 100
+                    : 0;
+                return (
+                  <div key={b.label}>
+                    <div className={`font-semibold ${b.cls}`}>
+                      {pct.toFixed(1)}%
+                    </div>
+                    <div className="text-slate-500 truncate">{b.label}</div>
+                    <div className="text-[10px] text-slate-400">
+                      {Math.round(b.v).toLocaleString()}m
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-xs text-slate-400 mt-2">
+              No inspected fabric this month yet
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Gallery — separate row, smaller scale. */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <StatBox
           label={t("top.gallery")}
           value={statsResp.designs || 0}
@@ -5278,6 +5536,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
               </div>
               <ChevronRight size={24} />
             </button>
+
           </div>
         </div>
       )}
@@ -5320,6 +5579,24 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                 <ChevronRight size={20} className="text-slate-400" />
               </button>
             )}
+            {/* Records archive admin — admin or printing dept-admin.
+                Lets older records be soft-hidden in bulk to keep station
+                lists tight. Reversible. */}
+            <button
+              onClick={() => setCurrentView({ type: "archive" })}
+              className="bg-white hover:shadow-md transition rounded-xl p-4 text-left flex items-center gap-3 shadow-sm"
+            >
+              <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
+                <Archive className="text-white" size={20} />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-slate-800">Archive old records</div>
+                <div className="text-xs text-slate-500">
+                  Batch soft-hide records (reversible)
+                </div>
+              </div>
+              <ChevronRight size={20} className="text-slate-400" />
+            </button>
           </div>
         </div>
       )}
@@ -7123,6 +7400,235 @@ function MachineForm({
 // ============== TRASH BIN (item #4 of this turn) ==============
 // Super-admin only. Soft-deleted items live here for 30 days then auto-purge on app load.
 // Anyone can soft-delete, but only super-admin can either restore or permanently purge.
+// ============================================================================
+//  Archive page (admin batch tool for the records pileup)
+// ----------------------------------------------------------------------------
+//  As production runs accumulate, every station's records table grows
+//  without bound. We can't delete because some inputs in older months get
+//  processed later. This page lets an admin pick a station + a date cutoff
+//  and archive every record at that station with `date <= cutoff`.
+//
+//  Archived records still exist in the database; they render faded
+//  (opacity-50, italic) on the station list. Lists default to a 90-day
+//  date filter so archived records typically fall outside the default
+//  view anyway. Operators can clear the date filter to see everything.
+//
+//  Un-archive: same page, "Unarchive" toggle below the action button.
+// ============================================================================
+function ArchivePage({ ctx }: CtxProps) {
+  const { archiveRecordsBefore, records, askConfirm } = ctx;
+  const [stationKey, setStationKey] = useState("input");
+  const [cutoff, setCutoff] = useState(() => {
+    // Default cutoff = 6 months ago. Conservative: archive only stuff
+    // that's at least 6 months old by default.
+    const d = new Date();
+    d.setMonth(d.getMonth() - 6);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  });
+  const [unarchive, setUnarchive] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    modified: number;
+    stationKey: string;
+    cutoff: string;
+    direction: "archive" | "unarchive";
+  } | null>(null);
+
+  // List of valid station keys for the dropdown. Mirrors VALID_STATION_KEYS
+  // on the backend (printing department stations only — store records are
+  // not in scope for this feature). Labels come from the STAGES catalog
+  // when available; fall back to the raw key.
+  const stationOptions: Array<{ key: string; label: string }> = [
+    { key: "gray_store", label: "Gray Fabric Store" },
+    { key: "gray_out", label: "Gray Out" },
+    { key: "input", label: "SING&DES (Input)" },
+    { key: "bleach", label: "Bleaching" },
+    { key: "dyeing", label: "Dyeing" },
+    { key: "batching", label: "Batching" },
+    { key: "printing", label: "Printing" },
+    { key: "curing", label: "Curing" },
+    { key: "finishing", label: "Finishing" },
+    { key: "calendering", label: "Calendering" },
+    { key: "folding", label: "Folding & Inspection" },
+    { key: "dispatch_out", label: "Dispatch Out" },
+  ];
+
+  // Preview count: how many records at this station have date <= cutoff
+  // AND archived !== (unarchive target state). The frontend already has
+  // the full station table loaded for this station? Maybe not — show "≤"
+  // count if known, otherwise "unknown". Without forcing a load just for
+  // a preview, we use what's in memory.
+  const preview = useMemo(() => {
+    const list = records[stationKey] || [];
+    if (!list.length) {
+      return { count: 0, loaded: false };
+    }
+    const wantArchived = !unarchive; // we're SETTING to this
+    const matching = list.filter(
+      (r) =>
+        r.date &&
+        r.date <= cutoff &&
+        // Only count records whose state would actually change
+        !!r.archived !== wantArchived,
+    );
+    return { count: matching.length, loaded: true };
+  }, [records, stationKey, cutoff, unarchive]);
+
+  async function run() {
+    const stationLabel =
+      stationOptions.find((s) => s.key === stationKey)?.label || stationKey;
+    const verb = unarchive ? "Unarchive" : "Archive";
+    const direction = unarchive ? "unarchive" : "archive";
+    askConfirm(
+      `${verb} all "${stationLabel}" records dated on or before ${cutoff}?\n\n` +
+        (preview.loaded
+          ? `Approx. ${preview.count} record(s) will be affected (based on what's loaded).`
+          : `Records not loaded for preview — go to the station page first to see a count.`) +
+        "\n\nThis is reversible — re-run with the opposite toggle.",
+      async () => {
+        setBusy(true);
+        try {
+          const r = await archiveRecordsBefore(stationKey, cutoff, unarchive);
+          setLastResult({
+            modified: r?.modified || 0,
+            stationKey,
+            cutoff,
+            direction,
+          });
+        } catch (e: any) {
+          alert(`Failed: ${e?.message || e}`);
+        } finally {
+          setBusy(false);
+        }
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+          <Archive className="text-white" size={20} />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">
+            Archive old records
+          </h2>
+          <p className="text-xs text-slate-500">
+            Soft-hide records to keep the lists fast. Archived records stay
+            in the database — re-run with the toggle to bring them back.
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Station">
+            <select
+              value={stationKey}
+              onChange={(e) => setStationKey(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            >
+              {stationOptions.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Cutoff date (records on or before)">
+            <input
+              type="date"
+              value={cutoff}
+              onChange={(e) => setCutoff(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            />
+          </Field>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={unarchive}
+            onChange={(e) => setUnarchive(e.target.checked)}
+          />
+          <span>Un-archive instead (bring records back into view)</span>
+        </label>
+
+        <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-600">
+          {preview.loaded ? (
+            <>
+              <span className="font-semibold text-slate-800">
+                {preview.count}
+              </span>{" "}
+              record(s) currently loaded match this filter. The actual
+              server count may be higher if records aren't all loaded.
+            </>
+          ) : (
+            <>
+              Records not loaded in memory — open the station page first to
+              get a preview count.
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={run}
+            disabled={busy || !cutoff}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${busy || !cutoff ? "bg-slate-300 text-slate-500 cursor-not-allowed" : unarchive ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-amber-600 hover:bg-amber-700 text-white"}`}
+          >
+            {busy ? (
+              <>
+                <InlineSpinner size={14} /> Working…
+              </>
+            ) : unarchive ? (
+              <>
+                <Archive size={14} /> Unarchive matching
+              </>
+            ) : (
+              <>
+                <Archive size={14} /> Archive matching
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {lastResult && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-900">
+          ✓ {lastResult.direction === "archive" ? "Archived" : "Unarchived"}{" "}
+          <span className="font-bold">{lastResult.modified}</span> record(s)
+          at <span className="font-mono">{lastResult.stationKey}</span> with
+          date ≤ <span className="font-mono">{lastResult.cutoff}</span>.
+        </div>
+      )}
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 space-y-1">
+        <div className="font-semibold">How this works:</div>
+        <div>
+          • Archived records render faded on the station list. They aren't
+          deleted — the data is still in the database.
+        </div>
+        <div>
+          • Station lists default to a 90-day date window, so archived
+          records typically fall outside the default view anyway.
+        </div>
+        <div>
+          • To see archived records: open the station, clear the date filter,
+          or set "Date from" earlier than the cutoff.
+        </div>
+        <div>
+          • To unarchive: tick the box above, set the same cutoff, and run.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TrashBin({ ctx }: CtxProps) {
   const {
     trash,
@@ -8763,16 +9269,51 @@ function DailyPage({ ctx }: CtxProps) {
     return Number(rec[qtyField] || 0);
   }
 
-  // Find the most recent date across all stations' records.
-  // Falls back to today if there are no records at all (so we render *something*).
+  // ===== Reporting date =====
+  //
+  // Default to YESTERDAY rather than the most recent record. Operators
+  // open this page the morning after to review the prior day; today's
+  // records are still being entered as the morning starts so they're
+  // misleading at that moment.
+  //
+  // If yesterday has zero records anywhere, fall back to the most recent
+  // date that does — better to show SOME data than a blank screen.
   const lastDay = useMemo(() => {
-    let latest = null;
-    STATION_CONFIG.forEach(({ stationId }) => {
-      (records[stationId] || []).forEach((r) => {
-        if (r.date && (!latest || r.date > latest)) latest = r.date;
-      });
-    });
-    return latest || todayISO();
+    // yesterday in YYYY-MM-DD form
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yesterday = `${yyyy}-${mm}-${dd}`;
+
+    // Quick check: does yesterday have any record at all?
+    let hasYesterday = false;
+    let latestSeen: string | null = null;
+    for (const { stationId } of STATION_CONFIG) {
+      for (const r of records[stationId] || []) {
+        if (!r.date) continue;
+        if (r.date === yesterday) hasYesterday = true;
+        if (!latestSeen || r.date > latestSeen) latestSeen = r.date;
+        if (hasYesterday) break;
+      }
+      if (hasYesterday) break;
+    }
+    if (hasYesterday) return yesterday;
+    // Fallback: most recent record date that's <= yesterday. If even that
+    // doesn't exist, the most recent overall, then yesterday as a stub.
+    let bestBeforeYesterday: string | null = null;
+    for (const { stationId } of STATION_CONFIG) {
+      for (const r of records[stationId] || []) {
+        if (!r.date) continue;
+        if (r.date <= yesterday) {
+          if (!bestBeforeYesterday || r.date > bestBeforeYesterday) {
+            bestBeforeYesterday = r.date;
+          }
+        }
+      }
+    }
+    return bestBeforeYesterday || latestSeen || yesterday;
   }, [records]);
 
   // Per-station totals on the lastDay.
@@ -10623,10 +11164,13 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
   const inputRecs = records.input || [];
   const grayOutRecs = records.gray_out || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     source: "",
     fabricType: "",
   });
@@ -10769,6 +11313,10 @@ function GrayStoreDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => handleDelete(id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("gray_store", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -11222,10 +11770,13 @@ function GrayStoreOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
   const grayEntries = records.gray_store || [];
   const inputRecs = records.input || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     destination: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -11308,6 +11859,10 @@ function GrayStoreOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("gray_out", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("gray_out", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -11534,10 +12089,14 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
   // Filters live in the query string so F5 preserves them and the URL is
   // shareable. NOTE: SING&DES (Input) no longer paginates — show all rows.
   // Pagination state is therefore not part of the URL on this page.
+  //
+  // Default date window: last 90 days. Operators can clear/widen via the
+  // filter bar. Defaults bake into the URL on first nav.
+  const _dr = defaultDateRange();
   const [url, setUrl] = useUrlState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: _dr.dateFrom,
+    dateTo: _dr.dateTo,
     shift: "",
     fabricType: "",
   });
@@ -11732,6 +12291,10 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
           }
           setSelected(new Set());
           page.refresh();
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("input", Array.from(selected));
+          setSelected(new Set());
         }}
         showDelete={canEdit}
       />
@@ -12017,10 +12580,13 @@ function BleachDataPage({ ctx, canEdit }: CtxEditableProps) {
   const data = records.bleach || [];
   const inputBatches = records.input || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -12092,6 +12658,10 @@ function BleachDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("bleach", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("bleach", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -12265,10 +12835,13 @@ function DyeingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const bleachRecs = records.bleach || [];
   const t = useT();
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -12392,6 +12965,10 @@ function DyeingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("dyeing", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("dyeing", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -12665,10 +13242,13 @@ function BatchingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const data = records.batching || [];
   const bleachRecs = records.bleach || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -12744,6 +13324,10 @@ function BatchingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("batching", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("batching", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -12937,10 +13521,13 @@ function PrintingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const data = records.printing || [];
   const batchingRecs = records.batching || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -13084,6 +13671,10 @@ function PrintingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("printing", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("printing", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -14365,10 +14956,13 @@ function CuringDataPage({ ctx, canEdit }: CtxEditableProps) {
   const data = records.curing || [];
   const printRecs = records.printing || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -14442,6 +15036,10 @@ function CuringDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("curing", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("curing", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -14610,10 +15208,13 @@ function FinishingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const printRecs = records.printing || [];
   const dyeingRecs = records.dyeing || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -14796,6 +15397,10 @@ function FinishingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("finishing", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("finishing", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -15054,10 +15659,13 @@ function CalenderingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const printRecs = records.printing || [];
   const dyeingRecs = records.dyeing || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -15156,6 +15764,10 @@ function CalenderingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("calendering", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("calendering", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -15441,10 +16053,13 @@ function FoldingDataPage({ ctx, canEdit }: CtxEditableProps) {
   const calenderRecs = records.calendering || [];
   const dyeingRecs = records.dyeing || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
     shift: "",
   });
   const [selected, setSelected] = useState(new Set());
@@ -15545,6 +16160,10 @@ function FoldingDataPage({ ctx, canEdit }: CtxEditableProps) {
         }
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("folding", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("folding", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -16351,10 +16970,13 @@ function DispatchOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
   const folds = records.folding || [];
   const printRecs = records.printing || [];
   const [editing, setEditing] = useState(null);
+  // 90-day default date window — filters initialise to "the last 90 days"
+  // rather than "all time". Operators can override or clear the dates
+  // to widen the view. See defaultDateRange() for the helper.
   const [filter, setFilter] = useState({
     search: "",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
   });
   const [selected, setSelected] = useState(new Set());
 
@@ -16456,6 +17078,10 @@ function DispatchOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
         }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("dispatch_out", id));
+          setSelected(new Set());
+        }}
+        onArchiveSelected={async () => {
+          await ctx.archiveRecords("dispatch_out", Array.from(selected));
           setSelected(new Set());
         }}
         showDelete={canEdit}
@@ -22562,6 +23188,7 @@ function ActionBar({
   selectedCount,
   onExport,
   onDeleteSelected,
+  onArchiveSelected,
   showDelete,
   askConfirm,
 }: {
@@ -22571,6 +23198,9 @@ function ActionBar({
   selectedCount?: number;
   onExport?: () => void;
   onDeleteSelected?: () => void;
+  // Archive (soft-hide) selected records. Optional — only the printing
+  // department stations wire this up. Renders an Archive button when set.
+  onArchiveSelected?: () => void;
   showDelete?: boolean;
   askConfirm?: (message: string, onConfirm: () => void) => void;
 }) {
@@ -22578,6 +23208,14 @@ function ActionBar({
     if (askConfirm)
       askConfirm(`Delete ${selectedCount} record(s)?`, onDeleteSelected);
     else onDeleteSelected();
+  }
+  function handleArchive() {
+    if (askConfirm)
+      askConfirm(
+        `Archive ${selectedCount} record(s)? They'll stay in the database but render faded and out of the way.`,
+        onArchiveSelected,
+      );
+    else onArchiveSelected();
   }
   return (
     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -22597,6 +23235,15 @@ function ActionBar({
         )}
       </div>
       <div className="flex items-center gap-2">
+        {selectedCount > 0 && onArchiveSelected && (
+          <button
+            onClick={handleArchive}
+            className="text-amber-700 hover:bg-amber-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            title="Soft-hide these records (kept in DB)"
+          >
+            <Archive size={14} /> Archive selected
+          </button>
+        )}
         {selectedCount > 0 && showDelete && (
           <button
             onClick={handleDelete}
@@ -22737,7 +23384,8 @@ function DataTable({
           {displayRows.map((r) => (
             <tr
               key={r.id}
-              className="border-t border-slate-100 hover:bg-slate-50"
+              className={`border-t border-slate-100 hover:bg-slate-50 ${r.archived ? "opacity-50 italic" : ""}`}
+              title={r.archived ? "Archived record" : undefined}
             >
               {!hideSelect && (
                 <td className="p-3">
