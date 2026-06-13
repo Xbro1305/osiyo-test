@@ -124,6 +124,11 @@ import {
   CalendarDays,
   Loader2,
 } from "lucide-react";
+// Masked numeric input — used for money fields in the Sale form (discount,
+// paid amount). Gives thousands separators while typing + a strict
+// 2-decimal cap. Other number inputs (small integer counts) stay as plain
+// <input type="number"> since formatting them adds no value.
+import { NumericFormat } from "react-number-format";
 
 // ============== INTERNATIONALIZATION ==============
 // Translation dictionary. Keys are the canonical English source string in dot-notation.
@@ -2410,9 +2415,15 @@ function canViewPage(user: User | null, pageKey: string) {
   if (user.role === "operator") {
     if (deptId !== "printing") return false;
     if (pageKey === `printing.station.${user.stationId}`) return true;
-    // SING&DES operators (stationId === 'input') can also view the Gray Fabric Store.
-    if (user.stationId === "input" && pageKey === "printing.station.gray_store")
-      return true;
+    // Merged-group exception: an operator can view ANY station in the
+    // same merged group as their assigned station. See MERGED_STATION_GROUPS
+    // (e.g. gray_store ⇄ input; batching ⇄ finishing).
+    const myGroup = findHubForStation(user.stationId);
+    if (myGroup) {
+      for (const m of myGroup.members) {
+        if (pageKey === `printing.station.${m}`) return true;
+      }
+    }
     return false;
   }
   if (user.role === "guest") {
@@ -2611,6 +2622,215 @@ function exportToCSV(rows: any[], filename: string) {
   }
 }
 
+// ===== Photo-embedded xlsx export (printing department) =====
+//
+// Used by station exports where each row corresponds to a design and we
+// want the design's photo embedded inline in the spreadsheet. Mirrors the
+// Local Market Store on-hand export's image treatment: object-fit:cover
+// pre-crop to 100×60, drawn into a canvas, then embedded as PNG.
+//
+// Signature:
+//   rows           = the operator-built row data (objects with keys
+//                    matching the `columns` config).
+//   columns        = array of { header, key, width? }. Order = column
+//                    order in the sheet. The image column slot is decided
+//                    by `imageColumn` (see below).
+//   imageColumn    = optional. When present, an extra Image column is
+//                    inserted at `imageColumn.position` (0-based) with
+//                    header `imageColumn.header`. For each row, the
+//                    image is resolved via `imageColumn.getDesignId(row)`
+//                    → look up in `designById` → fetch + canvas-crop.
+//   filename       = download filename prefix (date suffix appended).
+//   sheetName      = worksheet name (clamped/cleaned for Excel rules).
+//
+// Lazy-imports exceljs so the dep is only loaded when an export runs.
+// Errors during image fetch are non-fatal — that row's image cell stays
+// blank rather than failing the whole export.
+async function exportStationXlsx({
+  rows,
+  columns,
+  imageColumn,
+  filename,
+  sheetName,
+}: {
+  rows: any[];
+  columns: { header: string; key: string; width?: number }[];
+  imageColumn?: {
+    header: string;
+    position: number; // 0-based slot index in the final column order
+    width?: number;
+    getDesignId: (row: any) => string | null | undefined;
+    designById: Record<string, any>;
+    resolveDesignImage: (d: any) => string;
+  };
+  filename: string;
+  sheetName?: string;
+}) {
+  if (!rows || !rows.length) {
+    alert("Nothing to export");
+    return;
+  }
+  try {
+    const ExcelJSMod: any = await import("exceljs");
+    const ExcelJS = ExcelJSMod.default || ExcelJSMod;
+    const wb = new ExcelJS.Workbook();
+
+    // Excel-safe sheet name: at most 31 chars, no : \ / ? * [ ].
+    const cleanedSheet = (sheetName || "Sheet1")
+      .replace(/[:\\/\?\*\[\]]/g, "_")
+      .slice(0, 31);
+    const ws = wb.addWorksheet(cleanedSheet);
+
+    // Build the final columns array, splicing the image slot in if needed.
+    // exceljs requires unique keys per column; we reserve "__image" as the
+    // image column's key to avoid collisions with operator-supplied keys.
+    const finalColumns: any[] = columns.map((c) => ({ ...c }));
+    if (imageColumn) {
+      const insertAt = Math.max(
+        0,
+        Math.min(imageColumn.position, finalColumns.length),
+      );
+      finalColumns.splice(insertAt, 0, {
+        header: imageColumn.header,
+        key: "__image",
+        width: imageColumn.width ?? 18,
+      });
+    }
+    ws.columns = finalColumns;
+    ws.getRow(1).font = { bold: true };
+    ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+    ws.getRow(1).height = 22;
+
+    // ===== Image transformers =====
+    // Identical to the Local Market Store on-hand export: each image is
+    // pre-cropped via canvas with object-fit:cover math so it lands in
+    // Excel at 100×60 without horizontal squeeze. Wrapped in try/catch
+    // so a single bad image doesn't kill the whole export.
+    const IMG_W = 100;
+    const IMG_H = 60;
+
+    async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+      try {
+        const blob = new Blob([buf]);
+        const url = URL.createObjectURL(blob);
+        try {
+          const img = await new Promise<HTMLImageElement>((res, rej) => {
+            const im = new Image();
+            im.onload = () => res(im);
+            im.onerror = () => rej(new Error("image load failed"));
+            im.src = url;
+          });
+          const canvas = document.createElement("canvas");
+          canvas.width = IMG_W;
+          canvas.height = IMG_H;
+          const cx = canvas.getContext("2d");
+          if (!cx) return null;
+          const scale = Math.max(IMG_W / img.width, IMG_H / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const dx = (IMG_W - drawW) / 2;
+          const dy = (IMG_H - drawH) / 2;
+          cx.drawImage(img, dx, dy, drawW, drawH);
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+          const bin = atob(base64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      } catch {
+        return null;
+      }
+    }
+
+    // ===== Resolve image buffers (parallel fetch) =====
+    // Pre-resolve every row's image up front so we can decorate cells in
+    // a tight loop afterwards. Resolves to null for any row where the
+    // design has no image, the fetch fails, or the canvas pipeline errors.
+    let imageBuffers: (ArrayBuffer | null)[] = [];
+    if (imageColumn) {
+      imageBuffers = await Promise.all(
+        rows.map(async (r) => {
+          const designId = imageColumn.getDesignId(r);
+          if (!designId) return null;
+          const d = imageColumn.designById[designId];
+          if (!d) return null;
+          const src = imageColumn.resolveDesignImage(d);
+          if (!src) return null;
+          try {
+            const res = await fetch(src, { credentials: "include" });
+            if (!res.ok) return null;
+            const raw = await res.arrayBuffer();
+            return await bufferToCovered(raw);
+          } catch {
+            return null;
+          }
+        }),
+      );
+    }
+
+    // ===== Write rows =====
+    rows.forEach((r, i) => {
+      const rowNumber = i + 2; // 1 is the header
+      // Project operator-row to a column-key keyed object. Unknown columns
+      // are left blank; extra row fields are ignored.
+      const rowData: Record<string, any> = {};
+      for (const c of columns) {
+        rowData[c.key] = r[c.key];
+      }
+      if (imageColumn) rowData.__image = ""; // populated via addImage below
+      ws.addRow(rowData);
+
+      // Tall row to host the image. 50pt is the same value used by the
+      // Local Market Store export → keeps the visual proportions matched
+      // across the app.
+      if (imageColumn) {
+        ws.getRow(rowNumber).height = 50;
+        ws.getRow(rowNumber).alignment = {
+          vertical: "middle",
+          horizontal: "center",
+        };
+        const buf = imageBuffers[i];
+        if (buf) {
+          const imgId = wb.addImage({
+            buffer: buf as any,
+            extension: "png",
+          });
+          // Pixel-perfect placement: column index (0-based) for the image
+          // slot, offset 0.1 on column + 0.05 on row for a subtle inset.
+          ws.addImage(imgId, {
+            tl: {
+              col: imageColumn.position + 0.1,
+              row: rowNumber - 1 + 0.05,
+            } as any,
+            ext: { width: IMG_W, height: IMG_H },
+          });
+        }
+      }
+    });
+
+    const out = await wb.xlsx.writeBuffer();
+    const blob = new Blob([out], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}_${todayISO()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 200);
+  } catch (e: any) {
+    console.error("xlsx export failed:", e);
+    alert(
+      "Export failed. If exceljs is missing, run `npm install exceljs`. Details in console.",
+    );
+  }
+}
+
 // ============================================================================
 //  URL ↔ View mapping (React Router)
 // ----------------------------------------------------------------------------
@@ -2657,6 +2877,12 @@ function viewToPath(view: any): string {
       return `/dept/${encodeURIComponent(view.departmentId || "")}`;
     case "station":
       return `/station/${encodeURIComponent(view.stationId || "")}`;
+    case "station_hub":
+      // Merged-station hubs (SING&DES, STENTER). Without this case the
+      // URL router fell through to `/view/station_hub` and lost the
+      // `hubId` — so on reload / direct nav the StationHubView received
+      // hubId === undefined and rendered the "Hub not found" fallback.
+      return `/hub/${encodeURIComponent(view.hubId || "")}`;
     default:
       // Unknown types from older code paths (e.g. tl.id from a top-link button)
       // map to a generic /view/<type> so navigation still works even if the
@@ -2693,6 +2919,10 @@ function pathToView(pathname: string): any {
   }
   if (a === "station" && b) {
     return { type: "station", stationId: decodeURIComponent(b) };
+  }
+  if (a === "hub" && b) {
+    // Merged-station hub URL → view. Mirrors the viewToPath encoding.
+    return { type: "station_hub", hubId: decodeURIComponent(b) };
   }
   if (a === "view" && b) {
     return { type: decodeURIComponent(b) };
@@ -3981,23 +4211,39 @@ function Shell({ ctx }: CtxProps) {
   }, [user.id]);
 
   // Operators are locked to their station, period.
-  // Exception: SING&DES operators (stationId === 'input') can also access gray_store.
+  // Exception (merged groups): an operator assigned to ANY member of a
+  // merged hub can also access the OTHER members of that same hub. This
+  // gives a single login coverage over adjacent stations one operator
+  // physically runs. See MERGED_STATION_GROUPS for the pairings.
+  function isMergedSibling(operatorStation: string, targetStation: string) {
+    if (operatorStation === targetStation) return true;
+    const group = findHubForStation(operatorStation);
+    if (!group) return false;
+    return group.members.includes(targetStation);
+  }
   const safeView = isOperator
-    ? currentView?.type === "station" &&
-      (currentView.stationId === user.stationId ||
-        (user.stationId === "input" && currentView.stationId === "gray_store"))
+    ? (currentView?.type === "station" &&
+        isMergedSibling(user.stationId, currentView.stationId)) ||
+      (currentView?.type === "station_hub" &&
+        // Operator can land on the hub if their station is one of its
+        // members. They'll see both cards inside.
+        MERGED_STATION_GROUPS.find((g) => g.id === currentView.hubId)
+          ?.members.includes(user.stationId))
       ? currentView
       : { type: "station", stationId: user.stationId }
     : currentView;
 
   if (!safeView) return null;
 
-  // Operators can only access their own station — plus gray_store if they're SING&DES operators.
+  // Operators can only access their own station — plus merged-group siblings.
   if (isOperator) {
     const allowed =
-      safeView.type === "station" &&
-      (safeView.stationId === user.stationId ||
-        (user.stationId === "input" && safeView.stationId === "gray_store"));
+      (safeView.type === "station" &&
+        isMergedSibling(user.stationId, safeView.stationId)) ||
+      (safeView.type === "station_hub" &&
+        MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId)?.members.includes(
+          user.stationId,
+        ));
     if (!allowed) return null;
   }
 
@@ -4093,6 +4339,11 @@ function Shell({ ctx }: CtxProps) {
           ) : (
             <StationView ctx={ctx} stationId={safeView.stationId} />
           ))}
+        {/* Hub view: two-card landing for merged stations. Routes the
+            operator to whichever member station they tap. */}
+        {safeView.type === "station_hub" && (
+          <StationHubView ctx={ctx} hubId={safeView.hubId} />
+        )}
         {/* ===== Local Market Store sub-views ===== */}
         {safeView.type === "store_customers" && !isOperator && (
           <CustomersListView ctx={ctx} />
@@ -4270,32 +4521,32 @@ function TopBar({
           </button>
         )}
         <div className="flex items-center gap-1">
-          {/* SING&DES operators get a toggle between SING&DES and Gray Fabric Store
-              since they manage both stations. */}
-          {isOperator && user.stationId === "input" && (
+          {/* Merged-group nav toggle. Any operator whose station is part
+              of a merged group (SING&DES or STENTER) sees inline buttons
+              to switch between the group's sub-stations without going
+              back to the hub. Same pattern that used to be SING&DES-only,
+              now generalised for both pairings. */}
+          {isOperator && findHubForStation(user.stationId) && (
             <>
-              <NavBtn
-                icon={Database}
-                label="Gray Store"
-                active={
-                  currentView?.type === "station" &&
-                  currentView?.stationId === "gray_store"
-                }
-                onClick={() =>
-                  setCurrentView({ type: "station", stationId: "gray_store" })
-                }
-              />
-              <NavBtn
-                icon={Factory}
-                label="SING&DES"
-                active={
-                  currentView?.type === "station" &&
-                  currentView?.stationId === "input"
-                }
-                onClick={() =>
-                  setCurrentView({ type: "station", stationId: "input" })
-                }
-              />
+              {findHubForStation(user.stationId)!.members.map((mid) => {
+                const stage = STAGES.find((s) => s.id === mid);
+                if (!stage) return null;
+                const Icon = stage.icon;
+                return (
+                  <NavBtn
+                    key={mid}
+                    icon={Icon}
+                    label={t(`stage.${mid}`)}
+                    active={
+                      currentView?.type === "station" &&
+                      currentView?.stationId === mid
+                    }
+                    onClick={() =>
+                      setCurrentView({ type: "station", stationId: mid })
+                    }
+                  />
+                );
+              })}
             </>
           )}
           {(isAdmin ||
@@ -4631,6 +4882,125 @@ function DepartmentHeader({
 }
 
 // === PRINTING DEPARTMENT HOME ===
+// ===== Merged station groups =====
+//
+// Two pairs of stations are visually consolidated on the Printing
+// Department home as a single "hub" tile each. The underlying records
+// stay separate (each station still has its own table); only navigation
+// and access change.
+//
+//   SING&DES hub → contains "Gray Fabric Store" and "SING&DES (Input)"
+//   STENTER hub  → contains "Batching" and "Finishing (Stenter)"
+//
+// Access is union: a dept_admin operator whose departmentId/stationId is
+// any of the listed members can access ALL members of the same group.
+// This way a single login covers the adjacent stations the same physical
+// operator handles, with no logout/login churn at shift change.
+const MERGED_STATION_GROUPS: {
+  id: string;             // hub identifier ("sing_des_hub" | "stenter_hub")
+  label: string;          // display label for the hub tile
+  members: string[];      // station ids unified under this hub
+  icon: any;              // lucide icon for the tile
+  color: string;          // tailwind bg class for the tile
+  description: string;    // small subtitle in the hub
+}[] = [
+  {
+    id: "sing_des_hub",
+    label: "SING&DES",
+    members: ["gray_store", "input"],
+    icon: Factory,
+    color: "bg-slate-500",
+    description: "Gray fabric store + SING&DES input — one operator",
+  },
+  {
+    id: "stenter_hub",
+    label: "STENTER",
+    members: ["batching", "finishing"],
+    icon: Sparkles,
+    color: "bg-pink-500",
+    description: "Batching + finishing (stenter) — one operator",
+  },
+];
+
+// Given a stationId, returns the hub it belongs to (if any). Used by the
+// auth checks below — a user assigned to gray_store should be allowed
+// into input as well.
+function findHubForStation(stationId: string) {
+  return MERGED_STATION_GROUPS.find((g) => g.members.includes(stationId));
+}
+
+// Hub view: small page with one card per member station. Each card links
+// to the regular StationView for that station, so the existing data
+// entry UI is unchanged.
+function StationHubView({
+  ctx,
+  hubId,
+}: {
+  ctx: AppContext;
+  hubId: string;
+}) {
+  const { setCurrentView } = ctx;
+  const t = useT();
+  const hub = MERGED_STATION_GROUPS.find((g) => g.id === hubId);
+  if (!hub) {
+    return (
+      <div className="text-center py-16 text-slate-500">
+        Hub not found.
+        <button
+          onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
+          className="ml-2 text-purple-600 hover:underline"
+        >
+          Back to Printing
+        </button>
+      </div>
+    );
+  }
+  // Resolve each member station's full record (icon/color) from STAGES.
+  const memberStations = hub.members
+    .map((mid) => STAGES.find((s) => s.id === mid))
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <button
+          onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
+          className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-2"
+        >
+          ← Printing Department
+        </button>
+        <h2 className="text-2xl font-bold text-slate-800">{hub.label}</h2>
+        <p className="text-sm text-slate-500">{hub.description}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {memberStations.map((s: any) => {
+          const Icon = s.icon;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setCurrentView({ type: "station", stationId: s.id })}
+              className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-2xl p-6 text-left shadow-sm border border-slate-100"
+            >
+              <div
+                className={`w-14 h-14 ${s.color} rounded-xl flex items-center justify-center mb-3`}
+              >
+                <Icon className="text-white" size={28} />
+              </div>
+              <div className="font-bold text-slate-800 text-lg">
+                {t(`stage.${s.id}`)}
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                Tap to open this station's data entry
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   const { setCurrentView, user } = ctx;
   const t = useT();
@@ -4671,8 +5041,34 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   }, [statsResp]);
 
   // Filter visible stations for guests — see canViewPage helper.
+  // Also exclude stations that are now hidden inside a merged hub — those
+  // are accessible only through the hub's two-card page, not as separate
+  // top-level tiles.
+  const mergedMemberSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const g of MERGED_STATION_GROUPS) for (const m of g.members) s.add(m);
+    return s;
+  }, []);
   const visibleStations = useMemo(
-    () => STAGES.filter((s) => canViewPage(user, `printing.station.${s.id}`)),
+    () =>
+      STAGES.filter(
+        (s) =>
+          canViewPage(user, `printing.station.${s.id}`) &&
+          !mergedMemberSet.has(s.id),
+      ),
+    [user, mergedMemberSet],
+  );
+
+  // Which hubs the current user can see. A hub is visible if the user
+  // could see ANY of its member stations under the legacy rules. This
+  // preserves visibility semantics: if you used to see "Gray Fabric Store"
+  // tile, you now see the SING&DES hub tile (and inside the hub you'll
+  // see both Gray Store + SING&DES cards).
+  const visibleHubs = useMemo(
+    () =>
+      MERGED_STATION_GROUPS.filter((g) =>
+        g.members.some((m) => canViewPage(user, `printing.station.${m}`)),
+      ),
     [user],
   );
   const showMaster = canViewPage(user, "printing.master");
@@ -4727,12 +5123,49 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
         <h3 className="font-semibold text-slate-700 mb-3">
           {t("stations.title")}
         </h3>
-        {visibleStations.length === 0 ? (
+        {visibleStations.length === 0 && visibleHubs.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-500 shadow-sm">
             {t("home.noDepts")}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {/* Hub tiles (consolidated stations) render first so they sit
+                in the natural reading order before downstream stations. */}
+            {visibleHubs.map((hub) => {
+              const Icon = hub.icon;
+              // Hub tile count: sum of member-station counts. Gives an
+              // at-a-glance feel for how much work is sitting in the
+              // consolidated section.
+              const counts = statsResp.counts || {};
+              const count = hub.members.reduce(
+                (acc, m) => acc + (counts[m] || 0),
+                0,
+              );
+              return (
+                <button
+                  key={hub.id}
+                  onClick={() =>
+                    setCurrentView({ type: "station_hub", hubId: hub.id })
+                  }
+                  className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm ring-2 ring-purple-200"
+                >
+                  <div
+                    className={`w-10 h-10 ${hub.color} rounded-lg flex items-center justify-center mb-2`}
+                  >
+                    <Icon className="text-white" size={20} />
+                  </div>
+                  <div className="font-bold text-slate-800 text-sm">
+                    {hub.label}
+                  </div>
+                  <div className="text-[10px] text-purple-600 mt-0.5">
+                    {hub.members.length} sections
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {count} {count !== 1 ? t("rec.records") : t("rec.record")}
+                  </div>
+                </button>
+              );
+            })}
             {visibleStations.map((s) => {
               const Icon = s.icon;
               // Tile counts come from /stats.counts (loaded above) so we don't
@@ -9753,15 +10186,16 @@ function StationView({
   const tabs = stationTabs(stationId, ctx);
   const Icon = stage.icon;
   const isOperator = ctx.user.role === "operator";
-  // SING&DES operators (stationId === 'input') can also manage the Gray Fabric Store
-  // since both stations are jointly handled by the same team.
+  // Operators normally only edit their assigned station. Exception: when
+  // their station is part of a merged group (SING&DES / STENTER hubs),
+  // they can also edit any sibling station's records in the same group.
+  // See MERGED_STATION_GROUPS and findHubForStation upstream.
   const canEdit =
     ctx.user.role === "admin" ||
     (ctx.user.role === "dept_admin" && ctx.user.departmentId === "printing") ||
     (ctx.user.role === "operator" && ctx.user.stationId === stationId) ||
     (ctx.user.role === "operator" &&
-      ctx.user.stationId === "input" &&
-      stationId === "gray_store");
+      findHubForStation(ctx.user.stationId)?.members.includes(stationId));
   return (
     <div className="space-y-4">
       {/* Operators are locked to their station — no back button for them. Everyone else can go back to printing dept. */}
@@ -11267,12 +11701,31 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
         onAdd={newRecord}
         addLabel="+ Add Input Batch"
         selectedCount={selected.size}
-        onExport={() =>
-          exportToCSV(
-            filtered.filter((r) => selected.size === 0 || selected.has(r.id)),
-            "input_data",
-          )
-        }
+        onExport={() => {
+          // Input (SING&DES) doesn't store designId — designs are assigned
+          // downstream at printing. Export goes to xlsx for consistency
+          // with the rest of the department, but without an image column.
+          const data = filtered.filter(
+            (r) => selected.size === 0 || selected.has(r.id),
+          );
+          exportStationXlsx({
+            rows: data,
+            columns: [
+              { header: "Batch #", key: "batchNo", width: 14 },
+              { header: "Date", key: "date", width: 12 },
+              { header: "Source", key: "source", width: 18 },
+              { header: "Fabric type", key: "fabricType", width: 16 },
+              { header: "Shift", key: "shift", width: 10 },
+              { header: "Gas", key: "gas", width: 10 },
+              { header: "Rolls", key: "rolls", width: 8 },
+              { header: "Meters", key: "meters", width: 10 },
+              { header: "Operator", key: "operator", width: 14 },
+              { header: "Notes", key: "notes", width: 30 },
+            ],
+            filename: "input_data",
+            sheetName: "SING&DES",
+          });
+        }}
         onDeleteSelected={async () => {
           for (const id of selected) {
             await deleteRecord("input", id);
@@ -12576,19 +13029,59 @@ function PrintingDataPage({ ctx, canEdit }: CtxEditableProps) {
         onAdd={newRec}
         addLabel="+ Printing Record"
         selectedCount={selected.size}
-        onExport={() =>
-          exportToCSV(
-            filtered
-              .filter((r) => selected.size === 0 || selected.has(r.id))
-              .map((r) => ({
-                ...r,
-                batcherUsage: (r.batcherUsage || [])
-                  .map((b) => `${b.batchingId}:${b.qty}m`)
-                  .join(" + "),
-              })),
-            "printing_data",
-          )
-        }
+        onExport={() => {
+          const data = filtered
+            .filter((r) => selected.size === 0 || selected.has(r.id))
+            .map((r) => ({
+              ...r,
+              // Flatten batcherUsage so it's exportable as a single cell.
+              // Each batch's contribution is rendered as "BATCH-ID:Nm",
+              // joined by " + ".
+              batcherUsage: (r.batcherUsage || [])
+                .map((b) => `${b.batchingId}:${b.qty}m`)
+                .join(" + "),
+              // Program name for the cell. The DataTable resolves this at
+              // render time; the export needs the raw text.
+              programName:
+                (programs || []).find((p) => p.id === r.programId)?.name || "",
+            }));
+          // Build a designNumber → Design map so the image column can
+          // resolve. The printing station stores `designNumber` (the
+          // human-readable code) rather than `designId` (Mongo _id), so
+          // we key by number.
+          const designByNumber: Record<string, any> = {};
+          for (const d of designs || []) {
+            if (d?.designNumber) designByNumber[d.designNumber] = d;
+          }
+          exportStationXlsx({
+            rows: data,
+            columns: [
+              { header: "Print #", key: "printNo", width: 14 },
+              { header: "Date", key: "date", width: 12 },
+              { header: "Design #", key: "designNumber", width: 14 },
+              { header: "Program", key: "programName", width: 18 },
+              { header: "Plan (m)", key: "programQty", width: 10 },
+              { header: "Printed (m)", key: "printedQty", width: 10 },
+              { header: "Width", key: "width", width: 10 },
+              { header: "Shift", key: "shift", width: 10 },
+              { header: "Status", key: "printingStatus", width: 12 },
+              { header: "Machine", key: "machine", width: 12 },
+              { header: "Batcher usage", key: "batcherUsage", width: 28 },
+              { header: "Operator", key: "operator", width: 14 },
+              { header: "Notes", key: "notes", width: 30 },
+            ],
+            imageColumn: {
+              header: "Image",
+              position: 3, // after Print #, Date, Design # — image sits next to design
+              width: 18,
+              getDesignId: (r) => r.designNumber,
+              designById: designByNumber,
+              resolveDesignImage,
+            },
+            filename: "printing_data",
+            sheetName: "Printing",
+          });
+        }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("printing", id));
           setSelected(new Set());
@@ -14251,12 +14744,56 @@ function FinishingDataPage({ ctx, canEdit }: CtxEditableProps) {
         onAdd={newRec}
         addLabel="+ Finishing Record"
         selectedCount={selected.size}
-        onExport={() =>
-          exportToCSV(
-            filtered.filter((r) => selected.size === 0 || selected.has(r.id)),
-            "finishing_data",
-          )
-        }
+        onExport={() => {
+          const data = filtered
+            .filter((r) => selected.size === 0 || selected.has(r.id))
+            .map((r) => {
+              // Derive the resolved designNumber for each finishing row by
+              // joining via printNo to the print record (or dyeing record).
+              // Stored back on the row so the image column can read it
+              // without a second lookup.
+              const p = printRecs.find((x) => x.printNo === r.printNo);
+              const d = dyeingRecs.find((x) => x.dyeingNo === r.printNo);
+              const designNumber =
+                p?.designNumber ||
+                (d && programs.find((pg) => pg.id === d.programId)?.lines?.[0]
+                  ?.designNumber) ||
+                "";
+              return { ...r, designNumber };
+            });
+          const designByNumber: Record<string, any> = {};
+          for (const d of designs || []) {
+            if (d?.designNumber) designByNumber[d.designNumber] = d;
+          }
+          exportStationXlsx({
+            rows: data,
+            columns: [
+              { header: "Date", key: "date", width: 12 },
+              { header: "Card #", key: "printNo", width: 14 },
+              { header: "Design #", key: "designNumber", width: 14 },
+              { header: "Machine", key: "machine", width: 12 },
+              { header: "Hand feel", key: "handFeel", width: 12 },
+              { header: "Speed", key: "speed", width: 10 },
+              { header: "Temp", key: "temperature", width: 10 },
+              { header: "Width", key: "width", width: 10 },
+              { header: "Qty (m)", key: "qty", width: 10 },
+              { header: "Status", key: "completion", width: 12 },
+              { header: "Shift", key: "shift", width: 10 },
+              { header: "Operator", key: "operator", width: 14 },
+              { header: "Notes", key: "notes", width: 30 },
+            ],
+            imageColumn: {
+              header: "Image",
+              position: 3, // after Date, Card #, Design #
+              width: 18,
+              getDesignId: (r) => r.designNumber,
+              designById: designByNumber,
+              resolveDesignImage,
+            },
+            filename: "finishing_data",
+            sheetName: "Finishing",
+          });
+        }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("finishing", id));
           setSelected(new Set());
@@ -15616,7 +16153,33 @@ function DispatchStockPage({ ctx }: CtxProps) {
       secondOut: d.secondOut,
       secondAvail: d.secondAvail,
     }));
-    exportToCSV(rowsToExport, "dispatch_stock");
+    const designByNumber: Record<string, any> = {};
+    for (const d of designs || []) {
+      if (d?.designNumber) designByNumber[d.designNumber] = d;
+    }
+    exportStationXlsx({
+      rows: rowsToExport,
+      columns: [
+        { header: "Design #", key: "designNumber", width: 14 },
+        { header: "Fabric type", key: "fabricType", width: 16 },
+        { header: "1st in", key: "firstIn", width: 10 },
+        { header: "1st sent", key: "firstOut", width: 10 },
+        { header: "1st avail", key: "firstAvail", width: 10 },
+        { header: "2nd in", key: "secondIn", width: 10 },
+        { header: "2nd sent", key: "secondOut", width: 10 },
+        { header: "2nd avail", key: "secondAvail", width: 10 },
+      ],
+      imageColumn: {
+        header: "Image",
+        position: 1, // after Design #
+        width: 18,
+        getDesignId: (r) => r.designNumber,
+        designById: designByNumber,
+        resolveDesignImage,
+      },
+      filename: "dispatch_stock",
+      sheetName: "Dispatch stock",
+    });
   }
 
   // Total rejection (no per-design tracking)
@@ -15852,12 +16415,45 @@ function DispatchOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
         onAdd={newRec}
         addLabel="+ Outgoing Shipment"
         selectedCount={selected.size}
-        onExport={() =>
-          exportToCSV(
-            filtered.filter((r) => selected.size === 0 || selected.has(r.id)),
-            "dispatch_out",
-          )
-        }
+        onExport={() => {
+          const data = filtered.filter(
+            (r) => selected.size === 0 || selected.has(r.id),
+          );
+          const designByNumber: Record<string, any> = {};
+          for (const d of designs || []) {
+            if (d?.designNumber) designByNumber[d.designNumber] = d;
+          }
+          exportStationXlsx({
+            rows: data,
+            columns: [
+              { header: "Date", key: "date", width: 12 },
+              { header: "Design #", key: "designNumber", width: 14 },
+              { header: "Fabric type", key: "fabricType", width: 16 },
+              { header: "Sort", key: "sortType", width: 10 },
+              { header: "Qty (m)", key: "qty", width: 10 },
+              { header: "Destination", key: "destination", width: 18 },
+              { header: "Driver", key: "driver", width: 14 },
+              { header: "Vehicle", key: "vehicle", width: 14 },
+              { header: "Operator", key: "operator", width: 14 },
+              { header: "Notes", key: "notes", width: 30 },
+            ],
+            imageColumn: {
+              header: "Image",
+              position: 2, // after Date, Design #
+              width: 18,
+              // Reject shipments don't have a design number — getDesignId
+              // returns null so the image cell stays blank.
+              getDesignId: (r) =>
+                r.designNumber && r.designNumber !== "__REJECT__"
+                  ? r.designNumber
+                  : null,
+              designById: designByNumber,
+              resolveDesignImage,
+            },
+            filename: "dispatch_out",
+            sheetName: "Dispatch out",
+          });
+        }}
         onDeleteSelected={() => {
           selected.forEach((id) => deleteRecord("dispatch_out", id));
           setSelected(new Set());
@@ -18080,20 +18676,58 @@ function PaymentForm({
   onCancel: () => void;
 }) {
   const [p, setP] = useState(initial);
-  const { lists } = ctx;
+  const { lists, customers } = ctx;
+  const t = useT();
   const set = (k, v) => setP((prev) => ({ ...prev, [k]: v }));
 
+  // When opened from the customer detail page, initial.customerId is set
+  // and we don't need a picker. When opened from the Payments page
+  // standalone, customerId starts empty and we render a dropdown so the
+  // operator can choose who paid. One component handles both flows.
+  const needsCustomerPicker = !initial.customerId;
+
   function save() {
+    if (needsCustomerPicker && !p.customerId) {
+      alert(t("payments.customerRequired"));
+      return;
+    }
     const amount = Number(p.amount);
     if (!amount || amount <= 0) {
-      alert("Enter a positive payment amount");
+      alert(t("payments.amountRequired"));
       return;
     }
     onSave({ ...p, amount });
   }
 
   return (
-    <div className="space-y-3">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save();
+      }}
+      className="space-y-3"
+    >
+      {needsCustomerPicker && (
+        <Field label={t("payments.col.customer") + " *"}>
+          <select
+            value={p.customerId || ""}
+            onChange={(e) => set("customerId", e.target.value)}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          >
+            <option value="">— pick customer —</option>
+            {customers
+              .slice()
+              .sort((a, b) => (a.code || "").localeCompare(b.code || ""))
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code ? `${c.code} · ` : ""}
+                  {c.name}
+                  {c.type ? ` (${c.type})` : ""}
+                </option>
+              ))}
+          </select>
+        </Field>
+      )}
       {suggestedAmount > 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-900 flex items-center justify-between">
           <span>
@@ -18101,6 +18735,7 @@ function PaymentForm({
             <span className="font-bold">{fmtMoney(suggestedAmount)}</span>
           </span>
           <button
+            type="button"
             onClick={() => set("amount", suggestedAmount)}
             className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
           >
@@ -18109,7 +18744,7 @@ function PaymentForm({
         </div>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Date">
+        <Field label={t("payments.col.date")}>
           <input
             type="date"
             value={p.date}
@@ -18117,26 +18752,30 @@ function PaymentForm({
             className="w-full p-2.5 border border-slate-300 rounded-lg"
           />
         </Field>
-        <Field label="Amount *">
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={p.amount}
-            onChange={(e) => set("amount", e.target.value)}
+        <Field label={t("payments.amount") + " *"}>
+          {/* Masked numeric input — thousands separator + 2-decimal cap,
+              consistent with the Sale form's money inputs. */}
+          <NumericFormat
+            value={p.amount ?? ""}
+            onValueChange={(values) => set("amount", values.value)}
+            thousandSeparator=","
+            decimalSeparator="."
+            decimalScale={2}
+            allowNegative={false}
             className="w-full p-2.5 border border-slate-300 rounded-lg"
+            placeholder="0"
             autoFocus
           />
         </Field>
       </div>
-      <Field label="Payment method">
+      <Field label={t("payments.method")}>
         <Select
           value={p.paymentMethod}
           options={lists.paymentMethod}
           onChange={(v) => set("paymentMethod", v)}
         />
       </Field>
-      <Field label="Reference (optional)">
+      <Field label={t("payments.reference")}>
         <input
           value={p.reference}
           onChange={(e) => set("reference", e.target.value)}
@@ -18144,7 +18783,7 @@ function PaymentForm({
           className="w-full p-2.5 border border-slate-300 rounded-lg"
         />
       </Field>
-      <Field label="Notes">
+      <Field label={t("payments.col.notes")}>
         <textarea
           value={p.notes}
           onChange={(e) => set("notes", e.target.value)}
@@ -18153,7 +18792,7 @@ function PaymentForm({
         />
       </Field>
       <FormFooter onCancel={onCancel} onSave={save} />
-    </div>
+    </form>
   );
 }
 
@@ -21546,16 +22185,25 @@ function SaleForm({
                     )}
                   </td>
                   <td className="p-2 text-right">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max={b.basePrice}
+                    <NumericFormat
                       value={b.discount || ""}
-                      onChange={(e) =>
-                        setDiscountFor(b.fabricType, Number(e.target.value) || 0)
+                      onValueChange={(values) =>
+                        setDiscountFor(b.fabricType, Number(values.value) || 0)
                       }
-                      className="w-20 p-1 border border-slate-300 rounded text-sm text-right"
+                      // Thousands separators while typing + cap at 2
+                      // decimals. allowNegative false because a "negative
+                      // discount" would silently inflate price. isAllowed
+                      // clamps the value to the base price so operator
+                      // can't discount more than the price.
+                      thousandSeparator=","
+                      decimalSeparator="."
+                      decimalScale={2}
+                      allowNegative={false}
+                      isAllowed={(values) => {
+                        const v = values.floatValue;
+                        return v === undefined || v <= b.basePrice;
+                      }}
+                      className="w-24 p-1 border border-slate-300 rounded text-sm text-right"
                       placeholder="0"
                     />
                   </td>
@@ -21580,13 +22228,17 @@ function SaleForm({
         </Field>
         <Field label={t("sales.paid")}>
           <div className="relative">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
+            <NumericFormat
               value={s.paidAmount ?? ""}
-              onChange={(e) => set("paidAmount", e.target.value)}
+              onValueChange={(values) =>
+                set("paidAmount", values.value)
+              }
+              thousandSeparator=","
+              decimalSeparator="."
+              decimalScale={2}
+              allowNegative={false}
               className="w-full p-2.5 border border-slate-300 rounded-lg pr-16"
+              placeholder="0"
             />
             <button
               type="button"
@@ -21621,13 +22273,39 @@ function SaleForm({
 
 // ============== STORE PAYMENTS ==============
 function StorePaymentsView({ ctx }: CtxProps) {
-  const { storePayments, customers, user, deleteStorePayment, askConfirm } =
-    ctx;
+  const {
+    storePayments,
+    customers,
+    user,
+    saveStorePayment,
+    deleteStorePayment,
+    askConfirm,
+  } = ctx;
   const t = useT();
   const canEdit =
     user.role === "admin" ||
     (user.role === "dept_admin" && user.departmentId === "store");
   const [search, setSearch] = useState("");
+  // ===== Editing state =====
+  // null = no modal; a StorePayment object (existing or new) = modal open.
+  // The same Modal handles both "Record payment" (new) and "Edit payment"
+  // (existing) via the shared PaymentForm component.
+  const [editing, setEditing] = useState<StorePayment | null>(null);
+
+  // Helper: spawn a blank new-payment object. customerId left blank so the
+  // PaymentForm renders its customer picker. paymentMethod defaults to the
+  // first list entry — operators can change it before save.
+  function newPayment() {
+    setEditing({
+      id: uid(),
+      date: todayISO(),
+      customerId: "",
+      amount: 0,
+      paymentMethod: (ctx.lists.paymentMethod || ["Cash"])[0],
+      reference: "",
+      notes: "",
+    } as StorePayment);
+  }
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -21683,6 +22361,14 @@ function StorePaymentsView({ ctx }: CtxProps) {
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
         </div>
+        {canEdit && (
+          <button
+            onClick={newPayment}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
+            <Plus size={15} /> {t("payments.add")}
+          </button>
+        )}
         <button
           onClick={() => exportToCSV(rows, "store_payments")}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
@@ -21725,14 +22411,20 @@ function StorePaymentsView({ ctx }: CtxProps) {
                 <td className="p-3 font-mono text-xs">{p.reference || "—"}</td>
                 <td className="p-3 text-slate-600 text-xs">{p.notes || "—"}</td>
                 {canEdit && (
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => setEditing(p)}
+                      className="text-slate-500 hover:text-purple-600 p-1"
+                    >
+                      <Edit2 size={13} />
+                    </button>
                     <button
                       onClick={() =>
                         askConfirm("Delete this payment record?", () =>
                           deleteStorePayment(p.id),
                         )
                       }
-                      className="text-slate-400 hover:text-red-600 p-1"
+                      className="text-slate-400 hover:text-red-600 p-1 ml-1"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -21746,13 +22438,34 @@ function StorePaymentsView({ ctx }: CtxProps) {
                   colSpan={canEdit ? 7 : 6}
                   className="p-8 text-center text-slate-400"
                 >
-                  No payments recorded yet.
+                  {t("payments.empty")}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* ===== Record / Edit payment modal =====
+          PaymentForm renders a customer picker when initial.customerId is
+          empty (i.e. new from this page); when editing an existing record
+          the picker is hidden because customerId is already set. */}
+      {editing && (
+        <Modal
+          title={editing.customerId ? t("payments.edit") : t("payments.new")}
+          onClose={() => setEditing(null)}
+        >
+          <PaymentForm
+            initial={editing}
+            ctx={ctx}
+            onSave={async (p) => {
+              await saveStorePayment(p);
+              setEditing(null);
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
