@@ -2449,14 +2449,16 @@ function canViewPage(user: User | null, pageKey: string) {
   if (user.role === "dept_admin") return user.departmentId === deptId;
   if (user.role === "operator") {
     if (deptId !== "printing") return false;
-    if (pageKey === `printing.station.${user.stationId}`) return true;
-    // Merged-group exception: an operator can view ANY station in the
-    // same merged group as their assigned station. See MERGED_STATION_GROUPS
-    // (e.g. gray_store ⇄ input; batching ⇄ finishing).
-    const myGroup = findHubForStation(user.stationId);
-    if (myGroup) {
-      for (const m of myGroup.members) {
-        if (pageKey === `printing.station.${m}`) return true;
+    // Match the pageKey to any station the user's stationId covers.
+    // `coversStation` handles both single-station ids and hub ids
+    // (sing_des, stenter), plus the symmetric merged-group exception
+    // for real-station-id operators.
+    for (const stage of STAGES) {
+      if (
+        pageKey === `printing.station.${stage.id}` &&
+        coversStation(user.stationId, stage.id)
+      ) {
+        return true;
       }
     }
     return false;
@@ -2501,10 +2503,12 @@ function canManageThisUser(currentUser: User | null, targetUser: User | null) {
     if (targetUser.role === "admin") return false;
     if (targetUser.role === "dept_admin") return false;
     if (targetUser.role === "operator") {
-      // station-based check: only printing stations belong to printing dept-admin
-      const stationDept = STAGES.find((s) => s.id === targetUser.stationId)
-        ? "printing"
-        : null;
+      // station-based check: only printing stations belong to printing
+      // dept-admin. Hubs (sing_des, stenter) are also printing-only.
+      const knownStation =
+        STAGES.find((s) => s.id === targetUser.stationId) ||
+        isHubStationId(targetUser.stationId);
+      const stationDept = knownStation ? "printing" : null;
       return stationDept === currentUser.departmentId;
     }
     if (targetUser.role === "guest") {
@@ -3542,9 +3546,22 @@ function AppInner() {
         break;
 
       case "department":
-        // Department pages are just navigation tiles to their stations.
-        // No records to load here — the /stats endpoint already populated
-        // tile counts, and individual stations load their own data on open.
+        // Department pages: nav tiles + headline tiles. The /stats endpoint
+        // populates tile counts. But the Printing Department's headline
+        // tiles ("SING&DES m, Printing m, Inspected breakdown") read MTD
+        // values from the `monthSums` field of /stats; if the backend
+        // hasn't been re-deployed with the monthSums code yet, those come
+        // back undefined and the tiles read 0. As a fallback path, also
+        // load the three stations whose MTD we display so the frontend
+        // can compute them client-side from in-memory records.
+        //
+        // Cheap: input/printing/folding tables aren't huge and with the
+        // 90-day default filter they're tighter still.
+        if (view.departmentId === "printing") {
+          tasks.push(
+            loadStationRecordsMany(["input", "printing", "folding"]),
+          );
+        }
         break;
 
       case "station":
@@ -4380,8 +4397,18 @@ function Shell({ ctx }: CtxProps) {
     const onHome = currentView?.type === "home";
     if (isOperator) {
       // Operators forced to their station regardless of where they came from.
-      if (user.stationId)
-        setCurrentView({ type: "station", stationId: user.stationId });
+      // For hub operators (stationId = sing_des / stenter), land on the
+      // hub view (two-card landing). For real-station operators, land on
+      // the station's own page.
+      if (user.stationId) {
+        if (isHubStationId(user.stationId)) {
+          const hub = findHubByStationId(user.stationId);
+          if (hub) setCurrentView({ type: "station_hub", hubId: hub.id });
+          else setCurrentView({ type: "home" });
+        } else {
+          setCurrentView({ type: "station", stationId: user.stationId });
+        }
+      }
     } else if (isDeptAdmin && onHome) {
       // Dept-admin lands directly inside their department on a fresh /
       if (user.departmentId)
@@ -4395,39 +4422,56 @@ function Shell({ ctx }: CtxProps) {
   }, [user.id]);
 
   // Operators are locked to their station, period.
-  // Exception (merged groups): an operator assigned to ANY member of a
-  // merged hub can also access the OTHER members of that same hub. This
-  // gives a single login coverage over adjacent stations one operator
-  // physically runs. See MERGED_STATION_GROUPS for the pairings.
-  function isMergedSibling(operatorStation: string, targetStation: string) {
-    if (operatorStation === targetStation) return true;
-    const group = findHubForStation(operatorStation);
-    if (!group) return false;
-    return group.members.includes(targetStation);
-  }
-  const safeView = isOperator
-    ? (currentView?.type === "station" &&
-        isMergedSibling(user.stationId, currentView.stationId)) ||
-      (currentView?.type === "station_hub" &&
-        // Operator can land on the hub if their station is one of its
-        // members. They'll see both cards inside.
-        MERGED_STATION_GROUPS.find((g) => g.id === currentView.hubId)
-          ?.members.includes(user.stationId))
-      ? currentView
-      : { type: "station", stationId: user.stationId }
-    : currentView;
+  // Exception (merged groups): a real-station operator gets access to the
+  // sibling station via `coversStation`; a hub-id operator gets access to
+  // every member of that hub the same way. Both flows go through the
+  // single helper so the rules stay uniform.
+  const safeView = (() => {
+    if (!isOperator) return currentView;
+    // Allowed: station view that's covered by the operator's stationId.
+    if (
+      currentView?.type === "station" &&
+      coversStation(user.stationId, currentView.stationId)
+    ) {
+      return currentView;
+    }
+    // Allowed: hub view, but only if the operator's stationId is the matching
+    // hub OR a member of the matching hub.
+    if (currentView?.type === "station_hub") {
+      const hub = MERGED_STATION_GROUPS.find((g) => g.id === currentView.hubId);
+      if (
+        hub &&
+        (HUB_STATION_IDS[user.stationId] === hub.id ||
+          hub.members.includes(user.stationId))
+      ) {
+        return currentView;
+      }
+    }
+    // Fall back to operator's own landing.
+    if (isHubStationId(user.stationId)) {
+      const hub = findHubByStationId(user.stationId);
+      return hub ? { type: "station_hub", hubId: hub.id } : { type: "home" };
+    }
+    return { type: "station", stationId: user.stationId };
+  })();
 
   if (!safeView) return null;
 
   // Operators can only access their own station — plus merged-group siblings.
+  // The `coversStation` helper centralises the rule.
   if (isOperator) {
     const allowed =
       (safeView.type === "station" &&
-        isMergedSibling(user.stationId, safeView.stationId)) ||
+        coversStation(user.stationId, safeView.stationId)) ||
       (safeView.type === "station_hub" &&
-        MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId)?.members.includes(
-          user.stationId,
-        ));
+        (() => {
+          const hub = MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId);
+          if (!hub) return false;
+          return (
+            HUB_STATION_IDS[user.stationId] === hub.id ||
+            hub.members.includes(user.stationId)
+          );
+        })());
     if (!allowed) return null;
   }
 
@@ -4517,12 +4561,13 @@ function Shell({ ctx }: CtxProps) {
         {safeView.type === "in_process" &&
           allowedDepts.includes("printing") && <InProcessInventory ctx={ctx} />}
         {safeView.type === "master" && <MasterTracking ctx={ctx} />}
-        {safeView.type === "station" &&
-          (isOperator ? (
-            <StationView ctx={ctx} stationId={user.stationId} />
-          ) : (
-            <StationView ctx={ctx} stationId={safeView.stationId} />
-          ))}
+        {safeView.type === "station" && (
+          // safeView.stationId is always a REAL station id (a member, never
+          // a hub). For operators whose stationId is a hub, the safeView
+          // logic above already routed them to the hub view or the
+          // landing station — never to a "station" view with a hub id.
+          <StationView ctx={ctx} stationId={safeView.stationId} />
+        )}
         {/* Hub view: two-card landing for merged stations. Routes the
             operator to whichever member station they tap. */}
         {safeView.type === "station_hub" && (
@@ -4680,11 +4725,7 @@ function TopBar({
               </div>
               <div className="text-xs text-slate-500 truncate">
                 {t("role.operator.full")} •{" "}
-                {(() => {
-                  const s = STAGES.find((s) => s.id === user.stationId);
-                  return s ? t(`stage.${s.id}`) : "";
-                })()}{" "}
-                • {user.name}
+                {stationDisplayName(user.stationId)} • {user.name}
               </div>
             </div>
           </div>
@@ -4709,34 +4750,42 @@ function TopBar({
           </button>
         )}
         <div className="flex items-center gap-1">
-          {/* Merged-group nav toggle. Any operator whose station is part
-              of a merged group (SING&DES or STENTER) sees inline buttons
-              to switch between the group's sub-stations without going
-              back to the hub. Same pattern that used to be SING&DES-only,
-              now generalised for both pairings. */}
-          {isOperator && findHubForStation(user.stationId) && (
-            <>
-              {findHubForStation(user.stationId)!.members.map((mid) => {
-                const stage = STAGES.find((s) => s.id === mid);
-                if (!stage) return null;
-                const Icon = stage.icon;
-                return (
-                  <NavBtn
-                    key={mid}
-                    icon={Icon}
-                    label={t(`stage.${mid}`)}
-                    active={
-                      currentView?.type === "station" &&
-                      currentView?.stationId === mid
-                    }
-                    onClick={() =>
-                      setCurrentView({ type: "station", stationId: mid })
-                    }
-                  />
-                );
-              })}
-            </>
-          )}
+          {/* Merged-group nav toggle. Any operator who's part of a merged
+              group sees inline buttons to switch between sub-stations
+              without going back to the hub. Two cases handled together:
+                - operator.stationId is a member id (gray_store, batching, …)
+                  → look up the hub via findHubForStation
+                - operator.stationId is a hub id (sing_des, stenter)
+                  → look up the hub via findHubByStationId
+              Both flows yield the same set of member buttons. */}
+          {isOperator &&
+            (findHubForStation(user.stationId) ||
+              findHubByStationId(user.stationId)) && (
+              <>
+                {(
+                  findHubForStation(user.stationId) ||
+                  findHubByStationId(user.stationId)!
+                ).members.map((mid) => {
+                  const stage = STAGES.find((s) => s.id === mid);
+                  if (!stage) return null;
+                  const Icon = stage.icon;
+                  return (
+                    <NavBtn
+                      key={mid}
+                      icon={Icon}
+                      label={t(`stage.${mid}`)}
+                      active={
+                        currentView?.type === "station" &&
+                        currentView?.stationId === mid
+                      }
+                      onClick={() =>
+                        setCurrentView({ type: "station", stationId: mid })
+                      }
+                    />
+                  );
+                })}
+              </>
+            )}
           {(isAdmin ||
             (isGuest && (user.allowedDepartments || []).length > 1)) && (
             <NavBtn
@@ -5091,6 +5140,12 @@ const MERGED_STATION_GROUPS: {
   icon: any;              // lucide icon for the tile
   color: string;          // tailwind bg class for the tile
   description: string;    // small subtitle in the hub
+  // Where the hub tile sits in the dept-home station grid. Null = put it
+  // at the front. Otherwise: render this hub directly AFTER the visible
+  // station whose id matches insertAfter. Used to keep hub tiles in the
+  // pipeline reading order even though they're a separate data source
+  // from the per-station list.
+  insertAfter: string | null;
 }[] = [
   {
     id: "sing_des_hub",
@@ -5099,6 +5154,7 @@ const MERGED_STATION_GROUPS: {
     icon: Factory,
     color: "bg-slate-500",
     description: "Gray fabric store + SING&DES input — one operator",
+    insertAfter: null, // first tile
   },
   {
     id: "stenter_hub",
@@ -5107,6 +5163,7 @@ const MERGED_STATION_GROUPS: {
     icon: Sparkles,
     color: "bg-pink-500",
     description: "Batching + finishing (stenter) — one operator",
+    insertAfter: "bleach", // STENTER sits right after Jiggers (Bleaching)
   },
 ];
 
@@ -5115,6 +5172,67 @@ const MERGED_STATION_GROUPS: {
 // into input as well.
 function findHubForStation(stationId: string) {
   return MERGED_STATION_GROUPS.find((g) => g.members.includes(stationId));
+}
+
+// ============================================================================
+//  Hub-as-stationId support
+// ----------------------------------------------------------------------------
+//  Operators can be assigned to a stationId that refers to a HUB rather than
+//  a single station: `sing_des` or `stenter`. These are first-class
+//  stationId values throughout the codebase. The mapping below is the
+//  single source of truth — change it here to add a third hub later.
+//
+//  Helpers:
+//    isHubStationId(s)        — true if `s` is a hub identifier
+//    membersOfHubId(s)        — array of member station ids the hub spans
+//    landingStationFor(s)     — when an operator with this stationId lands,
+//                               which station view should be shown? For a
+//                               real station, itself. For a hub, the first
+//                               member (the "primary" tab).
+//    coversStation(uS, tS)    — does an operator's stationId give them
+//                               access to the target station id? Handles
+//                               hub-vs-real and real-vs-real cases.
+//    stationDisplayName(s)    — pretty label (hub label OR station name).
+// ============================================================================
+const HUB_STATION_IDS: Record<string, string> = {
+  sing_des: "sing_des_hub", // maps operator's stationId → matching hub
+  stenter: "stenter_hub",
+};
+function isHubStationId(s: string | undefined | null): boolean {
+  return !!s && Object.prototype.hasOwnProperty.call(HUB_STATION_IDS, s);
+}
+function findHubByStationId(s: string | undefined | null) {
+  if (!s) return undefined;
+  const hubId = HUB_STATION_IDS[s];
+  if (!hubId) return undefined;
+  return MERGED_STATION_GROUPS.find((g) => g.id === hubId);
+}
+function membersOfHubId(s: string | undefined | null): string[] {
+  const hub = findHubByStationId(s);
+  return hub ? hub.members : [];
+}
+function landingStationFor(s: string | undefined | null): string {
+  if (!s) return "";
+  if (isHubStationId(s)) return membersOfHubId(s)[0] || "";
+  return s;
+}
+function coversStation(operatorStationId: string, targetStationId: string): boolean {
+  if (!operatorStationId || !targetStationId) return false;
+  if (operatorStationId === targetStationId) return true;
+  // Hub operator can access any member station.
+  if (isHubStationId(operatorStationId)) {
+    return membersOfHubId(operatorStationId).includes(targetStationId);
+  }
+  // Real-station operator can access siblings via the symmetric hub rule.
+  const hub = findHubForStation(operatorStationId);
+  if (!hub) return false;
+  return hub.members.includes(targetStationId);
+}
+function stationDisplayName(s: string | undefined | null): string {
+  if (!s) return "";
+  if (isHubStationId(s)) return findHubByStationId(s)?.label || s;
+  const stage = STAGES.find((x) => x.id === s);
+  return stage?.name || s;
 }
 
 // Hub view: small page with one card per member station. Each card links
@@ -5218,19 +5336,52 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   }, []);
 
   const stats = useMemo(() => {
+    // ===== MTD source resolution =====
+    //
+    // Preferred path: compute from in-memory records, same approach as
+    // the Daily Report (proven to produce the right numbers). Falls back
+    // to `monthSums` from the API if records aren't loaded yet.
+    //
+    // The monthSums fallback is what we used originally, but operators
+    // saw 0s on the screen — most likely because the backend hadn't been
+    // restarted with the monthSums-emitting build. The client-side path
+    // is robust to that.
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const monthPrefix = `${yyyy}-${mm}`; // YYYY-MM
+    function sumFieldMTD(stationId: string, field: string): number {
+      const list = (ctx.records?.[stationId] || []) as any[];
+      if (!list.length) return 0;
+      return list.reduce((s, r) => {
+        if (!r?.date || !String(r.date).startsWith(monthPrefix)) return s;
+        const v = Number(r[field]);
+        return Number.isFinite(v) ? s + v : s;
+      }, 0);
+    }
+
     const monthSums = statsResp.monthSums || {};
-    // SING&DES card: meters input THIS MONTH (was: total record count).
-    // Operators wanted a production-volume number, not a row count.
-    const inputMetersMTD = monthSums.input?.meters || 0;
+
+    // SING&DES card: meters input THIS MONTH. Client-side first.
+    const inputMetersClient = sumFieldMTD("input", "meters");
+    const inputMetersMTD =
+      inputMetersClient || monthSums.input?.meters || 0;
+
     // Printing: meters printed this month.
-    const printedQtyMTD = monthSums.printing?.printedQty || 0;
-    // Folding inspected breakdown for the month. % calculations are done
-    // at render time against the total inspected (sum of all 4 buckets).
+    const printedQtyClient = sumFieldMTD("printing", "printedQty");
+    const printedQtyMTD =
+      printedQtyClient || monthSums.printing?.printedQty || 0;
+
+    // Folding breakdown — sum 4 buckets from the folding records.
+    const firstQtyClient = sumFieldMTD("folding", "firstQty");
+    const secondQtyClient = sumFieldMTD("folding", "secondQty");
+    const rejectQtyClient = sumFieldMTD("folding", "rejectQty");
+    const incompleteQtyClient = sumFieldMTD("folding", "incompleteQty");
     const f = monthSums.folding || {};
-    const firstQty = f.firstQty || 0;
-    const secondQty = f.secondQty || 0;
-    const rejectQty = f.rejectQty || 0;
-    const incompleteQty = f.incompleteQty || 0;
+    const firstQty = firstQtyClient || f.firstQty || 0;
+    const secondQty = secondQtyClient || f.secondQty || 0;
+    const rejectQty = rejectQtyClient || f.rejectQty || 0;
+    const incompleteQty = incompleteQtyClient || f.incompleteQty || 0;
     const inspectedTotal = firstQty + secondQty + rejectQty + incompleteQty;
     return {
       inputMetersMTD,
@@ -5241,7 +5392,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       rejectQty,
       incompleteQty,
     };
-  }, [statsResp]);
+  }, [statsResp, ctx.records]);
 
   // Filter visible stations for guests — see canViewPage helper.
   // Also exclude stations that are now hidden inside a merged hub — those
@@ -5387,71 +5538,103 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {/* Hub tiles (consolidated stations) render first so they sit
-                in the natural reading order before downstream stations. */}
-            {visibleHubs.map((hub) => {
-              const Icon = hub.icon;
-              // Hub tile count: sum of member-station counts. Gives an
-              // at-a-glance feel for how much work is sitting in the
-              // consolidated section.
-              const counts = statsResp.counts || {};
-              const count = hub.members.reduce(
-                (acc, m) => acc + (counts[m] || 0),
-                0,
-              );
-              return (
-                <button
-                  key={hub.id}
-                  onClick={() =>
-                    setCurrentView({ type: "station_hub", hubId: hub.id })
+            {(() => {
+              // Build a single ordered list that interleaves hub tiles into
+              // the station list at the position named by each hub's
+              // `insertAfter`. Hubs with insertAfter=null get prepended.
+              //
+              // This replaces the prior render of (all hubs) then (all
+              // stations) — that put STENTER second visually, even though
+              // it should sit between Jiggers (bleach) and Printing.
+              type Tile = { kind: "hub"; hub: any } | { kind: "station"; s: any };
+              const out: Tile[] = [];
+              // Front-loaded hubs (insertAfter === null) go first.
+              for (const hub of visibleHubs) {
+                if (hub.insertAfter == null) out.push({ kind: "hub", hub });
+              }
+              // Walk station list; after each station emit any hubs anchored
+              // to it.
+              for (const s of visibleStations) {
+                out.push({ kind: "station", s });
+                for (const hub of visibleHubs) {
+                  if (hub.insertAfter === s.id) {
+                    out.push({ kind: "hub", hub });
                   }
-                  className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm ring-2 ring-purple-200"
-                >
-                  <div
-                    className={`w-10 h-10 ${hub.color} rounded-lg flex items-center justify-center mb-2`}
-                  >
-                    <Icon className="text-white" size={20} />
-                  </div>
-                  <div className="font-bold text-slate-800 text-sm">
-                    {hub.label}
-                  </div>
-                  <div className="text-[10px] text-purple-600 mt-0.5">
-                    {hub.members.length} sections
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {count} {count !== 1 ? t("rec.records") : t("rec.record")}
-                  </div>
-                </button>
+                }
+              }
+              // Safety: if a hub's insertAfter named a station that isn't
+              // visible (filtered by guest perms, say), it would be
+              // dropped silently. Append the orphans at the end so
+              // they're still reachable.
+              const placed = new Set(
+                out.filter((t) => t.kind === "hub").map((t: any) => t.hub.id),
               );
-            })}
-            {visibleStations.map((s) => {
-              const Icon = s.icon;
-              // Tile counts come from /stats.counts (loaded above) so we don't
-              // need to fetch each station's table just to render the badge.
-              const countKey = s.id === "dispatch" ? "dispatch_out" : s.id;
-              const count = (statsResp.counts || {})[countKey] || 0;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() =>
-                    setCurrentView({ type: "station", stationId: s.id })
-                  }
-                  className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm"
-                >
-                  <div
-                    className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center mb-2`}
+              for (const hub of visibleHubs) {
+                if (!placed.has(hub.id)) out.push({ kind: "hub", hub });
+              }
+              return out.map((tile) => {
+                if (tile.kind === "hub") {
+                  const hub = tile.hub;
+                  const Icon = hub.icon;
+                  const counts = statsResp.counts || {};
+                  const count = hub.members.reduce(
+                    (acc: number, m: string) => acc + (counts[m] || 0),
+                    0,
+                  );
+                  return (
+                    <button
+                      key={`hub:${hub.id}`}
+                      onClick={() =>
+                        setCurrentView({ type: "station_hub", hubId: hub.id })
+                      }
+                      className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm ring-2 ring-purple-200"
+                    >
+                      <div
+                        className={`w-10 h-10 ${hub.color} rounded-lg flex items-center justify-center mb-2`}
+                      >
+                        <Icon className="text-white" size={20} />
+                      </div>
+                      <div className="font-bold text-slate-800 text-sm">
+                        {hub.label}
+                      </div>
+                      <div className="text-[10px] text-purple-600 mt-0.5">
+                        {hub.members.length} sections
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        {count} {count !== 1 ? t("rec.records") : t("rec.record")}
+                      </div>
+                    </button>
+                  );
+                }
+                const s = tile.s;
+                const Icon = s.icon;
+                // Tile counts come from /stats.counts (loaded above) so we don't
+                // need to fetch each station's table just to render the badge.
+                const countKey = s.id === "dispatch" ? "dispatch_out" : s.id;
+                const count = (statsResp.counts || {})[countKey] || 0;
+                return (
+                  <button
+                    key={`stn:${s.id}`}
+                    onClick={() =>
+                      setCurrentView({ type: "station", stationId: s.id })
+                    }
+                    className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm"
                   >
-                    <Icon className="text-white" size={20} />
-                  </div>
-                  <div className="font-bold text-slate-800 text-sm">
-                    {t(`stage.${s.id}`)}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {count} {count !== 1 ? t("rec.records") : t("rec.record")}
-                  </div>
-                </button>
-              );
-            })}
+                    <div
+                      className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center mb-2`}
+                    >
+                      <Icon className="text-white" size={20} />
+                    </div>
+                    <div className="font-bold text-slate-800 text-sm">
+                      {t(`stage.${s.id}`)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {count} {count !== 1 ? t("rec.records") : t("rec.record")}
+                    </div>
+                  </button>
+                );
+              });
+            })()}
           </div>
         )}
       </div>
@@ -5898,8 +6081,10 @@ function UsersAdmin({ ctx }: CtxProps) {
       return d ? d.name : "(no department set)";
     }
     if (u.role === "operator") {
-      const s = STAGES.find((x) => x.id === u.stationId);
-      return s ? `Printing · ${s.name}` : "(no station set)";
+      // Either a real station or a hub (sing_des/stenter). stationDisplayName
+      // handles both.
+      const label = stationDisplayName(u.stationId);
+      return label ? `Printing · ${label}` : "(no station set)";
     }
     if (u.role === "guest") {
       const allowed = Array.isArray(u.allowedDepartments)
@@ -6432,11 +6617,29 @@ function UserForm({
               onChange={(e) => set("stationId", e.target.value)}
               className="w-full p-2.5 border border-slate-300 rounded-lg"
             >
-              {STAGES.map((s) => (
+              {/* Build a dropdown that consolidates merged stations into
+                  one option per hub. Members of a merged group don't
+                  appear individually — they're folded into their hub.
+                  When admin picks SING&DES, the operator's stationId is
+                  literally "sing_des" (a hub identifier); the access
+                  checks downstream resolve that to "you can access both
+                  gray_store AND input." */}
+              {STAGES.filter((s) => !findHubForStation(s.id)).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
               ))}
+              {/* Hub options. Listed AFTER the single stations so they
+                  appear distinct visually. */}
+              {Object.entries(HUB_STATION_IDS).map(([stationId, hubId]) => {
+                const hub = MERGED_STATION_GROUPS.find((g) => g.id === hubId);
+                if (!hub) return null;
+                return (
+                  <option key={stationId} value={stationId}>
+                    {hub.label} (covers: {hub.members.map((m) => STAGES.find((s) => s.id === m)?.name || m).join(" + ")})
+                  </option>
+                );
+              })}
             </select>
           </Field>
         </>
@@ -7416,7 +7619,7 @@ function MachineForm({
 //  Un-archive: same page, "Unarchive" toggle below the action button.
 // ============================================================================
 function ArchivePage({ ctx }: CtxProps) {
-  const { archiveRecordsBefore, records, askConfirm } = ctx;
+  const { archiveRecords, archiveRecordsBefore, askConfirm } = ctx;
   const [stationKey, setStationKey] = useState("input");
   const [cutoff, setCutoff] = useState(() => {
     // Default cutoff = 6 months ago. Conservative: archive only stuff
@@ -7436,6 +7639,43 @@ function ArchivePage({ ctx }: CtxProps) {
     cutoff: string;
     direction: "archive" | "unarchive";
   } | null>(null);
+
+  // ===== Local record store for the picked station =====
+  // The Archive page reads its own copy of the station's records instead
+  // of relying on ctx.records. Reasons:
+  //   - The user may visit /printing/archive directly (no station page
+  //     was opened first), so ctx.records[stationKey] could be empty.
+  //   - We need ARCHIVED records, which the live station list doesn't
+  //     necessarily expose (DataTable filters them out by default).
+  //   - The viewer below filters/sorts independently — local state keeps
+  //     it isolated from the rest of the app.
+  const [stationRecords, setStationRecords] = useState<any[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setRecordsLoading(true);
+    apiFetch(`/records/${encodeURIComponent(stationKey)}`)
+      .then((data) => {
+        if (cancelled) return;
+        // The list endpoint returns either an array or a paginated
+        // { items, total } envelope; handle both.
+        const items = Array.isArray(data) ? data : data?.items || [];
+        setStationRecords(items);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        console.error("[archive page] failed to load station records:", e);
+        setStationRecords([]);
+      })
+      .finally(() => {
+        if (!cancelled) setRecordsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Reload after a batch archive/unarchive too — the result count is
+    // already shown, but the viewer below should reflect the new state.
+  }, [stationKey, lastResult]);
 
   // List of valid station keys for the dropdown. Mirrors VALID_STATION_KEYS
   // on the backend (printing department stations only — store records are
@@ -7457,17 +7697,13 @@ function ArchivePage({ ctx }: CtxProps) {
   ];
 
   // Preview count: how many records at this station have date <= cutoff
-  // AND archived !== (unarchive target state). The frontend already has
-  // the full station table loaded for this station? Maybe not — show "≤"
-  // count if known, otherwise "unknown". Without forcing a load just for
-  // a preview, we use what's in memory.
+  // AND archived !== (unarchive target state). Uses the local
+  // `stationRecords` array loaded above — accurate as long as the
+  // station's record count is small enough to fit in one list response.
   const preview = useMemo(() => {
-    const list = records[stationKey] || [];
-    if (!list.length) {
-      return { count: 0, loaded: false };
-    }
+    if (recordsLoading) return { count: 0, loaded: false };
     const wantArchived = !unarchive; // we're SETTING to this
-    const matching = list.filter(
+    const matching = stationRecords.filter(
       (r) =>
         r.date &&
         r.date <= cutoff &&
@@ -7475,7 +7711,7 @@ function ArchivePage({ ctx }: CtxProps) {
         !!r.archived !== wantArchived,
     );
     return { count: matching.length, loaded: true };
-  }, [records, stationKey, cutoff, unarchive]);
+  }, [stationRecords, recordsLoading, cutoff, unarchive]);
 
   async function run() {
     const stationLabel =
@@ -7607,23 +7843,415 @@ function ArchivePage({ ctx }: CtxProps) {
         </div>
       )}
 
+      {/* ===== Archived records viewer =====
+          A generic table of the picked station's archived records, with
+          sort, filter, export, and per-row + multi-select unarchive.
+          The columns are common across stations: Date · Key (primary
+          identifier like batchNo/printNo) · Fabric · Qty · Notes ·
+          Operator. The station-specific key column is derived from
+          STATION_VIEW_CONFIG below. */}
+      <ArchivedRecordsViewer
+        stationKey={stationKey}
+        stationRecords={stationRecords}
+        loading={recordsLoading}
+        ctx={ctx}
+        onAfterChange={() => {
+          // Pull a fresh load after any mutation.
+          setLastResult((prev) =>
+            prev ? { ...prev } : { modified: 0, stationKey, cutoff, direction: "unarchive" },
+          );
+        }}
+      />
+
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 space-y-1">
         <div className="font-semibold">How this works:</div>
         <div>
-          • Archived records render faded on the station list. They aren't
-          deleted — the data is still in the database.
+          • Archived records are <strong>hidden</strong> from station lists
+          — they don't appear there at all. The data is still in the
+          database.
         </div>
         <div>
-          • Station lists default to a 90-day date window, so archived
-          records typically fall outside the default view anyway.
+          • This page is the only place archived records are visible. Use
+          the table below to browse, search, export, and unarchive.
         </div>
         <div>
-          • To see archived records: open the station, clear the date filter,
-          or set "Date from" earlier than the cutoff.
+          • Use the batch tool above for bulk operations by date.
         </div>
-        <div>
-          • To unarchive: tick the box above, set the same cutoff, and run.
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+//  ArchivedRecordsViewer — list + manage archived records for one station
+// ----------------------------------------------------------------------------
+//  Generic shell that works for any printing-department station via a
+//  small config object (STATION_VIEW_CONFIG below) that names each
+//  station's primary identifier and qty field. Columns are uniform across
+//  stations so the viewer stays simple.
+//
+//  Capabilities: search, date-range filter, column sort, xlsx export,
+//  per-row unarchive, multi-select unarchive.
+// ============================================================================
+const STATION_VIEW_CONFIG: Record<
+  string,
+  { keyField: string; keyLabel: string; qtyField: string; qtyLabel: string }
+> = {
+  gray_store:   { keyField: "grayStoreNo", keyLabel: "Gray #",  qtyField: "meters",      qtyLabel: "Meters" },
+  gray_out:     { keyField: "grayStoreNo", keyLabel: "Gray #",  qtyField: "meters",      qtyLabel: "Meters" },
+  input:        { keyField: "batchNo",     keyLabel: "Batch #", qtyField: "meters",      qtyLabel: "Meters" },
+  bleach:       { keyField: "batchNo",     keyLabel: "Batch #", qtyField: "qty",         qtyLabel: "Qty (m)" },
+  dyeing:       { keyField: "dyeingNo",    keyLabel: "Dye #",   qtyField: "dyedQty",     qtyLabel: "Dyed (m)" },
+  batching:     { keyField: "batchingId",  keyLabel: "Batch #", qtyField: "qtyAfter",    qtyLabel: "Qty (m)" },
+  printing:     { keyField: "printNo",     keyLabel: "Print #", qtyField: "printedQty",  qtyLabel: "Printed (m)" },
+  curing:       { keyField: "printNo",     keyLabel: "Print #", qtyField: "qty",         qtyLabel: "Qty (m)" },
+  finishing:    { keyField: "printNo",     keyLabel: "Card #",  qtyField: "finishedQty", qtyLabel: "Finished (m)" },
+  calendering:  { keyField: "printNo",     keyLabel: "Card #",  qtyField: "qty",         qtyLabel: "Qty (m)" },
+  folding:      { keyField: "printNo",     keyLabel: "Card #",  qtyField: "totalMeters", qtyLabel: "Total (m)" },
+  dispatch_out: { keyField: "designNumber",keyLabel: "Design #",qtyField: "qty",         qtyLabel: "Qty (m)" },
+};
+
+function ArchivedRecordsViewer({
+  stationKey,
+  stationRecords,
+  loading,
+  ctx,
+  onAfterChange,
+}: {
+  stationKey: string;
+  stationRecords: any[];
+  loading: boolean;
+  ctx: AppContext;
+  onAfterChange: () => void;
+}) {
+  const { archiveRecords, askConfirm } = ctx;
+  const config = STATION_VIEW_CONFIG[stationKey] || {
+    keyField: "id",
+    keyLabel: "ID",
+    qtyField: "qty",
+    qtyLabel: "Qty",
+  };
+  const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({
+    key: "date",
+    dir: "desc",
+  });
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [working, setWorking] = useState(false);
+
+  // Filter: archived only + free-text + date range. Free-text hits the
+  // primary key field, fabric type, and notes — the common surfaces an
+  // operator searches by.
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return stationRecords.filter((r) => {
+      if (!r.archived) return false;
+      if (dateFrom && (!r.date || r.date < dateFrom)) return false;
+      if (dateTo && (!r.date || r.date > dateTo)) return false;
+      if (term) {
+        const hay = [
+          r[config.keyField],
+          r.fabricType,
+          r.notes,
+          r.operator,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      return true;
+    });
+  }, [stationRecords, search, dateFrom, dateTo, config.keyField]);
+
+  // Sort.
+  const sorted = useMemo(() => {
+    const { key, dir } = sort;
+    const out = [...filtered].sort((a, b) => {
+      const av = a[key];
+      const bv = b[key];
+      if (av == null && bv == null) return 0;
+      if (av == null) return -1;
+      if (bv == null) return 1;
+      const aNum = Number(av);
+      const bNum = Number(bv);
+      const bothNumeric =
+        !isNaN(aNum) && !isNaN(bNum) && av !== "" && bv !== "";
+      if (bothNumeric) return aNum - bNum;
+      return String(av).localeCompare(String(bv));
+    });
+    return dir === "desc" ? out.reverse() : out;
+  }, [filtered, sort]);
+
+  function toggleSort(key: string) {
+    setSort((prev) =>
+      prev.key === key
+        ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: "asc" },
+    );
+  }
+  function toggleAll() {
+    if (selected.size === sorted.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(sorted.map((r) => r.id)));
+    }
+  }
+  function toggleOne(id: string) {
+    const s = new Set(selected);
+    if (s.has(id)) s.delete(id);
+    else s.add(id);
+    setSelected(s);
+  }
+
+  async function unarchiveIds(ids: string[]) {
+    if (!ids.length) return;
+    setWorking(true);
+    try {
+      await archiveRecords(stationKey, ids, /* unarchive */ true);
+      setSelected(new Set());
+      onAfterChange();
+    } catch (e: any) {
+      alert(`Unarchive failed: ${e?.message || e}`);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  function unarchiveSelected() {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    askConfirm(
+      `Unarchive ${ids.length} record(s)? They'll reappear on the station list.`,
+      () => unarchiveIds(ids),
+    );
+  }
+  function unarchiveOne(id: string) {
+    askConfirm("Unarchive this record? It'll reappear on the station list.", () =>
+      unarchiveIds([id]),
+    );
+  }
+
+  function exportXlsx() {
+    if (!sorted.length) return;
+    const rows = sorted.map((r, i) => ({
+      orderNo: i + 1,
+      date: r.date || "",
+      key: r[config.keyField] || "",
+      fabric: r.fabricType || "",
+      qty: r[config.qtyField] ?? "",
+      notes: r.notes || "",
+      operator: r.operator || "",
+    }));
+    exportStationXlsx({
+      rows,
+      columns: [
+        { header: "#", key: "orderNo", width: 5 },
+        { header: "Date", key: "date", width: 12 },
+        { header: config.keyLabel, key: "key", width: 16 },
+        { header: "Fabric type", key: "fabric", width: 16 },
+        { header: config.qtyLabel, key: "qty", width: 12 },
+        { header: "Operator", key: "operator", width: 14 },
+        { header: "Notes", key: "notes", width: 30 },
+      ],
+      filename: `archived_${stationKey}`,
+      sheetName: `Archived ${stationKey}`,
+    });
+  }
+
+  function SortIcon({ k }: { k: string }) {
+    if (sort.key !== k)
+      return <ArrowUpDown size={11} className="opacity-30 inline ml-1" />;
+    return sort.dir === "asc" ? (
+      <ArrowUp size={11} className="inline ml-1" />
+    ) : (
+      <ArrowDown size={11} className="inline ml-1" />
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-3">
+        <Archive size={16} className="text-amber-600" />
+        <div className="flex-1">
+          <div className="font-semibold text-slate-800 text-sm">
+            Archived records · {stationKey}
+          </div>
+          <div className="text-xs text-slate-500">
+            {loading
+              ? "Loading…"
+              : `${sorted.length} of ${stationRecords.filter((r) => r.archived).length} archived`}
+          </div>
         </div>
+      </div>
+
+      {/* Toolbar — search + date range + actions. */}
+      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
+          <Search
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            size={14}
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`Search ${config.keyLabel.toLowerCase()}, fabric, notes…`}
+            className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-1 text-xs">
+          <span className="text-slate-500">From</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          <span className="text-slate-500">To</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-slate-500 hover:text-slate-700 underline"
+            >
+              clear
+            </button>
+          )}
+        </div>
+        {selected.size > 0 && (
+          <button
+            onClick={unarchiveSelected}
+            disabled={working}
+            className="text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Archive size={14} /> Unarchive selected ({selected.size})
+          </button>
+        )}
+        <button
+          onClick={exportXlsx}
+          disabled={!sorted.length}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${!sorted.length ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+        >
+          <Download size={14} /> Export .xlsx
+        </button>
+      </div>
+
+      {/* Table. */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="p-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={selected.size === sorted.length && sorted.length > 0}
+                  onChange={toggleAll}
+                />
+              </th>
+              <th
+                className="text-left p-3 font-medium cursor-pointer hover:bg-slate-100"
+                onClick={() => toggleSort("date")}
+              >
+                Date
+                <SortIcon k="date" />
+              </th>
+              <th
+                className="text-left p-3 font-medium cursor-pointer hover:bg-slate-100"
+                onClick={() => toggleSort(config.keyField)}
+              >
+                {config.keyLabel}
+                <SortIcon k={config.keyField} />
+              </th>
+              <th
+                className="text-left p-3 font-medium cursor-pointer hover:bg-slate-100"
+                onClick={() => toggleSort("fabricType")}
+              >
+                Fabric
+                <SortIcon k="fabricType" />
+              </th>
+              <th
+                className="text-right p-3 font-medium cursor-pointer hover:bg-slate-100"
+                onClick={() => toggleSort(config.qtyField)}
+              >
+                {config.qtyLabel}
+                <SortIcon k={config.qtyField} />
+              </th>
+              <th className="text-left p-3 font-medium">Notes</th>
+              <th
+                className="text-left p-3 font-medium cursor-pointer hover:bg-slate-100"
+                onClick={() => toggleSort("operator")}
+              >
+                Operator
+                <SortIcon k="operator" />
+              </th>
+              <th className="p-3 w-20"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-slate-400">
+                  <InlineSpinner size={14} /> Loading archived records…
+                </td>
+              </tr>
+            ) : sorted.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-slate-400">
+                  No archived records match.
+                </td>
+              </tr>
+            ) : (
+              sorted.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-t border-slate-100 hover:bg-slate-50"
+                >
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleOne(r.id)}
+                    />
+                  </td>
+                  <td className="p-3 text-slate-700">{r.date || "—"}</td>
+                  <td className="p-3 font-mono font-semibold text-slate-800">
+                    {r[config.keyField] || "—"}
+                  </td>
+                  <td className="p-3 text-slate-700">{r.fabricType || "—"}</td>
+                  <td className="p-3 text-right tabular-nums text-slate-700">
+                    {r[config.qtyField] != null
+                      ? Number(r[config.qtyField]).toLocaleString()
+                      : "—"}
+                  </td>
+                  <td className="p-3 text-slate-600 text-xs truncate max-w-[280px]">
+                    {r.notes || ""}
+                  </td>
+                  <td className="p-3 text-slate-700">{r.operator || "—"}</td>
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => unarchiveOne(r.id)}
+                      disabled={working}
+                      className="text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded text-xs font-medium disabled:opacity-50"
+                      title="Bring this record back to the station list"
+                    >
+                      Unarchive
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -10730,13 +11358,13 @@ function StationView({
   // Operators normally only edit their assigned station. Exception: when
   // their station is part of a merged group (SING&DES / STENTER hubs),
   // they can also edit any sibling station's records in the same group.
-  // See MERGED_STATION_GROUPS and findHubForStation upstream.
+  // The `coversStation` helper handles both real-station and hub-id
+  // operators uniformly.
   const canEdit =
     ctx.user.role === "admin" ||
     (ctx.user.role === "dept_admin" && ctx.user.departmentId === "printing") ||
-    (ctx.user.role === "operator" && ctx.user.stationId === stationId) ||
     (ctx.user.role === "operator" &&
-      findHubForStation(ctx.user.stationId)?.members.includes(stationId));
+      coversStation(ctx.user.stationId, stationId));
   return (
     <div className="space-y-4">
       {/* Operators are locked to their station — no back button for them. Everyone else can go back to printing dept. */}
@@ -23298,10 +23926,15 @@ function DataTable({
   }
 
   // Apply sort if active. Sorted rows are a copy so we don't mutate parent's array.
+  // Also exclude archived rows — operators manage archived records via the
+  // admin Archive page (which has its own dedicated viewer below the batch
+  // tool). The per-station lists keep them out of view entirely so the
+  // visible table stays clean. (Falsy archived = visible; truthy = hidden.)
   const displayRows = useMemo(() => {
-    if (!sort) return rows;
+    const visible = rows.filter((r) => !r.archived);
+    if (!sort) return visible;
     const { key, dir } = sort;
-    const sorted = [...rows].sort((a, b) => {
+    const sorted = [...visible].sort((a, b) => {
       let av = a[key],
         bv = b[key];
       // Treat null/undefined as smallest. Numbers compared as numbers, everything else as strings.
@@ -23384,8 +24017,7 @@ function DataTable({
           {displayRows.map((r) => (
             <tr
               key={r.id}
-              className={`border-t border-slate-100 hover:bg-slate-50 ${r.archived ? "opacity-50 italic" : ""}`}
-              title={r.archived ? "Archived record" : undefined}
+              className="border-t border-slate-100 hover:bg-slate-50"
             >
               {!hideSelect && (
                 <td className="p-3">
