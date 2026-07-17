@@ -61,6 +61,7 @@ import {
   Flame,
   Sparkles,
   Archive,
+  Pencil,
   Layers,
   Package,
   Truck,
@@ -415,7 +416,8 @@ const TRANSLATIONS = {
     "stock.col.design": "Design",
     "stock.col.fabric": "Fabric type",
     "stock.col.unit": "Unit",
-    "stock.col.rollsOnHand": "Rolls on hand",
+    "stock.col.rollsOnHand": "On hand",
+    "stock.loose": "loose",
     "stock.col.in": "In",
     "stock.col.out": "Out",
     "stock.col.onHand": "On hand",
@@ -427,6 +429,8 @@ const TRANSLATIONS = {
     "stock.status.in": "In stock",
     "stock.noVariant": "(no variant)",
     "stock.empty": "No stock yet. Add a Stock In record to begin.",
+    "stock.search": "Search design, color, fabric, length…",
+    "stock.searchEmpty": "No stock matches this search.",
     // ===== Customers =====
     "customers.title": "Customers",
     "customers.subtitle": "Manage your local market store customers",
@@ -500,6 +504,58 @@ const TRANSLATIONS = {
     "payments.empty": "No payments recorded yet.",
     "payments.amountRequired": "Amount must be positive",
     "payments.customerRequired": "Pick a customer",
+    // ===== Filter labels =====
+    "filter.from": "From",
+    "filter.to": "To",
+    "filter.clear": "clear",
+    // ===== Sales dashboard =====
+    "sales.dashboard.title": "Sold this month",
+    "sales.dashboard.month": "Month",
+    "sales.dashboard.metersLabel": "meters sold",
+    "sales.dashboard.revenueLabel": "revenue",
+    "sales.dashboard.sales": "sales",
+    "sales.dashboard.total": "in total",
+    "sales.dashboard.empty": "No sales yet this month.",
+    "sales.dashboard.more": "more designs",
+    "sales.dashboard.col.image": "Image",
+    "sales.dashboard.col.design": "Design / Color",
+    "sales.dashboard.col.fabric": "Fabric",
+    "sales.dashboard.col.meters": "Meters sold",
+    "sales.dashboard.col.amount": "Revenue",
+    "sales.dashboard.showLess": "Show less",
+    "sales.exportEmpty": "Nothing to export",
+    "sales.rolls": "rolls",
+    "sales.picker.loose": "Loose",
+    "sales.selected": "Selected rolls",
+    "sales.line": "line",
+    "sales.lines": "lines",
+    "stockin.rollLines.empty": "No roll lines yet — click “+” to add e.g. 34 rolls × 30m.",
+    // ===== Stock-in save modes =====
+    "stockin.save.another": "Save & add another",
+    "stockin.save.another.hint": "Save this and open a fresh entry (keeps fabric type)",
+    "stockin.save.sell": "Save & sell",
+    "stockin.save.sell.hint": "Save this, then jump to a sale pre-filled with this design",
+    // ===== On-hand correction modal =====
+    "stock.col.actions": "Edit",
+    "stock.correct.title": "Correct on-hand",
+    "stock.correct.product": "Product",
+    "stock.correct.fabric": "Fabric",
+    "stock.correct.currentOnHand": "Current on-hand",
+    "stock.correct.newOnHand": "New on-hand (m)",
+    "stock.correct.reason": "Reason (optional)",
+    "stock.correct.reason.placeholder": "e.g. inventory audit, damaged rolls, count adjustment",
+    "stock.correct.apply": "Apply correction",
+    "stock.correct.hint.invalid": "Enter a valid number",
+    "stock.correct.hint.noChange": "No change — same as current on-hand.",
+    "stock.correct.hint.stockIn": "will be added as a correction stock-in dated today.",
+    "stock.correct.hint.stockOut": "will be removed as a correction stock-out dated today.",
+    "stock.correct.source": "Correction (on-hand edit)",
+    "stock.correct.recordNote": "On-hand correction",
+    "stock.correct.rollsPerLength": "Rolls per length",
+    "stock.correct.length": "Length",
+    "stock.correct.currentRolls": "Current rolls",
+    "stock.correct.newRolls": "New rolls",
+    "stock.correct.looseMeters": "Loose meters",
   },
   uz: {
     "common.home": "Bosh sahifa",
@@ -770,7 +826,8 @@ const TRANSLATIONS = {
     "stock.col.design": "Dizayn",
     "stock.col.fabric": "Mato turi",
     "stock.col.unit": "Birlik",
-    "stock.col.rollsOnHand": "Mavjud rulonlar",
+    "stock.col.rollsOnHand": "Mavjud",
+    "stock.loose": "boʻlak",
     "stock.col.in": "Kirim",
     "stock.col.out": "Chiqim",
     "stock.col.onHand": "Mavjud",
@@ -782,6 +839,8 @@ const TRANSLATIONS = {
     "stock.status.in": "Mavjud",
     "stock.noVariant": "(variant yoʻq)",
     "stock.empty": "Hali zaxira yoʻq. Kirim qoʻshing.",
+    "stock.search": "Dizayn, rang, mato, uzunlik boʻyicha izlash…",
+    "stock.searchEmpty": "Bu qidiruvga mos zaxira topilmadi.",
     // ===== Mijozlar =====
     "customers.title": "Mijozlar",
     "customers.subtitle": "Mahalliy doʻkon mijozlarini boshqarish",
@@ -855,6 +914,58 @@ const TRANSLATIONS = {
     "payments.empty": "Hali toʻlovlar qayd etilmagan.",
     "payments.amountRequired": "Summa musbat boʻlishi kerak",
     "payments.customerRequired": "Mijozni tanlang",
+    // ===== Filter labels =====
+    "filter.from": "Dan",
+    "filter.to": "Gacha",
+    "filter.clear": "tozalash",
+    // ===== Sales dashboard =====
+    "sales.dashboard.title": "Shu oy sotildi",
+    "sales.dashboard.month": "Oy",
+    "sales.dashboard.metersLabel": "sotilgan metr",
+    "sales.dashboard.revenueLabel": "daromad",
+    "sales.dashboard.sales": "sotuvlar",
+    "sales.dashboard.total": "jami",
+    "sales.dashboard.empty": "Bu oyda hali sotuvlar yoʻq.",
+    "sales.dashboard.more": "boshqa dizaynlar",
+    "sales.dashboard.col.image": "Rasm",
+    "sales.dashboard.col.design": "Dizayn / Rang",
+    "sales.dashboard.col.fabric": "Mato",
+    "sales.dashboard.col.meters": "Sotilgan (m)",
+    "sales.dashboard.col.amount": "Daromad",
+    "sales.dashboard.showLess": "Kamroq koʻrsatish",
+    "sales.exportEmpty": "Eksport uchun narsa yoʻq",
+    "sales.rolls": "rulon",
+    "sales.picker.loose": "Bogʻlanmagan",
+    "sales.selected": "Tanlangan rulonlar",
+    "sales.line": "qator",
+    "sales.lines": "qatorlar",
+    "stockin.rollLines.empty": "Hali rulon qatorlari yoʻq — “+” bosib qoʻshing, masalan 34 rulon × 30m.",
+    // ===== Stock-in save modes =====
+    "stockin.save.another": "Saqlash va yana qoʻshish",
+    "stockin.save.another.hint": "Saqlash va yangi kirim ochish (mato turi saqlanadi)",
+    "stockin.save.sell": "Saqlash va sotish",
+    "stockin.save.sell.hint": "Saqlash va shu dizayn bilan sotuv oynasiga oʻtish",
+    // ===== On-hand correction modal =====
+    "stock.col.actions": "Tahrir",
+    "stock.correct.title": "Ombor qoldigʻini tuzatish",
+    "stock.correct.product": "Mahsulot",
+    "stock.correct.fabric": "Mato",
+    "stock.correct.currentOnHand": "Joriy qoldiq",
+    "stock.correct.newOnHand": "Yangi qoldiq (m)",
+    "stock.correct.reason": "Sabab (ixtiyoriy)",
+    "stock.correct.reason.placeholder": "masalan: inventarizatsiya, buzilgan rulonlar",
+    "stock.correct.apply": "Tuzatishni qoʻllash",
+    "stock.correct.hint.invalid": "Toʻgʻri raqam kiriting",
+    "stock.correct.hint.noChange": "Oʻzgarish yoʻq — joriy qoldiq bilan bir xil.",
+    "stock.correct.hint.stockIn": "bugungi sana bilan kirim tuzatish sifatida qoʻshiladi.",
+    "stock.correct.hint.stockOut": "bugungi sana bilan chiqim tuzatish sifatida olib tashlanadi.",
+    "stock.correct.source": "Tuzatish (ombor qoldigʻi)",
+    "stock.correct.recordNote": "Ombor qoldigʻi tuzatishi",
+    "stock.correct.rollsPerLength": "Har uzunlik uchun rulonlar",
+    "stock.correct.length": "Uzunlik",
+    "stock.correct.currentRolls": "Joriy rulon",
+    "stock.correct.newRolls": "Yangi rulon",
+    "stock.correct.looseMeters": "Boʻlak metr",
   },
 };
 
@@ -2701,6 +2812,11 @@ async function exportStationXlsx({
     getDesignId: (row: any) => string | null | undefined;
     designById: Record<string, any>;
     resolveDesignImage: (d: any) => string;
+    // Optional swatch fallback for rows with no design image (typically
+    // color/dyed rows). Return a hex string like "#a03fca" and the export
+    // draws a solid-color PNG in the image cell. Returning null / empty
+    // leaves the cell blank as before.
+    getSwatchColor?: (row: any) => string | null | undefined;
   };
   filename: string;
   sheetName?: string;
@@ -2795,8 +2911,37 @@ async function exportStationXlsx({
     //   2. `imageUrl`  — an absolute or relative URL pointing at the
     //      backend's `/uploads/designs/...` route. Fetched over the wire.
     //
+    // Fallback: when the row has no design or the image resolves to
+    // nothing, and getSwatchColor returns a valid hex, synthesize a
+    // solid-color PNG. Used by the sales dashboard so dyed rows get a
+    // visible color chip in the Image column instead of an empty cell.
+    //
     // Counts are tracked so we can surface a helpful warning if photos
     // didn't make it (the previous version silently failed).
+
+    // Draw a solid color into an offscreen canvas and return raw PNG
+    // bytes. Reused by the swatch fallback. Kept close to the design
+    // image size for visual consistency in the sheet.
+    function hexSwatchBuffer(hex: string): ArrayBuffer | null {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = IMG_W;
+        canvas.height = IMG_H;
+        const cx = canvas.getContext("2d");
+        if (!cx) return null;
+        cx.fillStyle = hex;
+        cx.fillRect(0, 0, IMG_W, IMG_H);
+        const dataUrl = canvas.toDataURL("image/png");
+        const base64 = dataUrl.split(",")[1];
+        const bin = atob(base64);
+        const out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+        return out.buffer;
+      } catch {
+        return null;
+      }
+    }
+
     let imageBuffers: (ArrayBuffer | null)[] = [];
     let imgAttempted = 0;
     let imgFailedFetch = 0;
@@ -2805,25 +2950,38 @@ async function exportStationXlsx({
     if (imageColumn) {
       imageBuffers = await Promise.all(
         rows.map(async (r) => {
+          // Swatch fallback helper — invoked when there's no design or
+          // no image but a hex was supplied.
+          const trySwatch = (): ArrayBuffer | null => {
+            if (!imageColumn.getSwatchColor) return null;
+            const hex = imageColumn.getSwatchColor(r);
+            if (!hex || typeof hex !== "string") return null;
+            // Reject anything that doesn't look like a hex color to
+            // avoid feeding garbage into canvas.fillStyle (which would
+            // silently default to black).
+            if (!/^#?[0-9a-fA-F]{3,8}$/.test(hex)) return null;
+            const normalized = hex.startsWith("#") ? hex : `#${hex}`;
+            return hexSwatchBuffer(normalized);
+          };
           const designId = imageColumn.getDesignId(r);
-          if (!designId) return null; // row has no design — fine, blank cell
+          if (!designId) return trySwatch(); // no design → try swatch
           const d = imageColumn.designById[designId];
           if (!d) {
             imgMissingDesign++;
-            return null;
+            return trySwatch();
           }
           const src = imageColumn.resolveDesignImage(d);
-          if (!src) return null;
+          if (!src) return trySwatch();
           imgAttempted++;
           try {
             // Data-URL fast path: convert base64 to bytes directly, no
             // network round-trip. Works in any browser.
             if (src.startsWith("data:")) {
               const commaIdx = src.indexOf(",");
-              if (commaIdx === -1) return null;
+              if (commaIdx === -1) return trySwatch();
               const meta = src.slice(5, commaIdx); // "image/png;base64"
               const payload = src.slice(commaIdx + 1);
-              if (!meta.includes("base64")) return null;
+              if (!meta.includes("base64")) return trySwatch();
               const bin = atob(payload);
               const out = new Uint8Array(bin.length);
               for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -2831,7 +2989,7 @@ async function exportStationXlsx({
                 return await bufferToCovered(out.buffer);
               } catch (e) {
                 imgFailedDecode++;
-                return null;
+                return trySwatch();
               }
             }
             // HTTP(S) URL — fetch without credentials. The /uploads route
@@ -2844,7 +3002,7 @@ async function exportStationXlsx({
               console.warn(
                 `[xlsx export] image fetch ${res.status} for design ${designId}: ${src}`,
               );
-              return null;
+              return trySwatch();
             }
             const raw = await res.arrayBuffer();
             return await bufferToCovered(raw);
@@ -2854,7 +3012,7 @@ async function exportStationXlsx({
               `[xlsx export] image fetch error for design ${designId}:`,
               e?.message || e,
             );
-            return null;
+            return trySwatch();
           }
         }),
       );
@@ -20068,6 +20226,8 @@ function StoreStockInView({ ctx }: CtxProps) {
     (user.role === "dept_admin" && user.departmentId === "store");
   const [editing, setEditing] = useState<StoreStockIn | null>(null);
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [exporting, setExporting] = useState(false);
 
   // Helper: resolve a row's "variant" label (design number or hex color)
@@ -20106,6 +20266,10 @@ function StoreStockInView({ ctx }: CtxProps) {
     const term = search.trim().toLowerCase();
     return storeStockIn.filter((r) => {
       if (fabricFilter && r.stockFabricType !== fabricFilter) return false;
+      // Date range filter — applied first because it's cheap. Empty
+      // strings on either side leave that bound open.
+      if (dateFrom && (!r.date || r.date < dateFrom)) return false;
+      if (dateTo && (!r.date || r.date > dateTo)) return false;
       if (!term) return true;
       const designNumber =
         r.designId && designById[r.designId]
@@ -20131,7 +20295,7 @@ function StoreStockInView({ ctx }: CtxProps) {
         .toLowerCase();
       return hay.includes(term);
     });
-  }, [storeStockIn, search, fabricFilter, designById]);
+  }, [storeStockIn, search, fabricFilter, dateFrom, dateTo, designById]);
 
   // ===== Sortable rows =====
   // Custom accessors so the table sorts by what you'd expect rather than
@@ -20464,25 +20628,42 @@ function StoreStockInView({ ctx }: CtxProps) {
     }
   }
 
-  function newEntry() {
-    setEditing({
+  // Factory for a fresh stock-in record. Extracted so "Save & add another"
+  // can generate a fresh one while retaining a few carry-over fields
+  // (fabric type, fabric state) — see onSave handler in the modal below.
+  function newEntryTemplate() {
+    // Remember the last fabric type used. Operators often stock in many
+    // records of the same fabric type in one session; this saves them from
+    // re-picking it each time. Kept in localStorage so it persists across
+    // page reloads.
+    const lastFabric =
+      typeof window !== "undefined"
+        ? localStorage.getItem("store.lastStockFabricType") || ""
+        : "";
+    return {
       id: uid(),
       date: todayISO(),
       source: "From Production (Dispatch)",
-      fabricState: "printed",
+      fabricState: "printed" as const,
       designId: undefined,
       hexColor: "#7E22CE",
       colorName: "",
       fabricType: "",
-      stockFabricType: "",
+      stockFabricType: lastFabric,
       qty: 0,
-      unit: "meters",
-      rollLines: [],
+      // Default to rolls with one 30-m starter line — operators almost
+      // always add fabric in rolls and 30m is the most common length.
+      // Removing this typing overhead was requested.
+      unit: "rolls",
+      rollLines: [{ length: 30, qty: 1 }],
       extraMeters: 0,
       costPerMeter: 0,
       costPrice: 0,
       notes: "",
-    });
+    };
+  }
+  function newEntry() {
+    setEditing(newEntryTemplate() as any);
   }
 
   return (
@@ -20507,6 +20688,35 @@ function StoreStockInView({ ctx }: CtxProps) {
             placeholder={t("stockin.search")}
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
+        </div>
+        {/* Date range filters — inputs apply immediately via the memo.
+            Applied to exports too (rows already filtered before export). */}
+        <div className="flex items-center gap-1 text-xs">
+          <span className="text-slate-500">{t("filter.from")}</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          <span className="text-slate-500">{t("filter.to")}</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-slate-500 hover:text-slate-700 underline"
+            >
+              {t("filter.clear")}
+            </button>
+          )}
         </div>
         {canEdit && (
           <button
@@ -20734,14 +20944,58 @@ function StoreStockInView({ ctx }: CtxProps) {
               : t("stockin.new")
           }
           onClose={() => setEditing(null)}
+          dismissible={false}
+          closeOnEsc
+          large
         >
           <StockInForm
             initial={editing}
             lists={lists}
             designs={designs || []}
-            onSave={async (r) => {
+            onSave={async (r, mode) => {
               await saveStoreStockIn(r);
-              setEditing(null);
+              // Remember the last fabric type — used to prefill the next
+              // new stock-in entry (see newEntryTemplate). Only meaningful
+              // when a value was actually picked.
+              if (r.stockFabricType) {
+                try {
+                  localStorage.setItem(
+                    "store.lastStockFabricType",
+                    r.stockFabricType,
+                  );
+                } catch {}
+              }
+              if (mode === "another") {
+                // Reset the modal to a fresh entry — retain the fabric
+                // type + fabricState so bulk-adding many designs of one
+                // type is fast. The user typed the fabric once; keep it.
+                setEditing((prev: any) => ({
+                  ...newEntryTemplate(),
+                  stockFabricType: r.stockFabricType,
+                  fabricState: r.fabricState,
+                }));
+              } else if (mode === "sell") {
+                // Stash a "seed sale" hint in sessionStorage, then
+                // navigate to sales. StoreSalesView reads the hint on
+                // mount and opens a pre-filled sale modal. Bad-ish
+                // pattern but avoids threading a new context field for
+                // a transient signal.
+                sessionStorage.setItem(
+                  "pendingSaleSeed",
+                  JSON.stringify({
+                    stockFabricType: r.stockFabricType,
+                    designId: r.designId,
+                    hexColor: r.hexColor,
+                    colorName: r.colorName,
+                    fabricState: r.fabricState,
+                    fromStockInId: r.id,
+                  }),
+                );
+                setEditing(null);
+                ctx.setCurrentView({ type: "store_sales" });
+              } else {
+                setEditing(null);
+              }
             }}
             onAddDesign={async (d) => {
               // Persists the new design via the same API the Gallery admin
@@ -20815,7 +21069,7 @@ function RollLinesEditor({
       </div>
       {lines.length === 0 && (
         <div className="text-xs text-slate-400 italic px-2">
-          No roll lines yet — click “+” to add e.g. 34 rolls × 30m.
+          {t("stockin.rollLines.empty")}
         </div>
       )}
       {lines.map((ln, i) => {
@@ -20901,7 +21155,7 @@ function StockInForm({
   initial: StoreStockIn;
   lists: Lists;
   designs: Design[];
-  onSave: (s: StoreStockIn) => void;
+  onSave: (s: StoreStockIn, mode?: "close" | "another" | "sell") => void;
   onCancel: () => void;
   onAddDesign?: (d: Design) => Promise<void>;
 }) {
@@ -20911,7 +21165,16 @@ function StockInForm({
   const [r, setR] = useState<StoreStockIn>(() => ({
     ...initial,
     fabricState: initial.fabricState || "printed",
-    rollLines: initial.rollLines || [],
+    // For NEW records the newRecord() factory already provides a 30m
+    // starter roll and unit=rolls. For EDITING an existing record we
+    // preserve whatever was saved.
+    unit: initial.unit || "rolls",
+    rollLines:
+      initial.rollLines && initial.rollLines.length > 0
+        ? initial.rollLines
+        : (initial.unit && initial.unit !== "rolls")
+          ? []
+          : [{ length: 30, qty: 1 }],
     extraMeters:
       initial.extraMeters !== undefined ? initial.extraMeters : 0,
     hexColor: initial.hexColor || "#7E22CE",
@@ -20991,8 +21254,18 @@ function StockInForm({
       out.rollLines = [];
       out.extraMeters = 0;
     }
-    onSave(out);
+    // saveMode tells the parent what to do after the record is saved:
+    //   "close"       → default: dismiss the modal
+    //   "another"     → reset the form for a new entry (retain fabric type)
+    //   "sell"        → close this modal and open the sale form pre-filled
+    onSave(out, saveMode);
   }
+
+  // Local UI state for the save-mode buttons. Reset to "close" whenever the
+  // form is dirty so a stale value doesn't leak into the next click.
+  const [saveMode, setSaveMode] = useState<"close" | "another" | "sell">(
+    "close",
+  );
 
   return (
     // Wrap in <form> so pressing Enter inside any input submits via save().
@@ -21081,25 +21354,16 @@ function StockInForm({
         </div>
       )}
 
-      {/* ===== Fabric type rows (stock list + production list) ===== */}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("stockin.stockFabricType") + " *"}>
-          {/* fabricNames() normalises both v4 ({name,cost}) and legacy
-              (string) entries to a string array suitable for <Select>. */}
-          <Select
-            value={r.stockFabricType}
-            options={fabricNames(lists)}
-            onChange={(v) => set("stockFabricType", v)}
-          />
-        </Field>
-        <Field label={t("stockin.fabricType")}>
-          <Select
-            value={r.fabricType}
-            options={lists.fabricType}
-            onChange={(v) => set("fabricType", v)}
-          />
-        </Field>
-      </div>
+      {/* ===== Stock fabric type (production fabric type removed) ===== */}
+      <Field label={t("stockin.stockFabricType") + " *"}>
+        {/* fabricNames() normalises both v4 ({name,cost}) and legacy
+            (string) entries to a string array suitable for <Select>. */}
+        <Select
+          value={r.stockFabricType}
+          options={fabricNames(lists)}
+          onChange={(v) => set("stockFabricType", v)}
+        />
+      </Field>
 
       {/* Lot/batch field removed in v3 — operators didn't use it and it
           confused the layout. Field still exists on the type for back-compat
@@ -21182,17 +21446,105 @@ function StockInForm({
           className="w-full p-2.5 border border-slate-300 rounded-lg"
         />
       </Field>
-      <FormFooter onCancel={onCancel} onSave={save} />
+      {/* Multi-mode save footer. Three actions:
+            - Cancel
+            - Save & add another (retains fabric type for rapid entry)
+            - Save & sell (opens sale form pre-filled with this design)
+            - Save (default; closes modal)
+          Each button sets `saveMode` right before triggering save(), so
+          the parent can route the after-save action correctly. */}
+      <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 flex-wrap">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium"
+        >
+          {t("common.cancel")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSaveMode("another");
+            setTimeout(save, 0);
+          }}
+          className="px-3 py-1.5 border border-sky-600 text-sky-700 hover:bg-sky-50 rounded-lg text-sm font-medium"
+          title={t("stockin.save.another.hint")}
+        >
+          + {t("stockin.save.another")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSaveMode("sell");
+            setTimeout(save, 0);
+          }}
+          className="px-3 py-1.5 border border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg text-sm font-medium"
+          title={t("stockin.save.sell.hint")}
+        >
+          ↦ {t("stockin.save.sell")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSaveMode("close");
+            setTimeout(save, 0);
+          }}
+          className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-medium"
+        >
+          {t("common.save")}
+        </button>
+      </div>
     </form>
   );
 }
 
 // ============== STORE STOCK (current inventory) ==============
 function StoreStockView({ ctx }: CtxProps) {
-  const { storeStockIn, storeSales, designs, lists } = ctx;
+  const {
+    storeStockIn,
+    storeSales,
+    designs,
+    lists,
+    user,
+    saveStoreStockIn,
+    saveStoreSale,
+  } = ctx;
   const t = useT();
   const [exporting, setExporting] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const canEdit =
+    user.role === "admin" ||
+    (user.role === "dept_admin" && user.departmentId === "store");
+  // Edit-target for the correction modal. When a row is being edited we
+  // stash the row + per-length draft state. The modal supports two modes:
+  //   - rolls mode (row.rollsByLength has entries): edit each length's
+  //     roll count independently; delta per length becomes a correction
+  //     stock-in/out roll line
+  //   - meters mode (fallback): single "new on-hand" number
+  // rollDrafts key = length as string (JSON-safe); value = new roll count
+  // as string (raw input, parsed on apply).
+  const [correcting, setCorrecting] = useState<{
+    row: any;
+    currentOnHand: number;
+    newOnHand: string;
+    reason: string;
+    // Present only when the row has roll-length data. When present, the
+    // modal shows the per-length editor; when null/empty, the meters
+    // editor is shown.
+    rollDrafts: Record<string, string> | null;
+    // Loose-meters draft. Always present (even when 0) so the operator
+    // can add loose to a row that had none — e.g. flagging a bulk piece
+    // that was physically found in the warehouse but not previously
+    // recorded. Parsed on apply; a delta becomes a correction stock-in
+    // (positive) or a correction sale (negative) with a length=0
+    // roll-line entry (the "loose" sentinel).
+    looseDraft: string;
+    // Pre-resolved design image URL for design rows; null for non-design
+    // rows (color / remainder / mix). The correction form renders it big
+    // at the top of the modal so operators can visually confirm they're
+    // editing the right row.
+    imageSrc?: string | null;
+  } | null>(null);
 
   // Look up designs by id for fast joins from stock-in/sale records.
   const designById = useMemo(() => {
@@ -21236,6 +21588,12 @@ function StoreStockView({ ctx }: CtxProps) {
       // design never came in as won't appear. A length that's gone to zero
       // stays in the map (as 0) so it's clear "we had some, none left".
       rollsByLength: Record<number, number>;
+      // Loose-meter contribution: extraMeters from rolls-unit stock-ins
+      // plus qty from meters-unit stock-ins, minus loose meters sold
+      // (sale rollLines with length=0). Displayed alongside the rolls
+      // in the "On hand" column so the operator can see when part of
+      // the stock is a bulk piece rather than rolls.
+      looseMeters: number;
     };
     const m: Record<string, Row> = {};
 
@@ -21284,6 +21642,7 @@ function StoreStockView({ ctx }: CtxProps) {
           outQty: 0,
           outRevenue: 0,
           rollsByLength: {},
+          looseMeters: 0,
         };
       } else if (kind === "color" && r.colorName) {
         // Update colorName if we found a newer non-empty value.
@@ -21303,21 +21662,63 @@ function StoreStockView({ ctx }: CtxProps) {
       for (const ln of lines) {
         const len = Number(ln.length) || 0;
         const qty = Number(ln.qty) || 0;
-        if (len <= 0 || qty <= 0) continue;
-        row.rollsByLength[len] = (row.rollsByLength[len] || 0) + sign * qty;
+        if (qty <= 0) continue;
+        if (len === 0) {
+          // Loose-meters line: qty is meters, not a roll count.
+          row.looseMeters += sign * qty;
+        } else if (len > 0) {
+          row.rollsByLength[len] = (row.rollsByLength[len] || 0) + sign * qty;
+        }
       }
+    }
+
+    // Helper: compute the meter contribution of a stock-in record from
+    // its authoritative sub-fields, NOT from r.qty. The stored qty field
+    // is intended to mirror this value at save time, but older records
+    // are inconsistent (some carry an inflated qty that doesn't match
+    // their rollLines / extraMeters). Recomputing here keeps on-hand
+    // and the visible rolls breakdown in sync, and self-corrects
+    // legacy data.
+    function stockInMeters(r: any): number {
+      // unit=rolls  → Σ(rollLines) + extraMeters
+      // unit=meters → qty (loose meters mode, no roll data)
+      // legacy     → prefer rollLines+extraMeters if any lines exist,
+      //              otherwise fall back to qty
+      const lineSum = (r.rollLines || []).reduce(
+        (s: number, ln: any) =>
+          s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+        0,
+      );
+      const extra = Number(r.extraMeters) || 0;
+      const linesPlusExtra = lineSum + extra;
+      if (r.unit === "rolls") return linesPlusExtra;
+      if (r.unit === "meters") return Number(r.qty) || 0;
+      // Legacy: if there are lines, trust them; otherwise use qty.
+      return linesPlusExtra > 0 ? linesPlusExtra : Number(r.qty) || 0;
     }
 
     for (const r of storeStockIn) {
       const { key, kind } = keyFor(r);
       const row = ensure(r, kind, key);
-      row.inQty += Number(r.qty) || 0;
+      const meters = stockInMeters(r);
+      row.inQty += meters;
+      // Track loose meters separately from roll totals so the display
+      // can show "99 rolls × 30m + 360m loose" honestly. If a record
+      // has extraMeters, that's the loose portion; the roll portion
+      // is Σ(rollLines).
+      row.looseMeters += Number(r.extraMeters) || 0;
+      // Non-roll stock-ins (unit=meters) contribute their whole qty as
+      // loose. Otherwise the rolls-vs-meters reconciliation would show
+      // the whole thing as "unaccounted".
+      if (r.unit === "meters") {
+        row.looseMeters += Number(r.qty) || 0;
+      }
       const cpm = getFabricCost(
         r.stockFabricType,
         lists,
         Number(r.costPerMeter ?? r.costPrice) || 0,
       );
-      row.inCost += (Number(r.qty) || 0) * cpm;
+      row.inCost += meters * cpm;
       applyRollLines(row, r.rollLines, 1);
     }
     // ===== Apply sales =====
@@ -21349,6 +21750,18 @@ function StoreStockView({ ctx }: CtxProps) {
         // Per-line: build a synthetic record for each line so keyFor()
         // sees the right variant. fabricType per line wins; fall back to
         // the sale's stockFabricType.
+        //
+        // Meter accumulation: attribute the line's own meters (length ×
+        // qty for rolls, qty for loose) to the LINE's group directly.
+        // Do NOT fall back to `s.qty` for outQty here — some historical
+        // records have stale/missing qty values which caused on-hand
+        // meters to stop decrementing after a sale. Deriving per-line
+        // is authoritative.
+        //
+        // Revenue is trickier — the sale carries ONE totalAmount, not a
+        // per-line breakdown. We still attribute revenue to the first
+        // line's group. Same trade-off as before, called out to keep
+        // that behavior obvious.
         for (const ln of lines) {
           const synthetic = {
             fabricState: ln.designId
@@ -21368,10 +21781,16 @@ function StoreStockView({ ctx }: CtxProps) {
           const qtyN = Number(ln.qty) || 0;
           if (lenN > 0 && qtyN > 0) {
             row.rollsByLength[lenN] = (row.rollsByLength[lenN] || 0) - qtyN;
+            row.outQty += lenN * qtyN;
+          } else if (lenN === 0 && qtyN > 0) {
+            // Loose-meter sale line: qty is meters, not a roll count.
+            row.looseMeters -= qtyN;
+            row.outQty += qtyN;
           }
         }
-        // Aggregate outQty + outRevenue against the first line's group
-        // (best we can do without splitting the sale's monetary totals).
+        // Revenue attribution: first line's group gets the whole sale's
+        // revenue (best we can do without splitting the sale's monetary
+        // totals per line).
         const firstLine = lines[0];
         if (firstLine) {
           const synthetic = {
@@ -21384,16 +21803,28 @@ function StoreStockView({ ctx }: CtxProps) {
           };
           const { key, kind } = keyFor(synthetic);
           const row = ensure(synthetic, kind, key);
-          row.outQty += Number(s.qty) || 0;
           row.outRevenue += Number(s.totalAmount) || 0;
         }
       } else {
-        // Legacy: single-variant sale. Sub-tract the whole sale into one group.
+        // Legacy: single-variant sale. Sub-tract the whole sale into one
+        // group. Prefer the derived-from-rollLines meters over s.qty for
+        // the same reason as the per-line branch: stored qty is
+        // occasionally stale on old records. Only fall back to s.qty
+        // when there are no rollLines to derive from.
         const { key, kind } = keyFor(s as any);
         const row = ensure(s, kind, key);
-        row.outQty += Number(s.qty) || 0;
+        const legacyLines = (s as any).rollLines || [];
+        let legacyMeters = 0;
+        for (const ln of legacyLines) {
+          const lenN = Number(ln.length) || 0;
+          const qtyN = Number(ln.qty) || 0;
+          if (qtyN <= 0) continue;
+          if (lenN === 0) legacyMeters += qtyN;
+          else if (lenN > 0) legacyMeters += lenN * qtyN;
+        }
+        row.outQty += legacyMeters > 0 ? legacyMeters : Number(s.qty) || 0;
         row.outRevenue += Number(s.totalAmount) || 0;
-        applyRollLines(row, (s as any).rollLines, -1);
+        applyRollLines(row, legacyLines, -1);
       }
     }
 
@@ -21431,7 +21862,38 @@ function StoreStockView({ ctx }: CtxProps) {
   // label so design rows, color rows, and remainder rows interleave
   // alphabetically — same as visual order.
   const [sort, setSort] = useState<SortSpec>({ key: "onHand", dir: "desc" });
-  const sortedRows = useSortableRows(stockByDesign, sort, {
+  const [search, setSearch] = useState("");
+  // Filter first, then sort. Search matches on:
+  //   design number, design name, color name, hex, fabric type, and
+  //   any roll length ("30m", "50m") so operators can find a row by
+  //   the specific length they're looking for.
+  // Empty search short-circuits so we don't build a haystack per row
+  // when there's nothing to match.
+  const filteredRows = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return stockByDesign;
+    return stockByDesign.filter((r: any) => {
+      const rollLengths = Object.entries(r.rollsByLength || {})
+        .filter(([, q]) => Number(q) > 0)
+        .map(([len]) => `${len}m`)
+        .join(" ");
+      const hay = [
+        r.designNumber,
+        r.designName,
+        r.colorName,
+        r.hexColor,
+        r.fabricType,
+        r.unit, // "rolls" / "meters" — supports operator search by unit
+        r.kind === "remainder" ? "remainder" : "",
+        rollLengths,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(term);
+    });
+  }, [stockByDesign, search]);
+  const sortedRows = useSortableRows(filteredRows, sort, {
     designLabel: (r: any) =>
       r.kind === "design"
         ? r.designNumber || ""
@@ -21901,7 +22363,23 @@ function StoreStockView({ ctx }: CtxProps) {
         />
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Search on the left, actions on the right. Same shape as the
+            stock-in / sales pages so operators get consistent muscle
+            memory. Matches design number, color, hex, fabric, and any
+            roll length. */}
+        <div className="relative flex-1 min-w-[220px]">
+          <Search
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            size={14}
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("stock.search")}
+            className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm bg-white"
+          />
+        </div>
         <button
           onClick={printBarcodes}
           disabled={printing || !stockByDesign.length}
@@ -22001,6 +22479,11 @@ function StoreStockView({ ctx }: CtxProps) {
                 className="text-right"
               />
               <th className="text-left p-3 font-medium">{t("stock.col.status")}</th>
+              {canEdit && (
+                <th className="text-left p-3 font-medium w-16">
+                  {t("stock.col.actions")}
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -22015,6 +22498,11 @@ function StoreStockView({ ctx }: CtxProps) {
                 .sort((a, b) => a.len - b.len)
                 .map((x) => `${x.len}m × ${x.qty}`)
                 .join(", ");
+              // Loose meters: bulk piece alongside the rolls (unit=meters
+              // stock-ins or rolls-unit stock-ins with an extraMeters
+              // remnant). Displayed as a separate line so operators can
+              // see when part of the on-hand isn't in rolls.
+              const looseM = Math.round(r.looseMeters || 0);
               return (
                 <tr
                   key={r.key}
@@ -22079,8 +22567,15 @@ function StoreStockView({ ctx }: CtxProps) {
                   </td>
                   <td className="p-3 text-slate-600">{r.unit}</td>
                   <td className="p-3 text-xs text-slate-600">
-                    {rollSummary || (
-                      <span className="text-slate-400 italic">—</span>
+                    <div>
+                      {rollSummary || (
+                        <span className="text-slate-400 italic">—</span>
+                      )}
+                    </div>
+                    {looseM !== 0 && (
+                      <div className="text-[10px] text-amber-700 mt-0.5">
+                        + {looseM.toLocaleString()}m {t("stock.loose")}
+                      </div>
                     )}
                   </td>
                   <td className="p-3 text-right">{fmtMoney(r.inQty)}</td>
@@ -22111,20 +22606,599 @@ function StoreStockView({ ctx }: CtxProps) {
                       </span>
                     )}
                   </td>
+                  {canEdit && (
+                    <td className="p-3">
+                      <button
+                        onClick={() => {
+                          // Roll mode iff the row has any current
+                          // per-length roll data. Initialize each length's
+                          // draft to the current count so operator only
+                          // needs to change the ones that are wrong.
+                          const lengths = Object.entries(r.rollsByLength || {})
+                            .filter(([, q]) => Number(q) > 0)
+                            .map(([len, q]) => [len, String(q)] as [string, string]);
+                          const rollDrafts = lengths.length
+                            ? Object.fromEntries(lengths)
+                            : null;
+                          // Pre-resolve the design image URL so the
+                          // CorrectionForm can render it without needing
+                          // access to designs / resolveDesignImage. Null
+                          // for non-design rows; a swatch/badge is shown
+                          // instead in that case.
+                          const design =
+                            r.kind === "design" && r.designId
+                              ? designById[r.designId]
+                              : null;
+                          const imageSrc = design
+                            ? resolveDesignImage(design)
+                            : null;
+                          setCorrecting({
+                            row: r,
+                            currentOnHand: r.onHand,
+                            newOnHand: String(r.onHand),
+                            reason: "",
+                            rollDrafts,
+                            // Loose-meters draft: the row's current loose
+                            // portion (extraMeters that came in with roll
+                            // stock-ins, or the whole qty for meter-unit
+                            // stock-ins). Only meaningful when > 0; the
+                            // form still shows the field so the operator
+                            // can ADD loose to a row that had none.
+                            looseDraft: String(Math.round(r.looseMeters || 0)),
+                            imageSrc,
+                          });
+                        }}
+                        className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 p-1.5 rounded"
+                        title={t("stock.correct.title")}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
-            {!stockByDesign.length && (
+            {!sortedRows.length && (
               <tr>
-                <td colSpan={11} className="p-8 text-center text-slate-400">
-                  {t("stock.empty")}
+                <td colSpan={canEdit ? 12 : 11} className="p-8 text-center text-slate-400">
+                  {stockByDesign.length === 0
+                    ? t("stock.empty")
+                    : t("stock.searchEmpty")}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+      {/* ===== Correction modal =====
+          Operator adjusts on-hand to the actual physical count. The delta
+          (newOnHand − currentOnHand) becomes:
+            - a correction stock-in (delta > 0) at today's date
+            - a correction sale (delta < 0) at today's date
+          Both are tagged with correction=true so accounting can filter
+          them out of regular flow if needed. Product identity (design,
+          fabric type, hex color / color name) is copied from the edited
+          row so the correction is attributed correctly. */}
+      {correcting && (
+        <Modal
+          title={t("stock.correct.title")}
+          onClose={() => setCorrecting(null)}
+          dismissible={false}
+          closeOnEsc
+        >
+          <CorrectionForm
+            correcting={correcting}
+            setCorrecting={setCorrecting}
+            onApply={async () => {
+              const row = correcting.row;
+              const noteBase = correcting.reason
+                ? `${t("stock.correct.recordNote")}: ${correcting.reason}`
+                : t("stock.correct.recordNote");
+
+              // ===== Rolls mode: per-length deltas =====
+              // Walk each length in rollDrafts, compute delta = new - current.
+              // Aggregate positive deltas into one correction stock-in and
+              // negative deltas into one correction sale, both with their
+              // own rollLines[] carrying the specific (length, qty) diffs.
+              if (correcting.rollDrafts) {
+                const positive: { length: number; qty: number }[] = [];
+                const negative: { length: number; qty: number }[] = [];
+                for (const [lenStr, newStr] of Object.entries(
+                  correcting.rollDrafts,
+                )) {
+                  const len = Number(lenStr);
+                  const newQty = Number(newStr);
+                  if (!Number.isFinite(newQty) || newQty < 0) continue;
+                  const cur = Number(row.rollsByLength[len] || 0);
+                  const delta = newQty - cur;
+                  if (delta > 0) positive.push({ length: len, qty: delta });
+                  else if (delta < 0)
+                    negative.push({ length: len, qty: -delta });
+                }
+                // Loose delta is handled separately as extraMeters on the
+                // stock-in (or a length=0 sale line on the sale). The
+                // on-hand math treats these authoritatively — extraMeters
+                // for stock-ins, sale rollLines with length=0 for sales
+                // — matching the existing loose-meters flow used by the
+                // sale picker.
+                let looseIn = 0;
+                let looseOut = 0;
+                const newLoose = Number(correcting.looseDraft);
+                if (Number.isFinite(newLoose) && newLoose >= 0) {
+                  const curLoose = Number(row.looseMeters || 0);
+                  const looseDelta = newLoose - curLoose;
+                  if (looseDelta > 0.0001) looseIn = looseDelta;
+                  else if (looseDelta < -0.0001) looseOut = -looseDelta;
+                }
+                if (
+                  !positive.length &&
+                  !negative.length &&
+                  !looseIn &&
+                  !looseOut
+                ) {
+                  setCorrecting(null);
+                  return;
+                }
+                const commonVariant = {
+                  fabricState:
+                    row.kind === "color" ? "dyed" : "printed",
+                  // Preserve mix marker if the row was aggregated from
+                  // mixed-design stock-ins. row.kind === "fabric" means
+                  // the group has no specific designId; if the original
+                  // record was a mix stock-in we still surface as "mix"
+                  // so ledger reports keep the shape. We can't easily
+                  // detect this without walking source records, so
+                  // conservatively use "mix" only when kind=fabric
+                  // (there's no other reasonable value).
+                  designId:
+                    row.kind === "design" || row.kind === "remainder"
+                      ? row.designId
+                      : row.kind === "fabric"
+                        ? "mix"
+                        : undefined,
+                  hexColor: row.kind === "color" ? row.hexColor : undefined,
+                  colorName: row.kind === "color" ? row.colorName : undefined,
+                  fabricType: row.fabricType || "",
+                  stockFabricType: row.fabricType || "",
+                };
+                if (positive.length || looseIn > 0) {
+                  const rollMeters = positive.reduce(
+                    (s, p) => s + p.length * p.qty,
+                    0,
+                  );
+                  const totalMeters = rollMeters + looseIn;
+                  const stockIn: StoreStockIn = {
+                    id: uid(),
+                    date: todayISO(),
+                    source: t("stock.correct.source"),
+                    ...commonVariant,
+                    qty: totalMeters,
+                    unit: "rolls",
+                    rollLines: positive,
+                    extraMeters: looseIn,
+                    costPerMeter: 0,
+                    costPrice: 0,
+                    notes: noteBase,
+                    correction: true,
+                  } as any;
+                  await saveStoreStockIn(stockIn);
+                }
+                if (negative.length || looseOut > 0) {
+                  const rollMeters = negative.reduce(
+                    (s, p) => s + p.length * p.qty,
+                    0,
+                  );
+                  const totalMeters = rollMeters + looseOut;
+                  // Sale rollLines carry both the roll deductions and a
+                  // length=0 sentinel for the loose deduction. That's the
+                  // convention already used by the sale picker; the
+                  // on-hand math subtracts loose meters when it sees a
+                  // length=0 line.
+                  const saleLines = [...negative];
+                  if (looseOut > 0) {
+                    saleLines.push({ length: 0, qty: looseOut });
+                  }
+                  const sale: StoreSale = {
+                    id: uid(),
+                    date: todayISO(),
+                    customerId: "",
+                    invoiceNumber: `CORR-${monthCode()}${String(storeSales.length + 1).padStart(4, "0")}`,
+                    ...commonVariant,
+                    qty: totalMeters,
+                    unit: "rolls",
+                    unitPrice: 0,
+                    totalAmount: 0,
+                    paidAmount: 0,
+                    paymentMethod: "",
+                    notes: noteBase,
+                    rollLines: saleLines,
+                    correction: true,
+                  } as any;
+                  await saveStoreSale(sale);
+                }
+                setCorrecting(null);
+                return;
+              }
+
+              // ===== Meters mode: single-number delta =====
+              const newVal = Number(correcting.newOnHand);
+              if (!Number.isFinite(newVal)) {
+                alert(t("stock.correct.hint.invalid"));
+                return;
+              }
+              const delta = newVal - correcting.currentOnHand;
+              if (delta === 0) {
+                setCorrecting(null);
+                return;
+              }
+              if (delta > 0) {
+                const stockIn: StoreStockIn = {
+                  id: uid(),
+                  date: todayISO(),
+                  source: t("stock.correct.source"),
+                  fabricState:
+                    row.kind === "color" ? "dyed" : "printed",
+                  designId:
+                    row.kind === "design" || row.kind === "remainder"
+                      ? row.designId
+                      : row.kind === "fabric"
+                        ? "mix"
+                        : undefined,
+                  hexColor: row.kind === "color" ? row.hexColor : undefined,
+                  colorName: row.kind === "color" ? row.colorName : undefined,
+                  fabricType: row.fabricType || "",
+                  stockFabricType: row.fabricType || "",
+                  qty: Math.abs(delta),
+                  unit: "meters",
+                  rollLines: [],
+                  extraMeters: Math.abs(delta),
+                  costPerMeter: 0,
+                  costPrice: 0,
+                  notes: noteBase,
+                  correction: true,
+                } as any;
+                await saveStoreStockIn(stockIn);
+              } else {
+                const sale: StoreSale = {
+                  id: uid(),
+                  date: todayISO(),
+                  customerId: "",
+                  invoiceNumber: `CORR-${monthCode()}${String(storeSales.length + 1).padStart(4, "0")}`,
+                  fabricState:
+                    row.kind === "color" ? "dyed" : "printed",
+                  designId:
+                    row.kind === "design" || row.kind === "remainder"
+                      ? row.designId
+                      : row.kind === "fabric"
+                        ? "mix"
+                        : undefined,
+                  hexColor: row.kind === "color" ? row.hexColor : undefined,
+                  colorName: row.kind === "color" ? row.colorName : undefined,
+                  stockFabricType: row.fabricType || "",
+                  fabricType: row.fabricType || "",
+                  qty: Math.abs(delta),
+                  unit: "meters",
+                  unitPrice: 0,
+                  totalAmount: 0,
+                  paidAmount: 0,
+                  paymentMethod: "",
+                  notes: noteBase,
+                  rollLines: [],
+                  correction: true,
+                } as any;
+                await saveStoreSale(sale);
+              }
+              setCorrecting(null);
+            }}
+          />
+        </Modal>
+      )}
     </div>
+  );
+}
+
+// ===== Correction form component (extracted so we can autofocus + submit-on-Enter) =====
+//
+// Rendered inside the on-hand correction Modal. Kept out of StoreStockView's
+// main body to keep hooks clean (autofocus needs a mount effect that isn't
+// contingent on the modal-open flag flipping).
+function CorrectionForm({
+  correcting,
+  setCorrecting,
+  onApply,
+}: {
+  correcting: any;
+  setCorrecting: (c: any) => void;
+  onApply: () => void | Promise<void>;
+}) {
+  const t = useT();
+  const firstInputRef = useRef<HTMLInputElement | null>(null);
+  // Autofocus the first meaningful input on mount. In rolls mode that's
+  // the first length's roll-count input; in meters mode it's the newOnHand
+  // input. Both cases go through the same ref.
+  useEffect(() => {
+    if (firstInputRef.current) {
+      firstInputRef.current.focus();
+      // Select the value so operator can type-over immediately without
+      // having to select-all first.
+      firstInputRef.current.select();
+    }
+  }, []);
+  // Enter to submit — attach at the form level so any input's Enter fires.
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onApply();
+  }
+
+  const row = correcting.row;
+  // Mix label rule: any row that isn't a design/color/remainder — i.e.
+  // kind=fabric or kind=mix — surfaces as "Mix" instead of "—" so the
+  // operator has a meaningful label. Requested by operators who kept
+  // seeing "—" and couldn't tell what row they were editing.
+  const productLabel =
+    row.kind === "design"
+      ? row.designNumber || t("stockin.design.mix")
+      : row.kind === "color"
+        ? row.colorName || row.hexColor
+        : row.kind === "remainder"
+          ? t("stockin.design.remainder")
+          : t("stockin.design.mix");
+
+  const isRolls = !!correcting.rollDrafts;
+
+  // For rolls mode, compute the meters delta live from all length drafts
+  // plus the loose-meters draft so we can show a "will produce +X m / -Y m"
+  // hint underneath. Rolls contribute length × Δrolls; loose contributes
+  // Δmeters directly.
+  let rollDeltaMeters = 0;
+  let rollDeltaHint = "";
+  if (isRolls) {
+    for (const [lenStr, newStr] of Object.entries(
+      correcting.rollDrafts as Record<string, string>,
+    )) {
+      const len = Number(lenStr);
+      const newQty = Number(newStr);
+      if (!Number.isFinite(newQty)) continue;
+      const cur = Number(row.rollsByLength[len] || 0);
+      rollDeltaMeters += len * (newQty - cur);
+    }
+    const newLoose = Number(correcting.looseDraft);
+    if (Number.isFinite(newLoose)) {
+      rollDeltaMeters += newLoose - Number(row.looseMeters || 0);
+    }
+    if (rollDeltaMeters > 0) {
+      rollDeltaHint = `+${rollDeltaMeters.toFixed(0)} m — ${t("stock.correct.hint.stockIn")}`;
+    } else if (rollDeltaMeters < 0) {
+      rollDeltaHint = `${rollDeltaMeters.toFixed(0)} m — ${t("stock.correct.hint.stockOut")}`;
+    } else {
+      rollDeltaHint = t("stock.correct.hint.noChange");
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      {/* Big product preview at the top of the modal. Shows:
+            - design photo for kind=design (uses pre-resolved imageSrc)
+            - color swatch for kind=color
+            - remainder/mix badge for the sentinel kinds
+          Height is bounded so the modal doesn't get pushed off-screen
+          when opened on a small viewport. object-contain preserves the
+          design's aspect ratio; the muted slate background frames it
+          consistently for tall vs wide designs. */}
+      <div className="flex items-center justify-center bg-slate-50 rounded-lg p-3">
+        {row.kind === "design" && correcting.imageSrc ? (
+          <img
+            src={correcting.imageSrc}
+            alt={productLabel}
+            className="max-h-48 w-auto object-contain rounded"
+          />
+        ) : row.kind === "color" && row.hexColor ? (
+          <div
+            className="w-full h-40 rounded border border-slate-200"
+            style={{ backgroundColor: row.hexColor }}
+            title={row.colorName || row.hexColor}
+          />
+        ) : row.kind === "remainder" ? (
+          <div className="w-full h-40 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-5xl">
+            ♻
+          </div>
+        ) : (
+          <div className="w-full h-40 rounded bg-gradient-to-br from-purple-100 to-fuchsia-100 flex items-center justify-center text-2xl font-bold text-purple-600">
+            MIX
+          </div>
+        )}
+      </div>
+      <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700 space-y-1">
+        <div>
+          <span className="text-slate-500">{t("stock.correct.product")}:</span>{" "}
+          <span className="font-semibold">{productLabel}</span>
+        </div>
+        <div>
+          <span className="text-slate-500">{t("stock.correct.fabric")}:</span>{" "}
+          <span className="font-semibold">
+            {row.fabricType || "—"}
+          </span>
+        </div>
+        <div>
+          <span className="text-slate-500">{t("stock.correct.currentOnHand")}:</span>{" "}
+          <span className="font-semibold tabular-nums">
+            {Math.round(correcting.currentOnHand).toLocaleString()} m
+          </span>
+        </div>
+      </div>
+
+      {isRolls ? (
+        // ===== Rolls mode: per-length editor =====
+        <div className="space-y-2">
+          <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+            {t("stock.correct.rollsPerLength")}
+          </div>
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="text-left p-2 font-medium">
+                    {t("stock.correct.length")}
+                  </th>
+                  <th className="text-right p-2 font-medium">
+                    {t("stock.correct.currentRolls")}
+                  </th>
+                  <th className="text-right p-2 font-medium">
+                    {t("stock.correct.newRolls")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(correcting.rollDrafts).map(
+                  ([lenStr, newStr], idx) => {
+                    const len = Number(lenStr);
+                    const currentQty = Number(row.rollsByLength[len] || 0);
+                    return (
+                      <tr
+                        key={lenStr}
+                        className="border-t border-slate-100"
+                      >
+                        <td className="p-2 font-mono text-slate-700">
+                          {len}m
+                        </td>
+                        <td className="p-2 text-right tabular-nums text-slate-500">
+                          {currentQty}
+                        </td>
+                        <td className="p-2 text-right">
+                          <input
+                            ref={idx === 0 ? firstInputRef : undefined}
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={newStr as string}
+                            onChange={(e) =>
+                              setCorrecting((c: any) =>
+                                c
+                                  ? {
+                                      ...c,
+                                      rollDrafts: {
+                                        ...c.rollDrafts,
+                                        [lenStr]: e.target.value,
+                                      },
+                                    }
+                                  : c,
+                              )
+                            }
+                            className="w-20 p-1.5 border border-slate-300 rounded text-right"
+                          />
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Loose meters — bulk piece alongside the rolls. Editable
+              even when currently zero so operators can add a loose
+              portion (e.g. a freshly-found remnant). Delta becomes an
+              extraMeters correction on the stock-in / a length=0 sale
+              line on the correction sale. */}
+          <div className="flex items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+            <div className="text-xs">
+              <div className="uppercase tracking-wide text-amber-800 font-medium">
+                {t("stock.correct.looseMeters")}
+              </div>
+              <div className="text-amber-700">
+                {t("stock.correct.currentOnHand")}:{" "}
+                <span className="tabular-nums font-semibold">
+                  {Math.round(row.looseMeters || 0)}m
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={correcting.looseDraft}
+                onChange={(e) =>
+                  setCorrecting((c: any) =>
+                    c ? { ...c, looseDraft: e.target.value } : c,
+                  )
+                }
+                className="w-24 p-1.5 border border-amber-300 rounded text-right"
+              />
+              <span className="text-xs text-amber-700">m</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // ===== Meters mode =====
+        <Field label={t("stock.correct.newOnHand")}>
+          <input
+            ref={firstInputRef}
+            type="number"
+            step="0.01"
+            value={correcting.newOnHand}
+            onChange={(e) =>
+              setCorrecting((c: any) =>
+                c ? { ...c, newOnHand: e.target.value } : c,
+              )
+            }
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+      )}
+
+      <Field label={t("stock.correct.reason")}>
+        <input
+          value={correcting.reason}
+          onChange={(e) =>
+            setCorrecting((c: any) =>
+              c ? { ...c, reason: e.target.value } : c,
+            )
+          }
+          placeholder={t("stock.correct.reason.placeholder")}
+          className="w-full p-2.5 border border-slate-300 rounded-lg"
+        />
+      </Field>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900">
+        {isRolls
+          ? rollDeltaHint
+          : (() => {
+              const newVal = Number(correcting.newOnHand);
+              if (!Number.isFinite(newVal))
+                return t("stock.correct.hint.invalid");
+              const delta = newVal - correcting.currentOnHand;
+              if (delta === 0) return t("stock.correct.hint.noChange");
+              if (delta > 0) {
+                return (
+                  <>
+                    <strong>+{delta.toFixed(1)} m</strong> —{" "}
+                    {t("stock.correct.hint.stockIn")}
+                  </>
+                );
+              }
+              return (
+                <>
+                  <strong>{delta.toFixed(1)} m</strong> —{" "}
+                  {t("stock.correct.hint.stockOut")}
+                </>
+              );
+            })()}
+      </div>
+      <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => setCorrecting(null)}
+          className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium"
+        >
+          {t("common.cancel")}
+        </button>
+        <button
+          type="submit"
+          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium"
+        >
+          {t("stock.correct.apply")}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -22135,6 +23209,7 @@ function StoreSalesView({ ctx }: CtxProps) {
     customers,
     lists,
     user,
+    designs,
     saveStoreSale,
     deleteStoreSale,
     askConfirm,
@@ -22145,6 +23220,11 @@ function StoreSalesView({ ctx }: CtxProps) {
     (user.role === "dept_admin" && user.departmentId === "store");
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
+  // Date range — matches the stock-in view for consistency. Applied
+  // BEFORE search filter for cheapness; export uses the same filtered
+  // rows so what you see is what you get.
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -22158,18 +23238,21 @@ function StoreSalesView({ ctx }: CtxProps) {
           customerType: c?.type || "",
         };
       })
-      .filter(
-        (s) =>
-          !term ||
+      .filter((s) => {
+        if (dateFrom && (!s.date || s.date < dateFrom)) return false;
+        if (dateTo && (!s.date || s.date > dateTo)) return false;
+        if (!term) return true;
+        return (
           s.customerName.toLowerCase().includes(term) ||
           s.customerCode.toLowerCase().includes(term) ||
           s.customerType.toLowerCase().includes(term) ||
           s.fabricType?.toLowerCase().includes(term) ||
           s.stockFabricType?.toLowerCase().includes(term) ||
-          s.invoiceNumber?.toLowerCase().includes(term),
-      )
+          s.invoiceNumber?.toLowerCase().includes(term)
+        );
+      })
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  }, [storeSales, customers, search]);
+  }, [storeSales, customers, search, dateFrom, dateTo]);
 
   function newSale() {
     setEditing({
@@ -22188,6 +23271,659 @@ function StoreSalesView({ ctx }: CtxProps) {
     });
   }
 
+  // ===== "Sell immediately after stock in" bridge =====
+  //
+  // The Stock In modal can save with mode="sell", which drops a small
+  // seed object into sessionStorage and navigates here. We consume the
+  // seed once on mount and open the sale modal pre-filled with the
+  // matching (designId, fabric type, fabric state). Session storage is
+  // cleared after consumption so a page refresh doesn't re-trigger.
+  useEffect(() => {
+    const raw = sessionStorage.getItem("pendingSaleSeed");
+    if (!raw) return;
+    sessionStorage.removeItem("pendingSaleSeed");
+    try {
+      const seed = JSON.parse(raw);
+      setEditing({
+        id: uid(),
+        date: todayISO(),
+        customerId: "",
+        invoiceNumber: `INV-${monthCode()}${String(storeSales.length + 1).padStart(4, "0")}`,
+        stockFabricType: seed.stockFabricType || "",
+        fabricType: seed.stockFabricType || "",
+        fabricState: seed.fabricState || "printed",
+        designId: seed.designId,
+        hexColor: seed.hexColor,
+        colorName: seed.colorName,
+        qty: "",
+        unit: "meters",
+        unitPrice: "",
+        totalAmount: 0,
+        paidAmount: "",
+        paymentMethod: "Cash",
+        notes: `From stock-in ${seed.fromStockInId || ""}`,
+        rollLines: [],
+      } as any);
+    } catch (e) {
+      console.warn("pendingSaleSeed parse failed:", e);
+    }
+    // Only run once per mount — subsequent state changes shouldn't
+    // re-check. Deliberately empty deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ===== Sales export — one sheet per customer, one row per design =====
+  //
+  // Prior export was a flat CSV, which mixed all customers together and
+  // hid the multi-design nature of sales (v5 sales can carry multiple
+  // rollLines each with its own designId). Operators wanted per-customer
+  // sheets with design images, matching the visual language of the
+  // stock-in export.
+  //
+  // Per-design row logic: each roll-line becomes one entry keyed by
+  // (design, fabricType). Aggregation is by design (not per-sale) so
+  // repeated sales of the same design collapse into one row.
+  async function exportSalesPerCustomerXlsx(salesRows: any[]) {
+    if (!salesRows.length) {
+      alert(t("sales.exportEmpty") || "Nothing to export");
+      return;
+    }
+    try {
+      // designById lookup for name + image resolution.
+      const designByIdLocal: Record<string, Design> = {};
+      for (const d of designs || []) designByIdLocal[d.id] = d;
+      // Group sales by customerId. Sales with a missing customer land in
+      // an "(unknown)" sheet. Corrections (on-hand edits saved as sales)
+      // are excluded — they'd pollute customer summaries with 0-amount
+      // adjustments.
+      const groups: Record<string, any[]> = {};
+      for (const s of salesRows) {
+        if ((s as any).correction) continue;
+        const key = s.customerId || "__unknown__";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+      }
+      const ExcelJSMod: any = await import("exceljs");
+      const ExcelJS = ExcelJSMod.default || ExcelJSMod;
+      const wb = new ExcelJS.Workbook();
+
+      // Excel-safe sheet-name cleaner (31 chars max, no special chars).
+      function cleanSheetName(name: string) {
+        const cleaned = (name || "sheet").replace(/[:\\/\?\*\[\]]/g, "_");
+        return cleaned.length > 31 ? cleaned.slice(0, 31) : cleaned;
+      }
+      // Image transformers — same shape as elsewhere in the app.
+      const IMG_W = 100;
+      const IMG_H = 60;
+      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+        try {
+          const blob = new Blob([buf]);
+          const url = URL.createObjectURL(blob);
+          try {
+            const img = await new Promise<HTMLImageElement>((res, rej) => {
+              const im = new Image();
+              im.onload = () => res(im);
+              im.onerror = () => rej(new Error("image load failed"));
+              im.src = url;
+            });
+            const canvas = document.createElement("canvas");
+            canvas.width = IMG_W;
+            canvas.height = IMG_H;
+            const cx = canvas.getContext("2d");
+            if (!cx) return null;
+            const scale = Math.max(IMG_W / img.width, IMG_H / img.height);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            const dx = (IMG_W - drawW) / 2;
+            const dy = (IMG_H - drawH) / 2;
+            cx.drawImage(img, dx, dy, drawW, drawH);
+            const dataUrl = canvas.toDataURL("image/png");
+            const base64 = dataUrl.split(",")[1];
+            const bin = atob(base64);
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out.buffer;
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        } catch {
+          return null;
+        }
+      }
+      async function resolveImageBuffer(src: string): Promise<ArrayBuffer | null> {
+        if (!src) return null;
+        try {
+          if (src.startsWith("data:")) {
+            const commaIdx = src.indexOf(",");
+            if (commaIdx === -1) return null;
+            const payload = src.slice(commaIdx + 1);
+            const bin = atob(payload);
+            const raw = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) raw[i] = bin.charCodeAt(i);
+            return await bufferToCovered(raw.buffer);
+          }
+          const res = await fetch(src);
+          if (!res.ok) return null;
+          const raw = await res.arrayBuffer();
+          return await bufferToCovered(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      // Sort customers by name for readable tab order.
+      const customerKeys = Object.keys(groups).sort((a, b) => {
+        const na = customers.find((c) => c.id === a)?.name || "(unknown)";
+        const nb = customers.find((c) => c.id === b)?.name || "(unknown)";
+        return na.localeCompare(nb);
+      });
+
+      for (const custKey of customerKeys) {
+        const customer = customers.find((c) => c.id === custKey);
+        const sheetName = cleanSheetName(customer?.name || custKey);
+        const ws = wb.addWorksheet(sheetName);
+
+        // Aggregate one row per (designId × fabricType). For each sale
+        // that has rollLines, walk them. For legacy sales without
+        // rollLines, one row per sale using its stockFabricType.
+        // Aggregate one row per variant × fabricType. "Variant" is the
+        // salable unit — a design (by designId), a color (by hex), or a
+        // sentinel (mix / remainder). Prior code keyed by designId only,
+        // which collapsed ALL dyed sales into an empty-id bucket and
+        // showed them under a single blank Design # cell. Now dyed rows
+        // surface with their color name.
+        type Agg = {
+          key: string;
+          kind: "design" | "color" | "mix" | "remainder" | "unknown";
+          designId?: string;
+          hexColor?: string;
+          colorName?: string;
+          // Display label for the "Design # / Color" column.
+          designNumber: string;
+          fabricType: string;
+          meters: number;
+          amount: number;
+          saleCount: number;
+        };
+        function classifyExport(ln: any, s: any, ft: string): Agg {
+          const did = ln.designId || s.designId;
+          const hex = ln.hexColor || s.hexColor;
+          const colorName = ln.colorName || s.colorName;
+          if (did === "remainder") {
+            return {
+              key: `remainder::${ft}`,
+              kind: "remainder",
+              designNumber: t("stockin.design.remainder"),
+              fabricType: ft,
+              meters: 0,
+              amount: 0,
+              saleCount: 0,
+            };
+          }
+          if (did === "mix") {
+            return {
+              key: `mix::${ft}`,
+              kind: "mix",
+              designNumber: t("stockin.design.mix"),
+              fabricType: ft,
+              meters: 0,
+              amount: 0,
+              saleCount: 0,
+            };
+          }
+          if (did && designByIdLocal[did]) {
+            return {
+              key: `d:${did}::${ft}`,
+              kind: "design",
+              designId: did,
+              designNumber:
+                designByIdLocal[did].designNumber || "—",
+              fabricType: ft,
+              meters: 0,
+              amount: 0,
+              saleCount: 0,
+            };
+          }
+          if (hex) {
+            return {
+              key: `c:${String(hex).toLowerCase()}::${ft}`,
+              kind: "color",
+              hexColor: hex,
+              colorName,
+              designNumber: colorName || String(hex).toUpperCase(),
+              fabricType: ft,
+              meters: 0,
+              amount: 0,
+              saleCount: 0,
+            };
+          }
+          return {
+            key: `unknown::${ft}`,
+            kind: "unknown",
+            designNumber: "—",
+            fabricType: ft,
+            meters: 0,
+            amount: 0,
+            saleCount: 0,
+          };
+        }
+        const aggByKey: Record<string, Agg> = {};
+        for (const s of groups[custKey]) {
+          const lines: any[] = s.rollLines || [];
+          if (lines.length) {
+            for (const ln of lines) {
+              const ft = ln.fabricType || s.stockFabricType || "—";
+              // Loose lines (length=0) contribute qty as meters; roll
+              // lines contribute length × qty. See sale picker.
+              const m =
+                Number(ln.length) === 0
+                  ? Number(ln.qty) || 0
+                  : (Number(ln.length) || 0) * (Number(ln.qty) || 0);
+              const seed = classifyExport(ln, s, ft);
+              if (!aggByKey[seed.key]) aggByKey[seed.key] = seed;
+              aggByKey[seed.key].meters += m;
+              aggByKey[seed.key].saleCount++;
+              // Recover colorName if a later line supplies it.
+              if (seed.colorName && !aggByKey[seed.key].colorName) {
+                aggByKey[seed.key].colorName = seed.colorName;
+                aggByKey[seed.key].designNumber = seed.colorName;
+              }
+            }
+            // Amount is per-sale, not per-line; add it once per sale
+            // to the FIRST line's key. This may skew the per-key amount
+            // when a single sale covers multiple variants — same trade
+            // off as the previous version.
+            const firstLine = lines[0];
+            const ft =
+              firstLine.fabricType || s.stockFabricType || "—";
+            const seed = classifyExport(firstLine, s, ft);
+            if (aggByKey[seed.key]) {
+              aggByKey[seed.key].amount +=
+                Number(s.totalAmount) || 0;
+            }
+          } else {
+            // Legacy sale, no per-line data.
+            const ft = s.stockFabricType || s.fabricType || "—";
+            const seed = classifyExport({}, s, ft);
+            if (!aggByKey[seed.key]) aggByKey[seed.key] = seed;
+            aggByKey[seed.key].meters += Number(s.qty) || 0;
+            aggByKey[seed.key].amount += Number(s.totalAmount) || 0;
+            aggByKey[seed.key].saleCount++;
+          }
+        }
+        const aggs = Object.values(aggByKey).sort((a, b) =>
+          a.designNumber.localeCompare(b.designNumber),
+        );
+
+        // Header row. Column order: Design/Color · Image · Fabric ·
+        // Meters · Sales · Amount. Meters and Amount get more explicit
+        // labels than before ("Meters sold" / "Total revenue") to match
+        // what operators asked for on the dashboard export.
+        ws.columns = [
+          { header: "Design # / Color", key: "designNumber", width: 22 },
+          { header: "Image", key: "image", width: 18 },
+          { header: "Fabric type", key: "fabricType", width: 16 },
+          { header: "Meters sold (m)", key: "meters", width: 14 },
+          { header: "Sales", key: "saleCount", width: 8 },
+          { header: "Total revenue", key: "amount", width: 14 },
+        ];
+        ws.getRow(1).font = { bold: true };
+        ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+        ws.getRow(1).height = 22;
+
+        // Pre-fetch images in parallel. Only design rows have a photo;
+        // color rows get null (blank image cell — the swatch would need
+        // its own generation path and we don't have that here).
+        const imageBuffers: (ArrayBuffer | null)[] = await Promise.all(
+          aggs.map(async (a) => {
+            if (a.kind !== "design" || !a.designId) return null;
+            const d = designByIdLocal[a.designId];
+            if (!d) return null;
+            const src = resolveDesignImage(d);
+            return await resolveImageBuffer(src);
+          }),
+        );
+
+        // Populate rows.
+        aggs.forEach((a, i) => {
+          const rowNumber = i + 2;
+          ws.addRow({
+            designNumber: a.designNumber,
+            image: "",
+            fabricType: a.fabricType,
+            meters: Math.round(a.meters),
+            saleCount: a.saleCount,
+            amount: Math.round(a.amount),
+          });
+          ws.getRow(rowNumber).height = 50;
+          ws.getRow(rowNumber).alignment = { vertical: "middle" };
+          const buf = imageBuffers[i];
+          if (buf) {
+            const imgId = wb.addImage({
+              buffer: buf as any,
+              extension: "png",
+            });
+            // Image col is index 1 (Image column).
+            ws.addImage(imgId, {
+              tl: { col: 1 + 0.1, row: rowNumber - 1 + 0.05 } as any,
+              ext: { width: IMG_W, height: IMG_H },
+            });
+          }
+        });
+
+        // Totals row.
+        const totalRow = aggs.length + 2;
+        const totalMeters = aggs.reduce((s, a) => s + a.meters, 0);
+        const totalAmount = aggs.reduce((s, a) => s + a.amount, 0);
+        ws.addRow({});
+        ws.addRow({
+          designNumber: "TOTAL",
+          image: "",
+          fabricType: "",
+          meters: Math.round(totalMeters),
+          saleCount: aggs.reduce((s, a) => s + a.saleCount, 0),
+          amount: Math.round(totalAmount),
+        });
+        ws.getRow(totalRow + 1).font = { bold: true };
+      }
+
+      // Write + download.
+      const out = await wb.xlsx.writeBuffer();
+      const blob = new Blob([out], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `store_sales_${todayISO()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 200);
+    } catch (e: any) {
+      console.error("Sales export failed:", e);
+      alert("Export failed: " + (e?.message || e));
+    }
+  }
+
+  // ===== Sales dashboard: meters sold per design this month =====
+  //
+  // Aggregation runs over ALL sales (not the date-filtered rows) but
+  // restricted to the CURRENT calendar month. Two totals surfaced:
+  //   - Big number = total meters sold this month
+  //   - Table = top designs by meters, with image + amount
+  // Dashboard month picker — defaults to current calendar month. Format
+  // "YYYY-MM"; the <input type="month"> control reads/writes this shape
+  // directly. Export uses the same value.
+  const [dashboardMonth, setDashboardMonth] = useState(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    return `${yyyy}-${mm}`;
+  });
+  // Show-all toggle for the dashboard's per-variant table. Default: top 8
+  // only, with a "+ N more" button that flips to full list. Reset to
+  // collapsed whenever the month changes so operators don't accidentally
+  // scroll through a long list they didn't ask for.
+  const [dashboardShowAll, setDashboardShowAll] = useState(false);
+  useEffect(() => {
+    setDashboardShowAll(false);
+  }, [dashboardMonth]);
+
+  const salesDashboard = useMemo(() => {
+    const monthPrefix = dashboardMonth; // "YYYY-MM"
+    const designByIdLocal: Record<string, Design> = {};
+    for (const d of designs || []) designByIdLocal[d.id] = d;
+    // ===== Row identity =====
+    //
+    // A dashboard row is one salable variant. Keyed by:
+    //   d:<designId>   for printed designs
+    //   c:<hex>        for dyed colors (grouped by hex; colorName is
+    //                  captured for display but doesn't affect grouping)
+    //   mix / remainder for the two sentinels
+    //   "unknown"      for legacy sales with no variant info
+    // ===== Row identity =====
+    //
+    // A dashboard row is one (variant × fabric type) — i.e. a design
+    // sold in Poplin AND the same design sold in Flanel are two rows.
+    // Reason: operators want to see "how much of design X sold in each
+    // fabric", not just aggregate across fabric types.
+    //
+    // Keyed by:
+    //   d:<designId>::<fabricType>    for printed designs
+    //   c:<hex>::<fabricType>         for dyed colors (hex-grouped)
+    //   mix::<fabricType>             for the mix sentinel
+    //   remainder::<fabricType>       for the remainder bin
+    //   unknown::<fabricType>         for legacy sales with no variant info
+    type Row = {
+      key: string;
+      kind: "design" | "color" | "mix" | "remainder" | "unknown";
+      designId?: string;
+      designNumber: string; // display label for the row
+      hexColor?: string;
+      colorName?: string;
+      fabricType: string;
+      meters: number;
+      amount: number;
+    };
+    function classify(ln: any, s: any): { key: string; row: Row } {
+      const did = ln.designId || s.designId;
+      const hex = ln.hexColor || s.hexColor;
+      const colorName = ln.colorName || s.colorName;
+      // Fabric type per line (falls back to sale's stockFabricType).
+      // Empty string is a legitimate value operators sometimes see, so
+      // we tag it as "—" to keep the display readable.
+      const rawFt = ln.fabricType || s.stockFabricType || s.fabricType;
+      const ft = rawFt && String(rawFt).trim() ? String(rawFt) : "—";
+      if (did === "remainder") {
+        const k = `remainder::${ft}`;
+        return {
+          key: k,
+          row: {
+            key: k,
+            kind: "remainder",
+            designNumber: t("stockin.design.remainder"),
+            fabricType: ft,
+            meters: 0,
+            amount: 0,
+          },
+        };
+      }
+      if (did === "mix") {
+        const k = `mix::${ft}`;
+        return {
+          key: k,
+          row: {
+            key: k,
+            kind: "mix",
+            designNumber: t("stockin.design.mix"),
+            fabricType: ft,
+            meters: 0,
+            amount: 0,
+          },
+        };
+      }
+      if (did && designByIdLocal[did]) {
+        const k = `d:${did}::${ft}`;
+        return {
+          key: k,
+          row: {
+            key: k,
+            kind: "design",
+            designId: did,
+            designNumber: designByIdLocal[did].designNumber || "—",
+            fabricType: ft,
+            meters: 0,
+            amount: 0,
+          },
+        };
+      }
+      if (hex) {
+        const k = `c:${String(hex).toLowerCase()}::${ft}`;
+        return {
+          key: k,
+          row: {
+            key: k,
+            kind: "color",
+            hexColor: hex,
+            colorName,
+            // Prefer the friendly name; hex is the reliable fallback.
+            designNumber: colorName || String(hex).toUpperCase(),
+            fabricType: ft,
+            meters: 0,
+            amount: 0,
+          },
+        };
+      }
+      const k = `unknown::${ft}`;
+      return {
+        key: k,
+        row: {
+          key: k,
+          kind: "unknown",
+          designNumber: "—",
+          fabricType: ft,
+          meters: 0,
+          amount: 0,
+        },
+      };
+    }
+    const byKey: Record<string, Row> = {};
+    let totalMeters = 0;
+    let totalAmount = 0;
+    let saleCount = 0;
+    for (const s of storeSales) {
+      // Skip corrections — they're inventory adjustments (stock-outs from
+      // on-hand edits), not real sales. Including them would double-count
+      // meters as "sold this month" and pollute the top-designs ranking.
+      if ((s as any).correction) continue;
+      if (!s.date || !String(s.date).startsWith(monthPrefix)) continue;
+      saleCount++;
+      totalAmount += Number(s.totalAmount) || 0;
+      const lines: any[] = s.rollLines || [];
+      if (lines.length) {
+        for (const ln of lines) {
+          // Loose lines carry length=0; their qty IS meters.
+          const m =
+            Number(ln.length) === 0
+              ? Number(ln.qty) || 0
+              : (Number(ln.length) || 0) * (Number(ln.qty) || 0);
+          if (m <= 0) continue;
+          const { key, row } = classify(ln, s);
+          if (!byKey[key]) byKey[key] = row;
+          byKey[key].meters += m;
+          // Refresh colorName if this line has one and the row didn't;
+          // helps recover the friendly label even when it was set on
+          // some lines but not others.
+          if (row.colorName && !byKey[key].colorName) {
+            byKey[key].colorName = row.colorName;
+            byKey[key].designNumber = row.colorName;
+          }
+          totalMeters += m;
+        }
+      } else {
+        // Legacy sale — one line derived from top-level fields.
+        const m = Number(s.qty) || 0;
+        if (m <= 0) continue;
+        const { key, row } = classify({}, s);
+        if (!byKey[key]) byKey[key] = row;
+        byKey[key].meters += m;
+        totalMeters += m;
+      }
+    }
+    // Distribute per-sale amount proportionally to per-variant meters.
+    // Rough but honest: amount / meters is the effective per-meter price
+    // for the sale; each variant's share is its meters × that rate.
+    for (const s of storeSales) {
+      if ((s as any).correction) continue;
+      if (!s.date || !String(s.date).startsWith(monthPrefix)) continue;
+      const amt = Number(s.totalAmount) || 0;
+      if (!amt) continue;
+      const lines: any[] = s.rollLines || [];
+      const totMeters = lines.length
+        ? lines.reduce(
+            (acc, ln) =>
+              acc +
+              (Number(ln.length) === 0
+                ? Number(ln.qty) || 0
+                : (Number(ln.length) || 0) * (Number(ln.qty) || 0)),
+            0,
+          )
+        : Number(s.qty) || 0;
+      if (totMeters <= 0) continue;
+      if (lines.length) {
+        for (const ln of lines) {
+          const m =
+            Number(ln.length) === 0
+              ? Number(ln.qty) || 0
+              : (Number(ln.length) || 0) * (Number(ln.qty) || 0);
+          const { key } = classify(ln, s);
+          if (byKey[key]) byKey[key].amount += (m / totMeters) * amt;
+        }
+      } else {
+        const { key } = classify({}, s);
+        if (byKey[key]) byKey[key].amount += amt;
+      }
+    }
+    const top = Object.values(byKey).sort((a, b) => b.meters - a.meters);
+    return {
+      top,
+      totalMeters,
+      totalAmount,
+      saleCount,
+      designByIdLocal,
+    };
+  }, [storeSales, designs, dashboardMonth, t]);
+
+  // Export the current dashboard's per-variant summary as an xlsx. Uses
+  // the shared exportStationXlsx helper for design-image embedding.
+  //
+  // For color rows we can't embed a real image (no photo asset), but we
+  // still surface the color's name in the "Design #" column — otherwise
+  // dyed sales would show as blank or `—`. Mix / remainder sentinels get
+  // their own translated labels.
+  async function exportSalesDashboardXlsx(dash: any, monthPrefix: string) {
+    if (!dash?.top?.length) return;
+    const rows = dash.top.map((row: any, i: number) => ({
+      orderNo: i + 1,
+      // Category label for the row. designNumber already contains: design
+      // number for kind=design, colorName-or-hex for kind=color, translated
+      // word for kind=mix/remainder.
+      designNumber: row.designNumber,
+      // Only design rows expose a designId — for other kinds we return
+      // null and let the swatch fallback kick in for color rows.
+      designId: row.kind === "design" ? row.designId : null,
+      // Hex for color rows drives the swatch fallback in the image column.
+      hexColor: row.kind === "color" ? row.hexColor : null,
+      fabricType: row.fabricType,
+      meters: Math.round(row.meters),
+      amount: Math.round(row.amount),
+    }));
+    await exportStationXlsx({
+      rows,
+      columns: [
+        { header: "#", key: "orderNo", width: 5 },
+        { header: "Design # / Color", key: "designNumber", width: 22 },
+        { header: "Fabric type", key: "fabricType", width: 16 },
+        { header: "Meters sold (m)", key: "meters", width: 14 },
+        { header: "Revenue", key: "amount", width: 14 },
+      ],
+      imageColumn: {
+        header: "Image",
+        position: 2, // after # and Design/Color
+        width: 18,
+        getDesignId: (r: any) => r.designId,
+        designById: dash.designByIdLocal || {},
+        resolveDesignImage,
+        // Fallback: color rows produce a solid hex swatch so dyed sales
+        // are visually distinguishable in the sheet.
+        getSwatchColor: (r: any) => r.hexColor,
+      },
+      filename: `sales_dashboard_${monthPrefix}`,
+      sheetName: `Sales ${monthPrefix}`,
+    });
+  }
+
   return (
     <div className="space-y-4">
       <StoreSubHeader
@@ -22197,6 +23933,156 @@ function StoreSalesView({ ctx }: CtxProps) {
         icon={ArrowUpFromLine}
         color="bg-rose-500"
       />
+
+      {/* Sales dashboard — meters sold per design this month. */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+              {t("sales.dashboard.title")}
+            </div>
+            <div className="flex items-baseline gap-3 mt-1">
+              <div>
+                <div className="text-2xl font-bold text-slate-800">
+                  {Math.round(salesDashboard.totalMeters).toLocaleString()} m
+                </div>
+                <div className="text-[10px] uppercase tracking-wide text-slate-400">
+                  {t("sales.dashboard.metersLabel")}
+                </div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-slate-700">
+                  {Math.round(salesDashboard.totalAmount).toLocaleString()}
+                </div>
+                <div className="text-[10px] uppercase tracking-wide text-slate-400">
+                  {t("sales.dashboard.revenueLabel")}
+                </div>
+              </div>
+              <div className="text-xs text-slate-500">
+                {salesDashboard.saleCount} {t("sales.dashboard.sales")}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="month"
+              value={dashboardMonth}
+              onChange={(e) => setDashboardMonth(e.target.value)}
+              className="p-1.5 border border-slate-200 rounded text-xs"
+              title={t("sales.dashboard.month")}
+            />
+            <button
+              onClick={() =>
+                exportSalesDashboardXlsx(salesDashboard, dashboardMonth)
+              }
+              disabled={!salesDashboard.top.length}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 ${!salesDashboard.top.length ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+            >
+              <Download size={12} /> {t("common.export")}
+            </button>
+            <BarChart3 className="text-rose-500" size={20} />
+          </div>
+        </div>
+        {salesDashboard.top.length === 0 ? (
+          <div className="text-xs text-slate-400 py-3 text-center">
+            {t("sales.dashboard.empty")}
+          </div>
+        ) : (
+          <div className="overflow-x-auto -mx-4 px-4">
+            <table className="w-full text-sm">
+              <thead className="text-slate-600">
+                <tr>
+                  <th className="text-left p-2 font-medium text-xs">#</th>
+                  <th className="text-left p-2 font-medium text-xs">
+                    {t("sales.dashboard.col.image")}
+                  </th>
+                  <th className="text-left p-2 font-medium text-xs">
+                    {t("sales.dashboard.col.design")}
+                  </th>
+                  <th className="text-left p-2 font-medium text-xs">
+                    {t("sales.dashboard.col.fabric")}
+                  </th>
+                  <th className="text-right p-2 font-medium text-xs">
+                    {t("sales.dashboard.col.meters")}
+                  </th>
+                  <th className="text-right p-2 font-medium text-xs">
+                    {t("sales.dashboard.col.amount")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {salesDashboard.top
+                  .slice(0, dashboardShowAll ? undefined : 8)
+                  .map((row, i) => {
+                    const d =
+                      row.kind === "design" && row.designId
+                        ? salesDashboard.designByIdLocal[row.designId]
+                        : null;
+                    const src = d ? resolveDesignImage(d) : "";
+                    return (
+                      <tr
+                        key={row.key || `k${i}`}
+                        className="border-t border-slate-100"
+                      >
+                        <td className="p-2 text-slate-400 text-xs tabular-nums">
+                          {i + 1}
+                        </td>
+                        <td className="p-2">
+                          {row.kind === "design" && src ? (
+                            <img
+                              src={src}
+                              className="w-12 h-8 object-cover rounded"
+                            />
+                          ) : row.kind === "color" && row.hexColor ? (
+                            <div
+                              className="w-12 h-8 rounded border border-slate-200"
+                              style={{ backgroundColor: row.hexColor }}
+                              title={row.colorName || row.hexColor}
+                            />
+                          ) : row.kind === "remainder" ? (
+                            <div className="w-12 h-8 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-sm">
+                              ♻
+                            </div>
+                          ) : row.kind === "mix" ? (
+                            <div className="w-12 h-8 rounded bg-gradient-to-br from-purple-100 to-fuchsia-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                              MIX
+                            </div>
+                          ) : (
+                            <div className="w-12 h-8 rounded bg-slate-100" />
+                          )}
+                        </td>
+                        <td className="p-2 font-mono font-semibold text-slate-800 text-xs">
+                          {row.designNumber}
+                        </td>
+                        <td className="p-2 text-xs text-slate-600">
+                          {row.fabricType}
+                        </td>
+                        <td className="p-2 text-right tabular-nums text-slate-700 text-xs">
+                          {Math.round(row.meters).toLocaleString()} m
+                        </td>
+                        <td className="p-2 text-right tabular-nums text-slate-700 text-xs">
+                          {Math.round(row.amount).toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+            {salesDashboard.top.length > 8 && (
+              <div className="text-center py-2">
+                <button
+                  onClick={() => setDashboardShowAll((v) => !v)}
+                  className="text-xs text-purple-600 hover:text-purple-800 font-medium px-3 py-1 hover:bg-purple-50 rounded transition-colors"
+                >
+                  {dashboardShowAll
+                    ? t("sales.dashboard.showLess")
+                    : `+ ${salesDashboard.top.length - 8} ${t("sales.dashboard.more")}`}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="bg-white rounded-lg p-3 shadow-sm flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
@@ -22211,6 +24097,34 @@ function StoreSalesView({ ctx }: CtxProps) {
             className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
           />
         </div>
+        {/* Date range filter — applied to both list and export. */}
+        <div className="flex items-center gap-1 text-xs">
+          <span className="text-slate-500">{t("filter.from")}</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          <span className="text-slate-500">{t("filter.to")}</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="p-1 border border-slate-200 rounded text-xs"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-slate-500 hover:text-slate-700 underline"
+            >
+              {t("filter.clear")}
+            </button>
+          )}
+        </div>
         {canEdit && (
           <button
             onClick={newSale}
@@ -22220,7 +24134,7 @@ function StoreSalesView({ ctx }: CtxProps) {
           </button>
         )}
         <button
-          onClick={() => exportToCSV(rows, "store_sales")}
+          onClick={() => exportSalesPerCustomerXlsx(rows)}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
         >
           <Download size={14} /> {t("common.export")}
@@ -22382,11 +24296,13 @@ function StoreSalesView({ ctx }: CtxProps) {
         <Modal
           title={
             storeSales.find((s) => s.id === editing.id)
-              ? "Edit Sale"
-              : "New Sale"
+              ? t("sales.edit")
+              : t("sales.new")
           }
           onClose={() => setEditing(null)}
           large
+          dismissible={false}
+          closeOnEsc
         >
           <SaleForm
             initial={editing}
@@ -22454,7 +24370,7 @@ function SaleForm({
     type LengthMap = Record<number, number>;
     type GroupInfo = {
       key: string;
-      kind: "design" | "color" | "remainder";
+      kind: "design" | "color" | "remainder" | "mix";
       designId?: string;
       designNumber?: string;
       designName?: string;
@@ -22467,11 +24383,18 @@ function SaleForm({
     // design under different fabric types end up as different groups.
     const groups: Record<string, GroupInfo> = {};
 
-    function groupKey(r: any): { key: string; kind: "design" | "color" | "remainder" } | null {
+    function groupKey(r: any): { key: string; kind: "design" | "color" | "remainder" | "mix" } | null {
       if (r.designId === "remainder") {
         return { key: "r:remainder", kind: "remainder" };
       }
-      if (r.fabricState === "printed" && r.designId && r.designId !== "mix") {
+      // Mixed-design stock-in: still sellable — surface as its own
+      // group in the sale picker so operators can pick from mix rolls.
+      // Prior code filtered mix out entirely which made mix rolls
+      // invisible during sale entry (operators couldn't sell them).
+      if (r.fabricState === "printed" && r.designId === "mix") {
+        return { key: "m:mix", kind: "mix" };
+      }
+      if (r.fabricState === "printed" && r.designId) {
         return { key: `d:${r.designId}`, kind: "design" };
       }
       if (r.fabricState === "dyed" && r.hexColor) {
@@ -22487,7 +24410,7 @@ function SaleForm({
     function ensureGroup(
       r: any,
       gk: string,
-      kind: "design" | "color" | "remainder",
+      kind: "design" | "color" | "remainder" | "mix",
       fabricType: string,
     ) {
       const ck = compositeKey(gk, fabricType);
@@ -22496,7 +24419,10 @@ function SaleForm({
       const g: GroupInfo = {
         key: ck,
         kind,
-        designId: kind === "design" ? r.designId : undefined,
+        // Mix groups keep designId="mix" so the sale line carries the
+        // marker through — otherwise sold mix rolls wouldn't reduce mix
+        // stock correctly.
+        designId: kind === "design" || kind === "mix" ? r.designId : undefined,
         designNumber: d?.designNumber,
         designName: d?.name,
         hexColor: kind === "color" ? r.hexColor : undefined,
@@ -22518,6 +24444,21 @@ function SaleForm({
         const qty = Number(ln.qty) || 0;
         if (len <= 0 || qty <= 0) continue;
         g.lengths[len] = (g.lengths[len] || 0) + qty;
+      }
+      // ===== Loose meters (unit=meters or extraMeters remnant) =====
+      // Meter-unit stock-in doesn't produce rolls; it's a loose length.
+      // We surface it in the picker under a sentinel length of 0. The
+      // "qty" in this pseudo-length is METERS (not rolls). Sale picker
+      // renders it with a "loose" affordance instead of the roll +/- UI.
+      let looseMeters = 0;
+      if (r.unit === "meters") {
+        // Whole record is loose meters — qty is the meter count.
+        looseMeters += Number(r.qty) || 0;
+      }
+      // extraMeters always adds a loose piece, regardless of unit.
+      looseMeters += Number(r.extraMeters) || 0;
+      if (looseMeters > 0) {
+        g.lengths[0] = (g.lengths[0] || 0) + looseMeters;
       }
     }
     for (const sale of storeSales) {
@@ -22543,7 +24484,10 @@ function SaleForm({
           const g = ensureGroup(synthetic, gk.key, gk.kind, ft);
           const len = Number(ln.length) || 0;
           const qty = Number(ln.qty) || 0;
-          if (len <= 0 || qty <= 0) continue;
+          // len === 0 is the loose-meters sentinel; qty in that case is the
+          // METER amount, not a roll count. Both branches treat the same
+          // way (subtract from lengths[len]).
+          if (len < 0 || qty <= 0) continue;
           g.lengths[len] = (g.lengths[len] || 0) - qty;
         }
       } else {
@@ -22554,7 +24498,7 @@ function SaleForm({
         for (const ln of lines) {
           const len = Number(ln.length) || 0;
           const qty = Number(ln.qty) || 0;
-          if (len <= 0 || qty <= 0) continue;
+          if (len < 0 || qty <= 0) continue;
           g.lengths[len] = (g.lengths[len] || 0) - qty;
         }
       }
@@ -22868,7 +24812,7 @@ function SaleForm({
     const out: {
       compositeKey: string;
       groupKey: string;
-      kind: "design" | "color" | "remainder";
+      kind: "design" | "color" | "remainder" | "mix";
       designId?: string;
       hexColor?: string;
       colorName?: string;
@@ -22895,9 +24839,15 @@ function SaleForm({
     return out;
   }, [onHand, picks]);
 
-  const totalRolls = pickedRows.reduce((sum, r) => sum + r.qty, 0);
+  // Loose-meter lines (length=0) don't count as rolls — they're just
+  // meters. totalRolls excludes them; totalMeters uses `qty` directly for
+  // loose lines and length×qty for real rolls.
+  const totalRolls = pickedRows.reduce(
+    (sum, r) => sum + (r.length === 0 ? 0 : r.qty),
+    0,
+  );
   const totalMeters = pickedRows.reduce(
-    (sum, r) => sum + r.length * r.qty,
+    (sum, r) => sum + (r.length === 0 ? r.qty : r.length * r.qty),
     0,
   );
 
@@ -22950,7 +24900,10 @@ function SaleForm({
           subtotal: 0,
         };
       }
-      map[ft].meters += r.length * r.qty;
+      // Loose lines (length=0) contribute qty as meters; roll lines
+      // contribute length × qty. Both flow into the same fabric-type
+      // bucket for pricing.
+      map[ft].meters += r.length === 0 ? r.qty : r.length * r.qty;
       map[ft].subtotal = map[ft].meters * map[ft].finalPrice;
     }
     return Object.values(map).sort((a, b) =>
@@ -22997,7 +24950,10 @@ function SaleForm({
       qty: p.qty,
       // Per-line variant. Stored as undefined where not applicable so we
       // don't carry empty strings into the DB.
-      designId: p.kind === "design" || p.kind === "remainder" ? p.designId : undefined,
+      designId:
+        p.kind === "design" || p.kind === "remainder" || p.kind === "mix"
+          ? p.designId
+          : undefined,
       hexColor: p.kind === "color" ? p.hexColor : undefined,
       colorName: p.kind === "color" ? p.colorName : undefined,
       fabricType: p.fabricType,
@@ -23009,17 +24965,19 @@ function SaleForm({
     const variantFields: Partial<StoreSale> =
       firstGroup.kind === "remainder"
         ? { fabricState: "printed", designId: "remainder", hexColor: undefined }
-        : firstGroup.kind === "design"
-          ? {
-              fabricState: "printed",
-              designId: firstGroup.designId,
-              hexColor: undefined,
-            }
-          : {
-              fabricState: "dyed",
-              designId: undefined,
-              hexColor: firstGroup.hexColor,
-            };
+        : firstGroup.kind === "mix"
+          ? { fabricState: "printed", designId: "mix", hexColor: undefined }
+          : firstGroup.kind === "design"
+            ? {
+                fabricState: "printed",
+                designId: firstGroup.designId,
+                hexColor: undefined,
+              }
+            : {
+                fabricState: "dyed",
+                designId: undefined,
+                hexColor: firstGroup.hexColor,
+              };
 
     // Store unitPrice as the weighted average final price (total / meters)
     // so reports that look at unitPrice still get a sensible number. The
@@ -23240,6 +25198,10 @@ function SaleForm({
                             <div className="w-8 h-8 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
                               ♻
                             </div>
+                          ) : row.kind === "mix" ? (
+                            <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-100 to-fuchsia-100 flex items-center justify-center text-purple-600 text-xs font-bold">
+                              MIX
+                            </div>
                           ) : null}
                           <div>
                             <div className="font-mono font-medium text-xs">
@@ -23247,7 +25209,9 @@ function SaleForm({
                                 ? row.designNumber
                                 : row.kind === "remainder"
                                   ? t("stockin.design.remainder")
-                                  : row.colorName || row.hexColor}
+                                  : row.kind === "mix"
+                                    ? t("stockin.design.mix")
+                                    : row.colorName || row.hexColor}
                             </div>
                             {row.designName && (
                               <div className="text-[10px] text-slate-500 truncate">
@@ -23261,10 +25225,18 @@ function SaleForm({
                         {row.fabricType || "—"}
                       </td>
                       <td className="p-2 text-right text-slate-700">
-                        {row.length}m
+                        {row.length === 0 ? (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-full font-medium">
+                            {t("sales.picker.loose")}
+                          </span>
+                        ) : (
+                          `${row.length}m`
+                        )}
                       </td>
                       <td className="p-2 text-right text-slate-600">
-                        {row.available}
+                        {row.length === 0
+                          ? `${row.available}m`
+                          : row.available}
                       </td>
                       <td className="p-2 text-right text-slate-700">
                         {rowPrice > 0 ? fmtMoney(rowPrice) : (
@@ -23276,7 +25248,9 @@ function SaleForm({
                       <td className="p-2 text-right">
                         <input
                           type="number"
-                          step="1"
+                          // Loose-meter rows accept fractional meters;
+                          // roll-length rows are whole rolls only.
+                          step={row.length === 0 ? "0.01" : "1"}
                           min="0"
                           max={row.available}
                           value={picked}
@@ -23284,7 +25258,7 @@ function SaleForm({
                             pickRow(row, Number(e.target.value) || 0)
                           }
                           className="w-20 p-1.5 border border-slate-300 rounded text-sm text-right"
-                          placeholder="0"
+                          placeholder={row.length === 0 ? "0m" : "0"}
                         />
                       </td>
                     </tr>
@@ -23322,7 +25296,8 @@ function SaleForm({
       {pickedRows.length > 0 && (
         <div className="border border-purple-200 rounded-lg overflow-hidden">
           <div className="bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-800">
-            Selected rolls ({pickedRows.length} line{pickedRows.length === 1 ? "" : "s"})
+            {t("sales.selected")} ({pickedRows.length}{" "}
+            {pickedRows.length === 1 ? t("sales.line") : t("sales.lines")})
           </div>
           <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
             {pickedRows.map((p) => {
@@ -23333,7 +25308,12 @@ function SaleForm({
               const rowPrice = getFabricCost(p.fabricType, lists, 0);
               const discount = Number(discounts[p.fabricType]) || 0;
               const finalPrice = Math.max(0, rowPrice - discount);
-              const subtotal = finalPrice * p.length * p.qty;
+              // Loose meters: subtotal is price × qty (qty IS meters).
+              // Roll rows: subtotal is price × length × qty.
+              const subtotal =
+                p.length === 0
+                  ? finalPrice * p.qty
+                  : finalPrice * p.length * p.qty;
               const key = `${p.compositeKey}|${p.length}`;
               return (
                 <div
@@ -23354,6 +25334,10 @@ function SaleForm({
                     <div className="w-9 h-9 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
                       ♻
                     </div>
+                  ) : p.kind === "mix" ? (
+                    <div className="w-9 h-9 rounded bg-gradient-to-br from-purple-100 to-fuchsia-100 flex items-center justify-center text-purple-600 text-[10px] font-bold shrink-0">
+                      MIX
+                    </div>
                   ) : (
                     <div className="w-9 h-9 rounded bg-slate-100 shrink-0" />
                   )}
@@ -23363,10 +25347,16 @@ function SaleForm({
                         ? d?.designNumber
                         : p.kind === "remainder"
                           ? t("stockin.design.remainder")
-                          : p.colorName || p.hexColor}
+                          : p.kind === "mix"
+                            ? t("stockin.design.mix")
+                            : p.colorName || p.hexColor}
                     </div>
                     <div className="text-[10px] text-slate-500 truncate">
-                      {p.fabricType} · {p.length}m × {p.qty} · {fmtMoney(finalPrice)}/m
+                      {p.fabricType} ·{" "}
+                      {p.length === 0
+                        ? `${p.qty}m ${t("sales.picker.loose").toLowerCase()}`
+                        : `${p.length}m × ${p.qty} ${t("sales.rolls")}`}{" "}
+                      · {fmtMoney(finalPrice)}/m
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -24223,12 +26213,26 @@ function Modal({
   onClose,
   children,
   large,
+  dismissible = true,
+  closeOnEsc,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   large?: boolean;
+  // dismissible=false disables the backdrop-click close. The X button in
+  // the header still works. Used by long-form entry modals (stock in,
+  // sale) where losing the draft due to an accidental miss-click was
+  // breaking operator workflows.
+  dismissible?: boolean;
+  // closeOnEsc controls Esc-key handling INDEPENDENTLY of dismissible.
+  // Default: match dismissible so callers that only set one flag get the
+  // legacy behaviour. Pass `closeOnEsc={true}` alongside
+  // `dismissible={false}` when you want no backdrop-click but keep Esc as
+  // a keyboard escape hatch (correction modal wants this).
+  closeOnEsc?: boolean;
 }) {
+  const escEnabled = closeOnEsc !== undefined ? closeOnEsc : dismissible;
   // Escape-to-close. Native modal UX: pressing Esc anywhere closes the
   // top-most modal. We listen on document because the user might have any
   // input or button focused inside the modal — listening on the wrapper
@@ -24237,6 +26241,7 @@ function Modal({
   //
   // Cleanup runs on unmount so we don't leak listeners between modals.
   useEffect(() => {
+    if (!escEnabled) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.stopPropagation();
@@ -24245,12 +26250,12 @@ function Modal({
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, escEnabled]);
 
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
+      onClick={dismissible ? onClose : undefined}
     >
       <div
         className={`bg-white rounded-2xl p-5 w-full ${large ? "max-w-2xl" : "max-w-md"} max-h-[92vh] overflow-y-auto`}
