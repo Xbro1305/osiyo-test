@@ -23446,9 +23446,14 @@ function StoreSalesView({ ctx }: CtxProps) {
           saleCount: number;
         };
         function classifyExport(ln: any, s: any, ft: string): Agg {
-          const did = ln.designId || s.designId;
-          const hex = ln.hexColor || s.hexColor;
-          const colorName = ln.colorName || s.colorName;
+          // Same rule as dashboard classify: if the line has its own
+          // variant fields, don't fall back to sale-level ones (would
+          // bleed one line's variant into another in multi-line sales).
+          const lineHasVariant =
+            !!ln.designId || !!ln.hexColor || !!ln.colorName;
+          const did = lineHasVariant ? ln.designId : s.designId;
+          const hex = lineHasVariant ? ln.hexColor : s.hexColor;
+          const colorName = lineHasVariant ? ln.colorName : s.colorName;
           if (did === "remainder") {
             return {
               key: `remainder::${ft}`,
@@ -23707,9 +23712,22 @@ function StoreSalesView({ ctx }: CtxProps) {
       amount: number;
     };
     function classify(ln: any, s: any): { key: string; row: Row } {
-      const did = ln.designId || s.designId;
-      const hex = ln.hexColor || s.hexColor;
-      const colorName = ln.colorName || s.colorName;
+      // Per-line variant identity is authoritative when the line has ANY
+      // variant field of its own (designId or hexColor). Falling back to
+      // the sale-level fields would bleed one line's variant into another
+      // — e.g. a multi-line sale where one line is a design and another
+      // is a plain color would leak the sale's designId into the color
+      // row, showing "Ranfors Oq" (white) tagged with the design number
+      // of the OTHER line in the same sale.
+      //
+      // Only when the line itself has neither designId nor hexColor
+      // (legacy sales that stored variant on the top-level sale only) do
+      // we fall back to sale-level fields.
+      const lineHasVariant =
+        !!ln.designId || !!ln.hexColor || !!ln.colorName;
+      const did = lineHasVariant ? ln.designId : s.designId;
+      const hex = lineHasVariant ? ln.hexColor : s.hexColor;
+      const colorName = lineHasVariant ? ln.colorName : s.colorName;
       // Fabric type per line (falls back to sale's stockFabricType).
       // Empty string is a legitimate value operators sometimes see, so
       // we tag it as "—" to keep the display readable.
@@ -24150,7 +24168,6 @@ function StoreSalesView({ ctx }: CtxProps) {
               <th className="text-left p-3 font-medium">{t("sales.col.customer")}</th>
               <th className="text-left p-3 font-medium">{t("sales.col.design")}</th>
               <th className="text-right p-3 font-medium">{t("sales.col.qty")}</th>
-              <th className="text-right p-3 font-medium">{t("sales.col.unitPrice")}</th>
               <th className="text-right p-3 font-medium">{t("sales.col.total")}</th>
               <th className="text-right p-3 font-medium">{t("sales.col.paid")}</th>
               <th className="text-right p-3 font-medium">{t("sales.col.debt")}</th>
@@ -24191,21 +24208,19 @@ function StoreSalesView({ ctx }: CtxProps) {
                     )}
                   </td>
                   <td className="p-3 text-slate-700">
-                    {/* Fabric type cell: prefer stockFabricType (v4
-                        authoritative), fall back to the legacy
-                        production fabricType. For multi-design sales,
-                        list the variants per line below. */}
-                    <div className="text-xs font-medium">
-                      {s.stockFabricType || s.fabricType || "—"}
-                    </div>
-                    {Array.isArray(s.rollLines) && s.rollLines.length > 0 && (
-                      <div className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                    {/* Design cell: per-line variants only. Fabric type
+                        removed per operator request — it duplicated info
+                        already visible in the design/color labels. */}
+                    {Array.isArray(s.rollLines) && s.rollLines.length > 0 ? (
+                      <div className="text-xs text-slate-600 leading-tight space-y-0.5">
                         {s.rollLines.map((ln, i) => {
                           // Per-line variant label. If the line has its own
                           // designId (multi-design schema), prefer it; else
                           // fall back to the sale's top-level variant.
                           const lnDesignId = (ln as any).designId || s.designId;
                           const lnHex = (ln as any).hexColor || s.hexColor;
+                          const lnColorName =
+                            (ln as any).colorName || s.colorName;
                           let label = "";
                           if (lnDesignId === "remainder") {
                             label = "♻";
@@ -24213,33 +24228,44 @@ function StoreSalesView({ ctx }: CtxProps) {
                             label = "Mix";
                           } else if (
                             lnDesignId &&
-                            customers /* designById lookup needs another source */ &&
                             (ctx.designs || []).find((d) => d.id === lnDesignId)
                           ) {
                             label = (ctx.designs || []).find(
                               (d) => d.id === lnDesignId,
                             )!.designNumber;
                           } else if (lnHex) {
-                            label = lnHex;
+                            label = lnColorName || lnHex;
                           }
+                          // Length=0 = loose meters; show meters, not rolls.
+                          const lnLen = Number(ln.length) || 0;
+                          const lnQty = Number(ln.qty) || 0;
+                          const dims =
+                            lnLen === 0
+                              ? `${lnQty}m ${t("sales.picker.loose").toLowerCase()}`
+                              : `${lnLen}m × ${lnQty}`;
                           return (
-                            <span key={i}>
+                            <div key={i}>
                               {label && (
-                                <span className="font-mono">{label}</span>
+                                <span className="font-mono font-medium">
+                                  {label}
+                                </span>
                               )}
                               {label ? " · " : ""}
-                              {ln.length}m × {ln.qty}
-                              {i < s.rollLines!.length - 1 ? ", " : ""}
-                            </span>
+                              {dims}
+                            </div>
                           );
                         })}
                       </div>
+                    ) : (
+                      <span className="text-slate-400">—</span>
                     )}
                   </td>
-                  <td className="p-3 text-right">
-                    {fmtMoney(s.qty)} {s.unit}
+                  <td className="p-3 text-right tabular-nums">
+                    {/* Always meters. Sales carry qty as total meters even
+                        when unit was "rolls"; the previous display appended
+                        s.unit which lied on rolls-mode sales. */}
+                    {fmtMoney(s.qty)} m
                   </td>
-                  <td className="p-3 text-right">{fmtMoney(s.unitPrice)}</td>
                   <td className="p-3 text-right font-medium">
                     {fmtMoney(s.totalAmount)}
                   </td>
@@ -24281,10 +24307,10 @@ function StoreSalesView({ ctx }: CtxProps) {
             {!rows.length && (
               <tr>
                 <td
-                  colSpan={canEdit ? 11 : 10}
+                  colSpan={canEdit ? 10 : 9}
                   className="p-8 text-center text-slate-400"
                 >
-                  No sales yet. Click "New Sale" to record one.
+                  {t("sales.empty")}
                 </td>
               </tr>
             )}
