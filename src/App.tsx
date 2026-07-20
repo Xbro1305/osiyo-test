@@ -101,6 +101,7 @@ import {
   Activity,
   ChevronLeft,
   ChevronDown,
+  SlidersHorizontal,
   Upload,
   Store,
   Scissors,
@@ -687,6 +688,25 @@ const TRANSLATIONS = {
     "ombor.noDispatches": "No dispatches in this period.",
     "ombor.toContainer": "To container",
     "ombor.shippedOut": "Shipped out",
+    "common.done": "Done",
+    "ombor.sender": "Sender (warehouse keeper)",
+    "ombor.chooseSender": "Choose sender…",
+    "ombor.manageList": "Remove options",
+    "bleach.openBatchers": "In stock",
+    "bleach.closedBatchers": "Closed",
+    "bleach.closed": "closed",
+    "bleach.manage": "Manage",
+    "bleach.manageTitle": "Manage batcher",
+    "bleach.manageNote": "See what's still available vs already printed. You can erase the remaining balance below without touching any bleach, batching or printing record.",
+    "bleach.inputIn": "Bleach input (in)",
+    "bleach.printedOut": "Printed / used (out)",
+    "bleach.availableRemaining": "Remaining",
+    "bleach.eraseNote": "Fabric was used but never recorded, so this balance is a phantom. Erasing removes the batcher from bleached stock — no upstream record is deleted, and you can reopen it later.",
+    "bleach.eraseBalance": "Erase remaining balance",
+    "bleach.reopenNote": "This batcher is closed and hidden from bleached stock. Reopen it to bring its balance back.",
+    "bleach.reopen": "Reopen batcher",
+    "bleach.noStock": "No bleached fabric in stock",
+    "bleach.noClosed": "No closed batchers.",
   },
   uz: {
     "common.home": "Bosh sahifa",
@@ -1226,6 +1246,25 @@ const TRANSLATIONS = {
     "ombor.noDispatches": "Bu davrda joʻnatmalar yoʻq.",
     "ombor.toContainer": "Konteynerga",
     "ombor.shippedOut": "Joʻnatildi",
+    "common.done": "Tayyor",
+    "ombor.sender": "Yuboruvchi (ombor mudiri)",
+    "ombor.chooseSender": "Yuboruvchini tanlang…",
+    "ombor.manageList": "Variantlarni oʻchirish",
+    "bleach.openBatchers": "Zaxirada",
+    "bleach.closedBatchers": "Yopilgan",
+    "bleach.closed": "yopilgan",
+    "bleach.manage": "Boshqarish",
+    "bleach.manageTitle": "Batcherni boshqarish",
+    "bleach.manageNote": "Nima hali mavjud va nima allaqachon bosilganini koʻring. Quyida qolgan qoldiqni hech qanday oqartirish, batchlash yoki bosma yozuviga tegmasdan oʻchirishingiz mumkin.",
+    "bleach.inputIn": "Oqartirish kirimi (kirim)",
+    "bleach.printedOut": "Bosilgan / ishlatilgan (chiqim)",
+    "bleach.availableRemaining": "Qolgan",
+    "bleach.eraseNote": "Mato ishlatilgan, lekin yozib qoʻyilmagan, shuning uchun bu qoldiq soxta. Oʻchirish batcherni oqartirilgan zaxiradan olib tashlaydi — hech qanday oldingi yozuv oʻchirilmaydi va uni keyinroq qayta ochishingiz mumkin.",
+    "bleach.eraseBalance": "Qolgan qoldiqni oʻchirish",
+    "bleach.reopenNote": "Bu batcher yopilgan va oqartirilgan zaxiradan yashirilgan. Qoldigʻini qaytarish uchun uni qayta oching.",
+    "bleach.reopen": "Batcherni qayta ochish",
+    "bleach.noStock": "Zaxirada oqartirilgan mato yoʻq",
+    "bleach.noClosed": "Yopilgan batcherlar yoʻq.",
   },
 };
 
@@ -1456,6 +1495,12 @@ const DEFAULT_LISTS = {
   ],
   dispatchPerson: ["Driver 1", "Driver 2", "Driver 3"],
   dispatchVehicle: [],
+  dispatchSender: [],
+  // Non-destructive correction lists (hidden from Lists admin — not in its
+  // label map). Hold record/batcher IDs to EXCLUDE from a derived stock view
+  // without deleting the underlying upstream records. Reversible.
+  dispatchExcludeFolding: [], // folding record ids excluded from Dispatch stock "in"
+  bleachedClosed: [], // batcher ids whose remaining bleached-stock balance is erased
   maintenanceShift: ["Shift A", "Shift B", "Shift C", "Maintenance Team"],
   breakdownType: [
     "Mechanical",
@@ -7354,6 +7399,8 @@ function ListsAdmin({ ctx }: CtxProps) {
     rollingType: "Rolling Types",
     dispatchDestination: "Dispatch Destinations",
     dispatchPerson: "Dispatch Persons / Drivers",
+    dispatchVehicle: "Dispatch Vehicles",
+    dispatchSender: "Dispatch Senders / Warehouse Keepers",
     maintenanceShift: "Maintenance Shifts",
     breakdownType: "Breakdown Types",
     dailyCheckResult: "Daily Check Results",
@@ -12122,7 +12169,9 @@ function stationTabs(stationId, ctx, t) {
         {
           id: "inventory",
           label: t("tab.bleachedStock"),
-          render: () => <BleachedInventoryPage ctx={ctx} />,
+          render: (canEdit) => (
+            <BleachedInventoryPage ctx={ctx} canEdit={canEdit} />
+          ),
         },
         {
           id: "extension",
@@ -15688,7 +15737,29 @@ function PrintingForm({
   );
 }
 
-function BleachedInventoryPage({ ctx }: CtxProps) {
+function BleachedInventoryPage({ ctx, canEdit }: CtxEditableProps) {
+  const t = useT();
+  const { lists, saveLists } = ctx;
+  // Batcher ids whose remaining bleached-stock balance has been erased
+  // (closed). Non-destructive: no upstream bleach/batching/print record is
+  // touched — the batcher is simply excluded from this view. Reversible.
+  const closedSet = useMemo(
+    () => new Set<string>(lists.bleachedClosed || []),
+    [lists.bleachedClosed],
+  );
+  const [showClosed, setShowClosed] = useState(false);
+  const [managing, setManaging] = useState<any>(null);
+
+  async function toggleClosed(id: string, close: boolean) {
+    const cur: string[] = lists.bleachedClosed || [];
+    const next = close
+      ? cur.includes(id)
+        ? cur
+        : [...cur, id]
+      : cur.filter((x) => x !== id);
+    await saveLists({ ...lists, bleachedClosed: next });
+  }
+
   // ===== Self-fetch four compact tables =====
   // This page lives as a tab inside the Printing station. Under the new
   // per-station loader, only `records.printing` is loaded by loadForView,
@@ -15807,22 +15878,35 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
           printed,
           available,
           ended,
+          closed: closedSet.has(br.id),
+          sourceDetail: sources.map((batchNo) => ({
+            batchNo,
+            qty: bleachQtyByBatch[batchNo] || 0,
+          })),
         };
       })
       .filter((r): r is NonNullable<typeof r> => !!r)
       // Hide ended batchers (they're done — see Extension Audit instead).
       .filter((r) => !r.ended)
-      // Hide fully-consumed (avoids "0m available" noise).
-      .filter((r) => r.available > 0.01);
+      // Keep closed batchers in the base set (so we can show them under the
+      // "Show closed" toggle and reopen them); otherwise hide fully-consumed.
+      .filter((r) => r.closed || r.available > 0.01);
     // Note: no default sort here — column header clicks drive ordering.
     // First render shows rows in insertion order from batchingRecs.
-  }, [bleachRecs, batchingRecs, printRecs, inputRecs]);
+  }, [bleachRecs, batchingRecs, printRecs, inputRecs, closedSet]);
 
   // Column sort state (three-state click cycle).
   const [sort, setSort] = useState<SortSpec>({ key: "available", dir: "desc" });
   const sortedStock = useSortableRows(stock, sort);
 
-  const totalAvailable = stock.reduce((s, x) => s + x.available, 0);
+  // Open rows (not closed) drive the headline total; closed rows are excluded.
+  const openStock = sortedStock.filter((r: any) => !r.closed);
+  const visibleStock = showClosed
+    ? sortedStock.filter((r: any) => r.closed)
+    : openStock;
+  const closedCount = stock.filter((r: any) => r.closed).length;
+
+  const totalAvailable = openStock.reduce((s, x) => s + x.available, 0);
 
   return (
     <div className="space-y-3">
@@ -15864,6 +15948,22 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
           </button>
         </div>
       </div>
+      {closedCount > 0 && (
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+          <button
+            onClick={() => setShowClosed(false)}
+            className={`px-3 py-1.5 rounded text-sm font-medium ${!showClosed ? "bg-white shadow text-cyan-700" : "text-slate-600"}`}
+          >
+            {t("bleach.openBatchers")}
+          </button>
+          <button
+            onClick={() => setShowClosed(true)}
+            className={`px-3 py-1.5 rounded text-sm font-medium ${showClosed ? "bg-white shadow text-slate-700" : "text-slate-600"}`}
+          >
+            {t("bleach.closedBatchers")} ({closedCount})
+          </button>
+        </div>
+      )}
       <TableLoading loading={loading} empty={stock.length === 0}>
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -15908,13 +16008,22 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
                   setSort={setSort}
                   numeric
                 />
+                {canEdit && <th className="p-3 w-24"></th>}
               </tr>
             </thead>
             <tbody>
-              {sortedStock.map((s) => (
-                <tr key={s.id} className="border-t border-slate-100">
+              {visibleStock.map((s) => (
+                <tr
+                  key={s.id}
+                  className={`border-t border-slate-100 ${s.closed ? "opacity-60" : ""}`}
+                >
                   <td className="p-3 font-mono font-bold text-purple-700">
                     {s.label}
+                    {s.closed && (
+                      <span className="ml-2 text-[10px] uppercase tracking-wide bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                        {t("bleach.closed")}
+                      </span>
+                    )}
                   </td>
                   <td className="p-3 text-slate-500 text-xs">{s.date}</td>
                   <td className="p-3 text-slate-700">{s.fabricType}</td>
@@ -15925,12 +16034,27 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
                   <td className="p-3 font-bold text-cyan-700">
                     {s.available.toFixed(0)}
                   </td>
+                  {canEdit && (
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => setManaging(s)}
+                        className="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 inline-flex items-center gap-1"
+                      >
+                        <SlidersHorizontal size={12} /> {t("bleach.manage")}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
-              {!sortedStock.length && !loading && (
+              {!visibleStock.length && !loading && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
-                    No bleached fabric in stock
+                  <td
+                    colSpan={canEdit ? 7 : 6}
+                    className="p-8 text-center text-slate-400"
+                  >
+                    {showClosed
+                      ? t("bleach.noClosed")
+                      : t("bleach.noStock")}
                   </td>
                 </tr>
               )}
@@ -15938,7 +16062,135 @@ function BleachedInventoryPage({ ctx }: CtxProps) {
           </table>
         </div>
       </TableLoading>
+      {managing && (
+        <BleachedRecordManager
+          row={managing}
+          closed={closedSet.has(managing.id)}
+          onToggleClose={(close) => toggleClosed(managing.id, close)}
+          onClose={() => setManaging(null)}
+        />
+      )}
     </div>
+  );
+}
+
+// ============================================================================
+//  BleachedRecordManager — per-batcher view of the bleached-stock "in" (source
+//  bleach batches) and "out" (printed), plus a NON-DESTRUCTIVE "erase remaining
+//  balance" that closes the batcher (excludes it from the stock view). No
+//  upstream bleach / batching / printing record is deleted or modified — the id
+//  is just parked in lists.bleachedClosed. Fully reversible.
+// ============================================================================
+function BleachedRecordManager({
+  row,
+  closed,
+  onToggleClose,
+  onClose,
+}: {
+  row: any;
+  closed: boolean;
+  onToggleClose: (close: boolean) => void;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const src = row.sourceDetail || [];
+  return (
+    <Modal
+      title={t("bleach.manageTitle")}
+      onClose={onClose}
+      large
+      dismissible={false}
+      closeOnEsc
+    >
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-3">
+          <div className="font-mono font-bold text-purple-700">{row.label}</div>
+          <div className="text-sm text-slate-600">{row.fabricType}</div>
+        </div>
+        <div className="text-xs text-slate-500">{t("bleach.manageNote")}</div>
+
+        {/* Bleach input (IN) */}
+        <div>
+          <h4 className="font-semibold text-slate-700 text-sm mb-1">
+            {t("bleach.inputIn")} · {src.length}
+          </h4>
+          <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-48 overflow-y-auto">
+            {src.map((s: any, i: number) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-2 text-sm"
+              >
+                <span className="font-mono text-slate-600">{s.batchNo}</span>
+                <span className="tabular-nums font-medium">
+                  {Number(s.qty).toLocaleString()} m
+                </span>
+              </div>
+            ))}
+            {!src.length && (
+              <div className="p-3 text-center text-xs text-slate-400">—</div>
+            )}
+          </div>
+          <div className="text-right text-xs text-slate-500 mt-1">
+            {t("common.total")}: <b>{Number(row.inputQty).toLocaleString()} m</b>
+          </div>
+        </div>
+
+        {/* Printed (OUT) + remaining */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-orange-50 rounded-lg p-3">
+            <div className="text-xs text-slate-500">
+              {t("bleach.printedOut")}
+            </div>
+            <div className="text-lg font-bold text-orange-600">
+              {Number(row.printed).toLocaleString()} m
+            </div>
+          </div>
+          <div className="bg-cyan-50 rounded-lg p-3">
+            <div className="text-xs text-slate-500">
+              {t("bleach.availableRemaining")}
+            </div>
+            <div className="text-lg font-bold text-cyan-700">
+              {Number(row.available).toLocaleString()} m
+            </div>
+          </div>
+        </div>
+
+        {/* Erase / reopen — non-destructive */}
+        <div className="border-t border-slate-100 pt-3">
+          {!closed ? (
+            <>
+              <div className="text-xs text-slate-500 mb-2">
+                {t("bleach.eraseNote")}
+              </div>
+              <button
+                onClick={() => {
+                  onToggleClose(true);
+                  onClose();
+                }}
+                className="w-full py-2.5 rounded-lg font-medium bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1.5"
+              >
+                <Trash2 size={15} /> {t("bleach.eraseBalance")}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="text-xs text-slate-500 mb-2">
+                {t("bleach.reopenNote")}
+              </div>
+              <button
+                onClick={() => {
+                  onToggleClose(false);
+                  onClose();
+                }}
+                className="w-full py-2.5 rounded-lg font-medium border border-slate-300 text-slate-700 hover:bg-slate-50"
+              >
+                {t("bleach.reopen")}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -18447,9 +18699,10 @@ function DispatchRecordManager({
           <div className="text-sm text-slate-600">{ft}</div>
         </div>
         <div className="text-xs text-slate-500">
-          Delete old or wrong records here. Folding arrivals are the "in";
-          dispatch sends and Ombor pulls are the "out". Removing a record
-          recalculates the stock automatically.
+          Folding arrivals (the "in") are shown for reference only and can't be
+          deleted here — they belong to the Folding station. You can delete the
+          "out" records below (dispatch sends and Ombor pulls); the stock
+          recalculates automatically.
         </div>
 
         {/* Folding arrivals (IN) */}
@@ -18483,12 +18736,6 @@ function DispatchRecordManager({
                       {Number(f.rejectQty || 0).toLocaleString()}
                     </span>
                   </span>
-                  <button
-                    onClick={() => delRec("folding", f.id, "folding arrival")}
-                    className="text-slate-400 hover:text-red-600 p-1"
-                  >
-                    <Trash2 size={14} />
-                  </button>
                 </div>
               </div>
             ))}
@@ -19694,7 +19941,7 @@ function computeOmborStock(records: any) {
 //  data-driven, so swapping in the official OSIYO HOME template later is just
 //  an HTML edit. Opens in a new window with the print dialog primed.
 // ============================================================================
-function openTransportLetter(shipment: any) {
+function openTransportLetter(shipment: any, designs: any[] = []) {
   const lines = omborOutLines(shipment);
   const total = omborOutTotal(shipment);
   const win = window.open("", "_blank", "width=820,height=1040");
@@ -19704,16 +19951,35 @@ function openTransportLetter(shipment: any) {
     );
     return;
   }
+  const byNumber: Record<string, any> = {};
+  (designs || []).forEach((d: any) => {
+    if (d?.designNumber) byNumber[d.designNumber] = d;
+  });
   const rowsHtml = lines
-    .map(
-      (l: any, i: number) => `<tr>
+    .map((l: any, i: number) => {
+      const d = byNumber[l.designNumber];
+      const img = resolveDesignImage(d);
+      const name = d?.name ? escapeHtml(d.name) : "";
+      const num = escapeHtml(l.designNumber || "—");
+      const thumb = img
+        ? `<img src="${img}" class="dz"/>`
+        : `<span class="dz dz-empty"></span>`;
+      return `<tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(l.designNumber || "—")}</td>
+        <td>
+          <div class="dcell">
+            ${thumb}
+            <div>
+              <div class="dnum">${num}</div>
+              ${name ? `<div class="dname">${name}</div>` : ""}
+            </div>
+          </div>
+        </td>
         <td>${escapeHtml(l.fabricType || "—")}</td>
         <td>${escapeHtml(sortLabel(l.sortType))}</td>
         <td class="num">${(Number(l.qty) || 0).toLocaleString()}</td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
   const html = `<!doctype html><html lang="uz"><head><meta charset="utf-8">
   <title>Yuk xati ${escapeHtml(shipment.letterNo || "")}</title>
@@ -19730,9 +19996,15 @@ function openTransportLetter(shipment: any) {
     th{background:#f2f2f2}
     td.num,th.num{text-align:right}
     tfoot th{background:#fafafa}
+    .dcell{display:flex;align-items:center;gap:9px}
+    .dz{width:38px;height:38px;object-fit:cover;border:1px solid #ccc;border-radius:4px;flex-shrink:0}
+    .dz-empty{display:inline-block;background:#eee}
+    .dnum{font-weight:bold}
+    .dname{color:#555;font-size:11px;margin-top:1px}
     .sign{margin-top:56px;display:flex;justify-content:space-between;font-size:13px}
     .sign .box{width:44%}
-    .sign .line{border-top:1px solid #333;margin-top:44px;padding-top:5px;text-align:center;color:#333}
+    .sign .signer{text-align:center;font-weight:bold;min-height:18px;margin-top:26px}
+    .sign .line{border-top:1px solid #333;margin-top:4px;padding-top:5px;text-align:center;color:#333}
     .hint{margin-top:28px;color:#888;font-size:11px}
     @media print{.noprint{display:none}}
   </style></head><body onload="setTimeout(function(){window.print()},350)">
@@ -19762,8 +20034,14 @@ function openTransportLetter(shipment: any) {
       </tr></tfoot>
     </table>
     <div class="sign">
-      <div class="box"><div class="line">Yubordi / Отпустил (imzo)</div></div>
-      <div class="box"><div class="line">Qabul qildi / Принял (imzo)</div></div>
+      <div class="box">
+        <div class="signer">${escapeHtml(shipment.sender || "")}</div>
+        <div class="line">Yubordi / Отпустил (imzo)</div>
+      </div>
+      <div class="box">
+        <div class="signer">${escapeHtml(shipment.destination || shipment.customerName || "")}</div>
+        <div class="line">Qabul qildi / Принял (imzo)</div>
+      </div>
     </div>
     <div class="hint">${escapeHtml(shipment.notes || "")}</div>
   </body></html>`;
@@ -19780,16 +20058,19 @@ function ListSelect({
   options,
   onChange,
   onAddOption,
+  onRemoveOption,
   placeholder = "Select…",
 }: {
   value: string;
   options: string[];
   onChange: (v: string) => void;
   onAddOption: (v: string) => void;
+  onRemoveOption?: (v: string) => void;
   placeholder?: string;
 }) {
   const t = useT();
   const [adding, setAdding] = useState(false);
+  const [managing, setManaging] = useState(false);
   const [draft, setDraft] = useState("");
   function commit() {
     const v = draft.trim();
@@ -19799,6 +20080,42 @@ function ListSelect({
     }
     setDraft("");
     setAdding(false);
+  }
+  if (managing) {
+    return (
+      <div className="border border-slate-300 rounded-lg p-2 space-y-1">
+        <div className="text-xs text-slate-500 px-1 pb-1">
+          {t("ombor.manageList")}
+        </div>
+        {(options || []).length === 0 && (
+          <div className="text-xs text-slate-400 px-1">—</div>
+        )}
+        {(options || []).map((o) => (
+          <div
+            key={o}
+            className="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-slate-50"
+          >
+            <span className="text-sm text-slate-700 truncate">{o}</span>
+            <button
+              onClick={() => {
+                onRemoveOption?.(o);
+                if (o === value) onChange("");
+              }}
+              title={t("common.delete")}
+              className="text-slate-400 hover:text-red-600 p-1 flex-shrink-0"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={() => setManaging(false)}
+          className="w-full mt-1 py-1.5 text-sm border border-slate-300 rounded-lg font-medium"
+        >
+          {t("common.done")}
+        </button>
+      </div>
+    );
   }
   if (adding) {
     return (
@@ -19821,7 +20138,7 @@ function ListSelect({
           onClick={commit}
           className="px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium"
         >
-          Add
+          {t("common.add")}
         </button>
         <button
           onClick={() => setAdding(false)}
@@ -19853,6 +20170,15 @@ function ListSelect({
       >
         <Plus size={14} />
       </button>
+      {onRemoveOption && (options || []).length > 0 && (
+        <button
+          onClick={() => setManaging(true)}
+          title={t("ombor.manageList")}
+          className="px-3 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"
+        >
+          <ListChecks size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -19892,6 +20218,10 @@ function DispatchEditor({
   function addOption(listKey: string, v: string) {
     const cur = lists[listKey] || [];
     if (!cur.includes(v)) saveLists({ ...lists, [listKey]: [...cur, v] });
+  }
+  function removeOption(listKey: string, v: string) {
+    const cur = lists[listKey] || [];
+    saveLists({ ...lists, [listKey]: cur.filter((x: string) => x !== v) });
   }
 
   const term = search.trim().toLowerCase();
@@ -19970,7 +20300,18 @@ function DispatchEditor({
           options={lists.dispatchDestination || []}
           onChange={(v) => setRec({ ...rec, destination: v })}
           onAddOption={(v) => addOption("dispatchDestination", v)}
+          onRemoveOption={(v) => removeOption("dispatchDestination", v)}
           placeholder={t("ombor.chooseReceiver")}
+        />
+      </Field>
+      <Field label={t("ombor.sender")}>
+        <ListSelect
+          value={rec.sender || ""}
+          options={lists.dispatchSender || []}
+          onChange={(v) => setRec({ ...rec, sender: v })}
+          onAddOption={(v) => addOption("dispatchSender", v)}
+          onRemoveOption={(v) => removeOption("dispatchSender", v)}
+          placeholder={t("ombor.chooseSender")}
         />
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -19980,6 +20321,7 @@ function DispatchEditor({
             options={lists.dispatchPerson || []}
             onChange={(v) => setRec({ ...rec, driver: v })}
             onAddOption={(v) => addOption("dispatchPerson", v)}
+            onRemoveOption={(v) => removeOption("dispatchPerson", v)}
             placeholder={t("ombor.chooseDriver")}
           />
         </Field>
@@ -19989,6 +20331,7 @@ function DispatchEditor({
             options={lists.dispatchVehicle || []}
             onChange={(v) => setRec({ ...rec, vehicle: v })}
             onAddOption={(v) => addOption("dispatchVehicle", v)}
+            onRemoveOption={(v) => removeOption("dispatchVehicle", v)}
             placeholder={t("ombor.chooseVehicle")}
           />
         </Field>
@@ -20844,7 +21187,7 @@ function OmborStockPage({ ctx, canEdit }: CtxEditableProps) {
                 };
                 await saveRecord("ombor_out", finalRec);
                 setSending(null);
-                openTransportLetter(finalRec);
+                openTransportLetter(finalRec, designs);
               } catch (err: any) {
                 alert(`Send failed: ${err?.message || err}`);
               }
@@ -21235,7 +21578,7 @@ function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
               </div>
               <div className="flex gap-1 p-2 border-t border-slate-100">
                 <button
-                  onClick={() => openTransportLetter(r)}
+                  onClick={() => openTransportLetter(r, designs)}
                   className="flex-1 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 rounded-lg flex items-center justify-center gap-1"
                 >
                   <FileText size={13} /> {t("ombor.printLetter")}
@@ -21353,7 +21696,7 @@ function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openTransportLetter(lt.shipment);
+                              openTransportLetter(lt.shipment, designs);
                             }}
                             className="text-xs text-rose-700 hover:underline flex items-center gap-1 ml-auto"
                           >
@@ -21409,7 +21752,7 @@ function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
                 };
                 await saveRecord("ombor_out", finalRec);
                 setEditing(null);
-                openTransportLetter(finalRec);
+                openTransportLetter(finalRec, designs);
               } catch (err: any) {
                 alert(`Save failed: ${err?.message || err}`);
               }
