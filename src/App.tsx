@@ -6,15 +6,15 @@
  *  Turdaliyev Jamshidbek & Sharifov Ahmadjon · 2026 · v2.0
  * ============================================================================
  *
- *  TypeScript checking is DISABLED for this single file via `@ts-nocheck`
+ *  TypeScript checking is DISABLED for this single file via '@ts-nocheck'
  *  on line 1 above. This is intentional and is the standard pattern for
  *  shipping legacy JS-style React code through a TypeScript build pipeline.
  *
  *  WHY THIS IS SAFE:
  *  ─────────────────
- *   • `@ts-nocheck` only affects the *type-checker* (tsc / IDE squiggles).
+ *   • '@ts-nocheck' only affects the *type-checker* (tsc / IDE squiggles).
  *   • The actual *bundler* (Vite, esbuild, webpack, Rollup, Parcel, etc.)
- *     ignores `@ts-nocheck` entirely — it strips type annotations and
+ *     ignores '@ts-nocheck' entirely — it strips type annotations and
  *     produces identical JavaScript output regardless of this directive.
  *   • Runtime behaviour is 100% unchanged. The compiled bundle is identical
  *     to what you would get from a clean type-correct version of this file.
@@ -65,6 +65,7 @@ import {
   Layers,
   Package,
   Truck,
+  Warehouse,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -99,6 +100,7 @@ import {
   Database,
   Activity,
   ChevronLeft,
+  ChevronDown,
   Upload,
   Store,
   Scissors,
@@ -185,6 +187,24 @@ const TRANSLATIONS = {
     "dept.stitching.desc": "Stitching units 1 & 2",
     "dept.store": "Local Market Store",
     "dept.store.desc": "Customers, stock, sales & debt ledger",
+    // ===== Local Market Store — dept home =====
+    "storeHome.stat.onHand": "On hand (qty)",
+    "storeHome.stat.revenue": "Total revenue",
+    "storeHome.stat.collected": "Collected",
+    "storeHome.stat.debt": "Outstanding debt",
+    "storeHome.sections": "Sections",
+    "storeHome.sectionsEmpty": "No sections available for your account.",
+    "storeHome.tile.customers": "Customers",
+    "storeHome.tile.customers.desc": "Profiles & ledgers",
+    "storeHome.tile.stockIn": "Stock In",
+    "storeHome.tile.stockIn.desc": "Incoming fabric",
+    "storeHome.tile.stock": "Current Stock",
+    "storeHome.tile.stock.desc": "On-hand inventory",
+    "storeHome.tile.sales": "Sales / Stock Out",
+    "storeHome.tile.sales.desc": "Outgoing & invoices",
+    "storeHome.tile.payments": "Payments Received",
+    "storeHome.tile.payments.desc": "Customer debt payments",
+    "storeHome.tile.onHandSuffix": "on hand",
     "dept.comingSoon": "Coming soon",
     "home.welcome": "Welcome",
     "home.full": "Full system control",
@@ -205,6 +225,7 @@ const TRANSLATIONS = {
     "stage.calendering": "Calendering",
     "stage.folding": "Folding & Inspection",
     "stage.dispatch": "Dispatch (Warehouse)",
+    "stage.ombor": "Ombor",
     "stations.title": "Stations",
     // ===== Topbar =====
     "top.users": "Users",
@@ -556,6 +577,116 @@ const TRANSLATIONS = {
     "stock.correct.currentRolls": "Current rolls",
     "stock.correct.newRolls": "New rolls",
     "stock.correct.looseMeters": "Loose meters",
+    "common.all": "All",
+    "common.records": "record(s)",
+    "common.deleteRecord": "Delete this record?",
+    "common.readonly": "Read-only access",
+    "common.enterDataHere": "You can enter data here",
+    "common.archiveSelected": "Archive selected",
+    "common.exportSelected": "Export selected",
+    "common.exportAll": "Export all",
+    "common.allShifts": "All shifts",
+    "common.allFabrics": "All fabric types",
+    "common.clickToSort": "Click to sort",
+    "common.archiveHint": "They'll stay in the database but render faded and out of the way.",
+    "tab.stock": "Stock",
+    "tab.input": "Input",
+    "tab.dispatch": "Dispatch",
+    "tab.rejection": "Rejection (kg)",
+    "tab.incoming": "Incoming (from Folding)",
+    "tab.output": "Output",
+    "tab.outgoing": "Outgoing",
+    "tab.liveStock": "Live Stock",
+    "tab.stockEntries": "Stock Entries",
+    "tab.bleachedStock": "Bleached Stock",
+    "tab.extensionAudit": "Extension Audit",
+    "tab.printVsFinish": "Print vs Finish",
+    "tab.dyeVsFinish": "Dye vs Finish",
+    "tab.printVsCalender": "Print vs Calender",
+    "tab.dyeVsCalender": "Dye vs Calender",
+    "tab.printVsFolded": "Print vs Folded",
+    "ombor.newTruck": "New truck",
+    "ombor.newDispatch": "New dispatch",
+    "ombor.byDesign": "By design",
+    "ombor.transportLetters": "Transport letters",
+    "ombor.printLetter": "Print letter",
+    "ombor.fromDispatchStock": "From Dispatch stock",
+    "ombor.freeform": "Freeform",
+    "ombor.assign": "Assign",
+    "ombor.send": "Send",
+    "ombor.trucks": "Trucks",
+    "ombor.addToContainer": "Add to container",
+    "ombor.shipOut": "Ship out",
+    "progress.active": "Active",
+    "progress.oldPrograms": "Old programs",
+    "top.trash": "Trash",
+    "common.goHome": "Go home",
+    "common.deptNotFound": "Department not found.",
+    "common.hubNotFound": "Hub not found.",
+    "common.tapToOpen": "Tap to open this station's data entry",
+    "home.inspected": "Inspected",
+    "home.fresh": "Fresh",
+    "home.second": "2nd sort",
+    "home.reject": "Reject",
+    "home.noInspected": "No inspected fabric this month yet",
+    "home.sections": "sections",
+    "hub.desc.sing_des_hub": "Gray fabric store + SING&DES input — one operator",
+    "hub.desc.stenter_hub": "Batching + finishing (stenter) — one operator",
+    "hub.desc.folding_hub": "Folding & inspection + dispatch warehouse — one operator",
+    "access.noPermission": "You don't have permission to view this department.",
+    "common.backTo": "Back to",
+    "placeholder.notBuilt": "This department isn't built yet.",
+    "common.fabric": "Fabric",
+    "common.sort": "Sort",
+    "common.direction": "Direction",
+    "common.addNew": "Add new",
+    "ombor.designNo": "Design #",
+    "ombor.quantity": "Quantity (m)",
+    "ombor.egDesign": "e.g. ENG# 1220-10",
+    "ombor.egSource": "e.g. Direct from warehouse, Legacy stock",
+    "ombor.searchDesignFabric": "Search design or fabric type…",
+    "ombor.searchDesignFabricShort": "Search design or fabric…",
+    "ombor.pull": "Pull from Dispatch stock",
+    "ombor.pick1st": "Pick 1st",
+    "ombor.pick2nd": "Pick 2nd",
+    "ombor.take1st": "Take 1st",
+    "ombor.take2nd": "Take 2nd",
+    "ombor.typeNew": "Type new & press Enter",
+    "ombor.letterNo": "Letter № (waybill)",
+    "ombor.autoIfBlank": "auto if blank",
+    "ombor.receiver": "Receiver / destination",
+    "ombor.chooseReceiver": "Choose receiver…",
+    "ombor.driver": "Driver",
+    "ombor.chooseDriver": "Choose driver…",
+    "ombor.vehicle": "Vehicle",
+    "ombor.chooseVehicle": "Choose vehicle…",
+    "ombor.truck": "Truck",
+    "ombor.truckName": "Truck name",
+    "ombor.egTruck": "e.g. Truck A",
+    "ombor.customerReceiver": "Customer / receiver",
+    "ombor.metersWord": "Meters",
+    "ombor.maxWord": "max",
+    "ombor.assignToTruck": "Assign to truck",
+    "ombor.stagedToTrucks": "Staged to trucks",
+    "ombor.staged": "Staged",
+    "ombor.free": "Free",
+    "ombor.letters": "Letters",
+    "ombor.takenBy": "Taken by",
+    "ombor.editTruck": "Edit truck",
+    "ombor.sentBy": "Sent By",
+    "ombor.weight": "Weight (kg)",
+    "ombor.nameCompany": "name / company",
+    "ombor.byDesignHelp": "Total meters dispatched per design (within the date range). Tap a row to see which transport letters it went out on.",
+    "ombor.lettersHelp": "Every transport letter ever issued. Search by design, receiver, or letter №. Tap Print letter to reprint any of them.",
+    "common.saving": "Saving…",
+    "ombor.moveToOmbor": "Move to Ombor",
+    "ombor.totalPicked": "Total picked",
+    "ombor.noFreeStock": "No free stock to add.",
+    "ombor.noTrucks": "No trucks yet. Create one, then tick designs from the stock table below to load it.",
+    "ombor.noLettersFound": "No transport letters found.",
+    "ombor.noDispatches": "No dispatches in this period.",
+    "ombor.toContainer": "To container",
+    "ombor.shippedOut": "Shipped out",
   },
   uz: {
     "common.home": "Bosh sahifa",
@@ -601,6 +732,24 @@ const TRANSLATIONS = {
     "dept.stitching.desc": "1 va 2-tikuv sexlari",
     "dept.store": "Mahalliy bozor ombori",
     "dept.store.desc": "Mijozlar, ombor, savdo va qarz daftari",
+    // ===== Local Market Store — dept home =====
+    "storeHome.stat.onHand": "Mavjud (miqdor)",
+    "storeHome.stat.revenue": "Umumiy daromad",
+    "storeHome.stat.collected": "Yigʻilgan",
+    "storeHome.stat.debt": "Qolgan qarz",
+    "storeHome.sections": "Boʻlimlar",
+    "storeHome.sectionsEmpty": "Hisobingiz uchun boʻlim mavjud emas.",
+    "storeHome.tile.customers": "Mijozlar",
+    "storeHome.tile.customers.desc": "Profillar va daftar",
+    "storeHome.tile.stockIn": "Kirim",
+    "storeHome.tile.stockIn.desc": "Kelgan mato",
+    "storeHome.tile.stock": "Joriy zaxira",
+    "storeHome.tile.stock.desc": "Ombor qoldigʻi",
+    "storeHome.tile.sales": "Sotuv / Chiqim",
+    "storeHome.tile.sales.desc": "Chiqim va hisob-fakturalar",
+    "storeHome.tile.payments": "Qabul qilingan toʻlovlar",
+    "storeHome.tile.payments.desc": "Mijoz qarzi toʻlovlari",
+    "storeHome.tile.onHandSuffix": "mavjud",
     "dept.comingSoon": "Tez kunda",
     "home.welcome": "Xush kelibsiz",
     "home.full": "Toʻliq tizim boshqaruvi",
@@ -620,6 +769,7 @@ const TRANSLATIONS = {
     "stage.calendering": "Kalandrlash",
     "stage.folding": "Sifat Nazorati",
     "stage.dispatch": "Joʻnatma (Ombor)",
+    "stage.ombor": "Ombor",
     "stations.title": "Stansiyalar",
     "top.users": "Foydalanuvchilar",
     "top.lists": "Roʻyxatlar",
@@ -966,6 +1116,116 @@ const TRANSLATIONS = {
     "stock.correct.currentRolls": "Joriy rulon",
     "stock.correct.newRolls": "Yangi rulon",
     "stock.correct.looseMeters": "Boʻlak metr",
+    "common.all": "Barchasi",
+    "common.records": "ta yozuv",
+    "common.deleteRecord": "Bu yozuv oʻchirilsinmi?",
+    "common.readonly": "Faqat oʻqish huquqi",
+    "common.enterDataHere": "Bu yerda maʼlumot kiritishingiz mumkin",
+    "common.archiveSelected": "Tanlanganlarni arxivlash",
+    "common.exportSelected": "Tanlanganlarni eksport qilish",
+    "common.exportAll": "Barchasini eksport qilish",
+    "common.allShifts": "Barcha smenalar",
+    "common.allFabrics": "Barcha mato turlari",
+    "common.clickToSort": "Saralash uchun bosing",
+    "common.archiveHint": "Ular bazada saqlanadi, lekin xira koʻrinib, koʻzdan chetda turadi.",
+    "tab.stock": "Zaxira",
+    "tab.input": "Kirim",
+    "tab.dispatch": "Joʻnatma",
+    "tab.rejection": "Brak (kg)",
+    "tab.incoming": "Kelayotgan (Saralashdan)",
+    "tab.output": "Chiqim",
+    "tab.outgoing": "Chiqayotgan",
+    "tab.liveStock": "Joriy zaxira",
+    "tab.stockEntries": "Zaxira yozuvlari",
+    "tab.bleachedStock": "Oqartirilgan zaxira",
+    "tab.extensionAudit": "Choʻzilish tekshiruvi",
+    "tab.printVsFinish": "Bosma / Yakuniy",
+    "tab.dyeVsFinish": "Boʻyoq / Yakuniy",
+    "tab.printVsCalender": "Bosma / Kalander",
+    "tab.dyeVsCalender": "Boʻyoq / Kalander",
+    "tab.printVsFolded": "Bosma / Saralangan",
+    "ombor.newTruck": "Yangi mashina",
+    "ombor.newDispatch": "Yangi joʻnatma",
+    "ombor.byDesign": "Dizayn boʻyicha",
+    "ombor.transportLetters": "Yuk xatlari",
+    "ombor.printLetter": "Xatni chop etish",
+    "ombor.fromDispatchStock": "Joʻnatma zaxirasidan",
+    "ombor.freeform": "Erkin kirim",
+    "ombor.assign": "Biriktirish",
+    "ombor.send": "Joʻnatish",
+    "ombor.trucks": "Mashinalar",
+    "ombor.addToContainer": "Konteynerga qoʻshish",
+    "ombor.shipOut": "Chiqarib yuborish",
+    "progress.active": "Faol",
+    "progress.oldPrograms": "Eski dasturlar",
+    "top.trash": "Savatcha",
+    "common.goHome": "Bosh sahifaga",
+    "common.deptNotFound": "Boʻlim topilmadi.",
+    "common.hubNotFound": "Guruh topilmadi.",
+    "common.tapToOpen": "Maʼlumot kiritish uchun bosing",
+    "home.inspected": "Tekshirilgan",
+    "home.fresh": "Yangi",
+    "home.second": "2-nav",
+    "home.reject": "Brak",
+    "home.noInspected": "Bu oy hali tekshirilgan mato yoʻq",
+    "home.sections": "boʻlim",
+    "hub.desc.sing_des_hub": "Gray mato ombori + SING&DES kirimi — bitta operator",
+    "hub.desc.stenter_hub": "Batchlash + yakuniy ishlov (stenter) — bitta operator",
+    "hub.desc.folding_hub": "Saralash + joʻnatma ombori — bitta operator",
+    "access.noPermission": "Bu boʻlimni koʻrish uchun sizda ruxsat yoʻq.",
+    "common.backTo": "Qaytish:",
+    "placeholder.notBuilt": "Bu boʻlim hali tayyor emas.",
+    "common.fabric": "Mato",
+    "common.sort": "Nav",
+    "common.direction": "Yoʻnalish",
+    "common.addNew": "Yangi qoʻshish",
+    "ombor.designNo": "Dizayn №",
+    "ombor.quantity": "Miqdor (m)",
+    "ombor.egDesign": "masalan ENG# 1220-10",
+    "ombor.egSource": "masalan Ombordan toʻgʻridan-toʻgʻri, Eski zaxira",
+    "ombor.searchDesignFabric": "Dizayn yoki mato turini qidiring…",
+    "ombor.searchDesignFabricShort": "Dizayn yoki matoni qidiring…",
+    "ombor.pull": "Joʻnatma zaxirasidan olish",
+    "ombor.pick1st": "1-nav olish",
+    "ombor.pick2nd": "2-nav olish",
+    "ombor.take1st": "1-nav olish",
+    "ombor.take2nd": "2-nav olish",
+    "ombor.typeNew": "Yangi yozing va Enter bosing",
+    "ombor.letterNo": "Xat № (yuk xati)",
+    "ombor.autoIfBlank": "boʻsh boʻlsa avtomatik",
+    "ombor.receiver": "Qabul qiluvchi / manzil",
+    "ombor.chooseReceiver": "Qabul qiluvchini tanlang…",
+    "ombor.driver": "Haydovchi",
+    "ombor.chooseDriver": "Haydovchini tanlang…",
+    "ombor.vehicle": "Transport",
+    "ombor.chooseVehicle": "Transportni tanlang…",
+    "ombor.truck": "Mashina",
+    "ombor.truckName": "Mashina nomi",
+    "ombor.egTruck": "masalan A mashina",
+    "ombor.customerReceiver": "Mijoz / qabul qiluvchi",
+    "ombor.metersWord": "Metr",
+    "ombor.maxWord": "koʻpi bilan",
+    "ombor.assignToTruck": "Mashinaga biriktirish",
+    "ombor.stagedToTrucks": "Mashinalarga tayyorlangan",
+    "ombor.staged": "Tayyorlangan",
+    "ombor.free": "Boʻsh",
+    "ombor.letters": "Xatlar",
+    "ombor.takenBy": "Kim oldi",
+    "ombor.editTruck": "Mashinani tahrirlash",
+    "ombor.sentBy": "Kim yubordi",
+    "ombor.weight": "Ogʻirlik (kg)",
+    "ombor.nameCompany": "ism / kompaniya",
+    "ombor.byDesignHelp": "Har bir dizayn boʻyicha joʻnatilgan umumiy metr (sana oraligʻida). Qaysi yuk xatlariga chiqqanini koʻrish uchun qatordan bosing.",
+    "ombor.lettersHelp": "Berilgan barcha yuk xatlari. Dizayn, qabul qiluvchi yoki xat № boʻyicha qidiring. Qayta chop etish uchun Xatni chop etish tugmasini bosing.",
+    "common.saving": "Saqlanmoqda…",
+    "ombor.moveToOmbor": "Omborga koʻchirish",
+    "ombor.totalPicked": "Jami olindi",
+    "ombor.noFreeStock": "Qoʻshish uchun boʻsh zaxira yoʻq.",
+    "ombor.noTrucks": "Hali mashina yoʻq. Bittasini yarating, soʻng quyidagi zaxira jadvalidan dizaynlarni belgilang.",
+    "ombor.noLettersFound": "Yuk xatlari topilmadi.",
+    "ombor.noDispatches": "Bu davrda joʻnatmalar yoʻq.",
+    "ombor.toContainer": "Konteynerga",
+    "ombor.shippedOut": "Joʻnatildi",
   },
 };
 
@@ -1095,6 +1355,19 @@ const STAGES = [
     name: "Dispatch (Warehouse)",
     icon: Truck,
     color: "bg-green-600",
+    next: "ombor",
+    hasMachine: false,
+  },
+  {
+    // Real physical warehouse — separate from Dispatch (Warehouse), which
+    // is a computed "pocket" showing what folding produced. Ombor is
+    // where the warehouse keeper physically tracks input/stock/output.
+    // Sits at the end of the pipeline; final destination before goods
+    // leave the factory floor.
+    id: "ombor",
+    name: "Ombor",
+    icon: Warehouse,
+    color: "bg-amber-600",
     next: null,
     hasMachine: false,
   },
@@ -1182,6 +1455,7 @@ const DEFAULT_LISTS = {
     "Internal Warehouse",
   ],
   dispatchPerson: ["Driver 1", "Driver 2", "Driver 3"],
+  dispatchVehicle: [],
   maintenanceShift: ["Shift A", "Shift B", "Shift C", "Maintenance Team"],
   breakdownType: [
     "Mechanical",
@@ -1880,8 +2154,16 @@ const storage = {
       const station = prefix.slice("rec_".length, -1);
       try {
         return unwrapList(await apiFetch(recPath(station), {}, opts));
-      } catch {
-        return [];
+      } catch (err) {
+        // Return null (not []) so callers can distinguish "genuinely
+        // empty" from "fetch failed". Callers that use this for state
+        // updates (loadStationRecords) should preserve prior state on
+        // null. Callers that need an array shape can `?? []` the result.
+        console.warn(
+          `[storage.getAll] rec_${station} fetch failed:`,
+          (err as any)?.message || err,
+        );
+        return null as unknown as any[];
       }
     }
     const path = PREFIX_TO_PATH[prefix];
@@ -2525,6 +2807,7 @@ const PAGES = {
     { key: "printing.station.calendering", label: "Station: Calendering" },
     { key: "printing.station.folding", label: "Station: Folding & Inspection" },
     { key: "printing.station.dispatch", label: "Station: Dispatch" },
+    { key: "printing.station.ombor", label: "Station: Ombor (Warehouse)" },
   ],
   store: [
     { key: "store.customers", label: "Customers list" },
@@ -3600,13 +3883,30 @@ function AppInner() {
 
   // Load records for one specific station (e.g. 'input', 'printing', 'folding').
   // Updates only that slice of the records map; other slices stay as they were.
+  //
+  // Failure handling: `storage.getAll` returns [] on network/backend errors.
+  // Overwriting the current slice with [] on error would visibly blank the
+  // page whenever a transient hiccup happens. To distinguish "genuinely
+  // empty" from "fetch failed", `storage.getAll` returns null on error and
+  // an array on success. This function preserves the existing slice when it
+  // gets null back.
   async function loadStationRecords(stationKey) {
     const list = await storage.getAll(`rec_${stationKey}:`);
+    if (list == null) {
+      // Fetch failed — leave the current slice alone so the UI keeps
+      // showing what it had. Avoids the "everything blanks out for a
+      // moment" experience the operator sees on a spotty connection.
+      return;
+    }
     setRecords((prev) => ({ ...prev, [stationKey]: list }));
   }
 
   // Load records for several stations in parallel. Used by views that span
   // multiple stations (master tracking, daily, in-process inventory).
+  //
+  // Same failure-preservation rule as loadStationRecords: null return
+  // from storage.getAll means "don't touch that slice". A partial success
+  // (station A returned, station B failed) preserves B while updating A.
   async function loadStationRecordsMany(stationKeys) {
     const results = await Promise.all(
       stationKeys.map((k) => storage.getAll(`rec_${k}:`)),
@@ -3614,7 +3914,7 @@ function AppInner() {
     setRecords((prev) => {
       const next = { ...prev };
       stationKeys.forEach((k, i) => {
-        next[k] = results[i];
+        if (results[i] != null) next[k] = results[i];
       });
       return next;
     });
@@ -3635,6 +3935,8 @@ function AppInner() {
     "folding",
     "dispatch_in",
     "dispatch_out",
+    "ombor_in",
+    "ombor_out",
   ];
   // Maintenance-related record keys.
   const MAINT_KEYS = ["maintenance", "breakdown", "dailycheck"];
@@ -3670,6 +3972,19 @@ function AppInner() {
     folding: ["calendering", "dyeing", "printing"],
     dispatch_in: ["folding", "printing"],
     dispatch_out: ["folding", "printing"],
+    // The parent "dispatch" station is a container that shows all three
+    // dispatch tabs (Incoming / Stock / Outgoing). Its own records table
+    // doesn't exist — the data lives in dispatch_in and dispatch_out.
+    // Without this entry, landing on Dispatch (Warehouse) fetched
+    // nothing, and records.dispatch_in / records.dispatch_out stayed
+    // empty until the user navigated somewhere else that pulled them.
+    dispatch: ["dispatch_in", "dispatch_out", "folding", "printing"],
+    // Ombor — real physical warehouse. Two backing tables (ombor_in,
+    // ombor_out) plus the folding record set because ombor's "pull
+    // from Dispatch stock" picker reads from it.
+    ombor_in: ["folding", "printing", "ombor_out"],
+    ombor_out: ["folding", "printing", "ombor_in"],
+    ombor: ["ombor_in", "ombor_out", "folding", "printing"],
   };
 
   // ---- The "essentials" load. Only fetched once on boot.
@@ -3730,10 +4045,47 @@ function AppInner() {
         //
         // Pages migrated to useStationData ignore this and own their data;
         // the duplicate fetch is wasteful but harmless.
+        //
+        // "Container" stations (e.g. "dispatch") don't have their own
+        // records table — their data lives in sub-stations declared as
+        // dependencies. Listed here so we skip fetching a non-existent
+        // rec_dispatch: table.
         if (view.stationId) {
+          const CONTAINER_STATIONS = new Set(["dispatch", "ombor"]);
           const deps = STATION_DEPENDENCIES[view.stationId] || [];
-          const keys = [view.stationId, ...deps];
-          tasks.push(loadStationRecordsMany(keys));
+          const keys = CONTAINER_STATIONS.has(view.stationId)
+            ? deps
+            : [view.stationId, ...deps];
+          if (keys.length) tasks.push(loadStationRecordsMany(keys));
+        }
+        if (!isPolling) {
+          tasks.push(loadDesigns());
+          tasks.push(loadPrograms());
+          tasks.push(loadMachines());
+        }
+        break;
+
+      case "station_hub":
+        // Hub views (SING&DES, Dispatch Warehouse, STENTER, etc.) contain
+        // MULTIPLE stations under a single URL. Previously this case fell
+        // through the switch — no data was loaded — so records for
+        // dispatch_in / dispatch_out / stock views appeared empty until
+        // the user navigated to a per-station page.
+        //
+        // Fix: load every member of the hub plus each member's declared
+        // dependencies. Deduplicated so we don't fire two GETs for the
+        // same station when hub members share deps.
+        if (view.hubId) {
+          const hub = MERGED_STATION_GROUPS.find((g) => g.id === view.hubId);
+          if (hub) {
+            const keys = new Set<string>();
+            for (const memberId of hub.members) {
+              keys.add(memberId);
+              const deps = STATION_DEPENDENCIES[memberId] || [];
+              for (const d of deps) keys.add(d);
+            }
+            tasks.push(loadStationRecordsMany([...keys]));
+          }
         }
         if (!isPolling) {
           tasks.push(loadDesigns());
@@ -4777,6 +5129,7 @@ function Shell({ ctx }: CtxProps) {
 
 function AccessDenied({ ctx }: CtxProps) {
   const { user, setCurrentView } = ctx;
+  const t = useT();
   const allowedDepts = getUserDepartments(user);
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -4793,10 +5146,10 @@ function AccessDenied({ ctx }: CtxProps) {
           <Lock className="text-red-600" size={28} />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">
-          Access denied
+          {t("access.denied")}
         </h2>
         <p className="text-slate-500 text-sm mb-5">
-          You don't have permission to view this department.
+          {t("access.noPermission")}
         </p>
         {allowedDepts.length > 0 && (
           <button
@@ -4810,10 +5163,10 @@ function AccessDenied({ ctx }: CtxProps) {
             }
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium"
           >
-            Back to{" "}
+            {t("common.backTo")}{" "}
             {allowedDepts.length === 1
-              ? DEPARTMENTS.find((d) => d.id === allowedDepts[0])?.name
-              : "home"}
+              ? t(`dept.${allowedDepts[0]}`)
+              : t("common.home")}
           </button>
         )}
       </main>
@@ -4999,7 +5352,7 @@ function TopBar({
               />
               <NavBtn
                 icon={Trash2}
-                label="Trash"
+                label={t("top.trash")}
                 active={currentView?.type === "trash"}
                 onClick={() => setCurrentView({ type: "trash" })}
               />
@@ -5011,7 +5364,7 @@ function TopBar({
           <button
             onClick={onLogout}
             className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
-            title="Logout"
+            title={t("common.signOut")}
           >
             <LogOut size={16} />
           </button>
@@ -5226,14 +5579,15 @@ function DepartmentRouter({
 }
 
 function DeptNotFound({ ctx }: CtxProps) {
+  const t = useT();
   return (
     <div className="text-center py-16 text-slate-500">
-      Department not found.
+      {t("common.deptNotFound")}
       <button
         onClick={() => ctx.setCurrentView({ type: "home" })}
         className="ml-2 text-purple-600 hover:underline"
       >
-        Go home
+        {t("common.goHome")}
       </button>
     </div>
   );
@@ -5323,6 +5677,18 @@ const MERGED_STATION_GROUPS: {
     description: "Batching + finishing (stenter) — one operator",
     insertAfter: "bleach", // STENTER sits right after Jiggers (Bleaching)
   },
+  {
+    // Folding & Inspection now contains two stations: the Folding &
+    // Inspection station itself and the Dispatch (Warehouse) pocket.
+    // Same one-operator hub pattern as SING&DES / STENTER.
+    id: "folding_hub",
+    label: "Folding & Inspection",
+    members: ["folding", "dispatch"],
+    icon: Package,
+    color: "bg-emerald-500",
+    description: "Folding & inspection + dispatch warehouse — one operator",
+    insertAfter: "calendering", // folding's normal pipeline position
+  },
 ];
 
 // Given a stationId, returns the hub it belongs to (if any). Used by the
@@ -5409,12 +5775,12 @@ function StationHubView({
   if (!hub) {
     return (
       <div className="text-center py-16 text-slate-500">
-        Hub not found.
+        {t("common.hubNotFound")}
         <button
           onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
           className="ml-2 text-purple-600 hover:underline"
         >
-          Back to Printing
+          {t("dept.printing")}
         </button>
       </div>
     );
@@ -5423,6 +5789,7 @@ function StationHubView({
   const memberStations = hub.members
     .map((mid) => STAGES.find((s) => s.id === mid))
     .filter(Boolean);
+  const hubTitle = hub.id === "folding_hub" ? t("stage.folding") : hub.label;
 
   return (
     <div className="space-y-6">
@@ -5431,10 +5798,12 @@ function StationHubView({
           onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
           className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-2"
         >
-          ← Printing Department
+          ← {t("dept.printing")}
         </button>
-        <h2 className="text-2xl font-bold text-slate-800">{hub.label}</h2>
-        <p className="text-sm text-slate-500">{hub.description}</p>
+        <h2 className="text-2xl font-bold text-slate-800">{hubTitle}</h2>
+        <p className="text-sm text-slate-500">
+          {t("hub.desc." + hub.id, hub.description)}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5455,7 +5824,7 @@ function StationHubView({
                 {t(`stage.${s.id}`)}
               </div>
               <div className="text-xs text-slate-500 mt-1">
-                Tap to open this station's data entry
+                {t("common.tapToOpen")}
               </div>
             </button>
           );
@@ -5621,7 +5990,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
         <div className="bg-white rounded-2xl p-4 shadow-sm md:col-span-2">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
-              Inspected (m, this month)
+              {t("home.inspected")} (m, {t("daily.month", "this month")})
             </div>
             <Sparkles className="text-pink-600" size={16} />
           </div>
@@ -5632,22 +6001,22 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
             <div className="grid grid-cols-4 gap-2 mt-3 text-xs">
               {[
                 {
-                  label: "Fresh",
+                  label: t("home.fresh"),
                   v: stats.firstQty,
                   cls: "text-emerald-700",
                 },
                 {
-                  label: "2nd sort",
+                  label: t("home.second"),
                   v: stats.secondQty,
                   cls: "text-amber-700",
                 },
                 {
-                  label: "Reject",
+                  label: t("home.reject"),
                   v: stats.rejectQty,
                   cls: "text-rose-700",
                 },
                 {
-                  label: "Incomplete",
+                  label: t("common.incomplete"),
                   v: stats.incompleteQty,
                   cls: "text-slate-600",
                 },
@@ -5671,7 +6040,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
             </div>
           ) : (
             <div className="text-xs text-slate-400 mt-2">
-              No inspected fabric this month yet
+              {t("home.noInspected")}
             </div>
           )}
         </div>
@@ -5753,10 +6122,12 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                         <Icon className="text-white" size={20} />
                       </div>
                       <div className="font-bold text-slate-800 text-sm">
-                        {hub.label}
+                        {hub.id === "folding_hub"
+                          ? t("stage.folding")
+                          : hub.label}
                       </div>
                       <div className="text-[10px] text-purple-600 mt-0.5">
-                        {hub.members.length} sections
+                        {hub.members.length} {t("home.sections")}
                       </div>
                       <div className="text-xs text-slate-500 mt-0.5">
                         {count} {count !== 1 ? t("rec.records") : t("rec.record")}
@@ -5954,6 +6325,7 @@ function PlaceholderDepartmentHome({
   ctx: AppContext;
   dept: any;
 }) {
+  const t = useT();
   return (
     <div className="space-y-6">
       <DepartmentHeader dept={dept} ctx={ctx} />
@@ -5964,12 +6336,10 @@ function PlaceholderDepartmentHome({
           <dept.icon className="text-white" size={32} />
         </div>
         <h3 className="text-xl font-bold text-slate-800 mb-2">
-          {dept.name} — coming soon
+          {t(`dept.${dept.id}`)} — {t("dept.comingSoon")}
         </h3>
         <p className="text-slate-500 max-w-md mx-auto text-sm">
-          This department isn't built yet. You can replicate the pattern used in{" "}
-          <span className="font-medium text-slate-700">Local Market Store</span>{" "}
-          to add stations and forms here.
+          {t("placeholder.notBuilt")}
         </p>
         {dept.id === "stitching" && (
           <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
@@ -6001,6 +6371,7 @@ function PlaceholderDepartmentHome({
 // === LOCAL MARKET STORE DEPARTMENT HOME ===
 function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   const { setCurrentView, user } = ctx;
+  const t = useT();
 
   // ===== Dept-home stats from /stats =====
   const [statsResp, setStatsResp] = useState<any>({ counts: {}, storeTotals: {} });
@@ -6050,48 +6421,48 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
     {
       id: "store_customers",
       pageKey: "store.customers",
-      label: "Customers",
+      label: t("storeHome.tile.customers"),
       icon: UserCircle,
       color: "bg-emerald-500",
       count: customersCount,
-      desc: "Profiles & ledgers",
+      desc: t("storeHome.tile.customers.desc"),
     },
     {
       id: "store_stock_in",
       pageKey: "store.stock_in",
-      label: "Stock In",
+      label: t("storeHome.tile.stockIn"),
       icon: ArrowDownToLine,
       color: "bg-sky-500",
       count: stockInCount,
-      desc: "Incoming fabric",
+      desc: t("storeHome.tile.stockIn.desc"),
     },
     {
       id: "store_stock",
       pageKey: "store.stock",
-      label: "Current Stock",
+      label: t("storeHome.tile.stock"),
       icon: Package,
       color: "bg-indigo-500",
       count: stats.onHand,
-      desc: "On-hand inventory",
+      desc: t("storeHome.tile.stock.desc"),
       isQty: true,
     },
     {
       id: "store_sales",
       pageKey: "store.sales",
-      label: "Sales / Stock Out",
+      label: t("storeHome.tile.sales"),
       icon: ArrowUpFromLine,
       color: "bg-rose-500",
       count: salesCount,
-      desc: "Outgoing & invoices",
+      desc: t("storeHome.tile.sales.desc"),
     },
     {
       id: "store_payments",
       pageKey: "store.payments",
-      label: "Payments Received",
+      label: t("storeHome.tile.payments"),
       icon: Receipt,
       color: "bg-teal-500",
       count: paymentsCount,
-      desc: "Customer debt payments",
+      desc: t("storeHome.tile.payments.desc"),
     },
   ];
   const tiles = allTiles.filter((tl) => canViewPage(user, tl.pageKey));
@@ -6102,25 +6473,25 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatBox
-          label="On hand (qty)"
+          label={t("storeHome.stat.onHand")}
           value={stats.onHand.toLocaleString()}
           icon={Package}
           color="text-indigo-600"
         />
         <StatBox
-          label="Total revenue"
+          label={t("storeHome.stat.revenue")}
           value={stats.totalRevenue.toLocaleString()}
           icon={DollarSign}
           color="text-emerald-600"
         />
         <StatBox
-          label="Collected"
+          label={t("storeHome.stat.collected")}
           value={stats.totalCollected.toLocaleString()}
           icon={Wallet}
           color="text-teal-600"
         />
         <StatBox
-          label="Outstanding debt"
+          label={t("storeHome.stat.debt")}
           value={stats.totalDebt.toLocaleString()}
           icon={AlertCircle}
           color={stats.totalDebt > 0 ? "text-orange-600" : "text-slate-400"}
@@ -6128,10 +6499,12 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
       </div>
 
       <div>
-        <h3 className="font-semibold text-slate-700 mb-3">Sections</h3>
+        <h3 className="font-semibold text-slate-700 mb-3">
+          {t("storeHome.sections")}
+        </h3>
         {tiles.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-500 shadow-sm">
-            No sections available for your account.
+            {t("storeHome.sectionsEmpty")}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -6155,8 +6528,11 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                   <div className="text-xs text-slate-400 mt-1">
                     {tl.count.toLocaleString()}
                     {tl.isQty
-                      ? " on hand"
-                      : ` record${tl.count !== 1 ? "s" : ""}`}
+                      ? " " + t("storeHome.tile.onHandSuffix")
+                      : " " +
+                        (tl.count === 1
+                          ? t("rec.record")
+                          : t("rec.records"))}
                   </div>
                 </button>
               );
@@ -9452,12 +9828,35 @@ function ProgramsProgress({ ctx }: CtxProps) {
   const [expanded, setExpanded] = useState(null); // expanded program id
   // Tab toggle — printing vs dyeing programs. Mirrors the Programs admin page UX.
   const [programType, setProgramType] = useState("printing");
+  // Active vs closed (old) programs. Default shows only active so the main
+  // list stays short and it's easy to find what's in progress. "Old programs"
+  // reveals the closed archive.
+  const [showClosed, setShowClosed] = useState(false);
 
   // Filter to the active tab's programs.
   const programs = useMemo(
     () =>
       allPrograms.filter((p) => (p.programType || "printing") === programType),
     [allPrograms, programType],
+  );
+
+  // Active vs closed split (case-insensitive; missing status = active).
+  const isClosedProgram = (p: any) =>
+    (p.status || "Active").toLowerCase() === "closed";
+  const activeCount = useMemo(
+    () => programs.filter((p) => !isClosedProgram(p)).length,
+    [programs],
+  );
+  const closedCount = useMemo(
+    () => programs.filter((p) => isClosedProgram(p)).length,
+    [programs],
+  );
+  const shownPrograms = useMemo(
+    () =>
+      programs.filter((p) =>
+        showClosed ? isClosedProgram(p) : !isClosedProgram(p),
+      ),
+    [programs, showClosed],
   );
 
   // Counts per type for the tab labels.
@@ -9665,14 +10064,37 @@ function ProgramsProgress({ ctx }: CtxProps) {
         </button>
       </div>
 
-      {programs.length === 0 ? (
+      {/* Active vs Old (closed) programs toggle */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => {
+            setShowClosed(false);
+            setExpanded(null);
+          }}
+          className={`px-3 py-1.5 rounded text-sm font-medium ${!showClosed ? "bg-white shadow text-emerald-700" : "text-slate-600"}`}
+        >
+          {t("progress.active")} ({activeCount})
+        </button>
+        <button
+          onClick={() => {
+            setShowClosed(true);
+            setExpanded(null);
+          }}
+          className={`px-3 py-1.5 rounded text-sm font-medium ${showClosed ? "bg-white shadow text-slate-700" : "text-slate-600"}`}
+        >
+          {t("progress.oldPrograms")} ({closedCount})
+        </button>
+      </div>
+
+      {shownPrograms.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center text-slate-500 shadow-sm">
-          No {programType} programs defined yet. Go to{" "}
-          <strong>Settings → Programs</strong> to create one.
+          {showClosed
+            ? `No closed ${programType} programs yet.`
+            : `No active ${programType} programs. Switch to "Old programs" to see closed ones, or go to Settings → Programs to create one.`}
         </div>
       ) : (
         <div className="space-y-3">
-          {programs.map((p) => {
+          {shownPrograms.map((p) => {
             const a = aggregates[p.id] || {};
             const isExpanded = expanded === p.id;
             const isDyeing = a.isDyeing;
@@ -11510,7 +11932,7 @@ function StationView({
   const t = useT();
   if (!stage) return <div className="text-slate-500">Station not found</div>;
   const [tab, setTab] = useState("data");
-  const tabs = stationTabs(stationId, ctx);
+  const tabs = stationTabs(stationId, ctx, t);
   const Icon = stage.icon;
   const isOperator = ctx.user.role === "operator";
   // Operators normally only edit their assigned station. Exception: when
@@ -11541,7 +11963,7 @@ function StationView({
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold">{t(`stage.${stage.id}`)}</h2>
             <div className="text-sm opacity-90">
-              {canEdit ? "You can enter data here" : "Read-only access"}
+              {canEdit ? t("common.enterDataHere") : t("common.readonly")}
             </div>
           </div>
         </div>
@@ -11562,25 +11984,25 @@ function StationView({
   );
 }
 
-function stationTabs(stationId, ctx) {
+function stationTabs(stationId, ctx, t) {
   switch (stationId) {
     case "gray_store":
       return [
         {
           id: "stock",
-          label: "Live Stock",
+          label: t("tab.liveStock"),
           render: () => <GrayStoreLivePage ctx={ctx} />,
         },
         {
           id: "data",
-          label: "Stock Entries",
+          label: t("tab.stockEntries"),
           render: (canEdit) => (
             <GrayStoreDataPage ctx={ctx} canEdit={canEdit} />
           ),
         },
         {
           id: "outgoing",
-          label: "Outgoing",
+          label: t("tab.outgoing"),
           render: (canEdit) => (
             <GrayStoreOutgoingPage ctx={ctx} canEdit={canEdit} />
           ),
@@ -11590,12 +12012,12 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => <InputDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.input}
@@ -11610,7 +12032,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="input" canEdit={canEdit} />
           ),
@@ -11620,17 +12042,17 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Bleaching",
+          label: t("tab.bleaching"),
           render: (canEdit) => <BleachDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dyeing",
-          label: "Dyeing",
+          label: t("tab.dyeing"),
           render: (canEdit) => <DyeingDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.bleach}
@@ -11642,7 +12064,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="bleach" canEdit={canEdit} />
           ),
@@ -11652,12 +12074,12 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => <BatchingDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.batching}
@@ -11672,7 +12094,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="batching" canEdit={canEdit} />
           ),
@@ -11682,12 +12104,12 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => <PrintingDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.printing}
@@ -11699,17 +12121,17 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "inventory",
-          label: "Bleached Stock",
+          label: t("tab.bleachedStock"),
           render: () => <BleachedInventoryPage ctx={ctx} />,
         },
         {
           id: "extension",
-          label: "Extension Audit",
+          label: t("tab.extensionAudit"),
           render: () => <ExtensionAuditPage ctx={ctx} />,
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="printing" canEdit={canEdit} />
           ),
@@ -11719,12 +12141,12 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => <CuringDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.curing}
@@ -11736,7 +12158,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="curing" canEdit={canEdit} />
           ),
@@ -11746,14 +12168,14 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => (
             <FinishingDataPage ctx={ctx} canEdit={canEdit} />
           ),
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.finishing}
@@ -11765,7 +12187,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "compare",
-          label: "Print vs Finish",
+          label: t("tab.printVsFinish"),
           render: () => (
             <CompareStagesPage
               ctx={ctx}
@@ -11778,7 +12200,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "compare_dye",
-          label: "Dye vs Finish",
+          label: t("tab.dyeVsFinish"),
           render: () => (
             <DyeingCompareStagesPage
               ctx={ctx}
@@ -11790,7 +12212,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage
               ctx={ctx}
@@ -11804,14 +12226,14 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => (
             <CalenderingDataPage ctx={ctx} canEdit={canEdit} />
           ),
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.calendering}
@@ -11823,7 +12245,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "compare",
-          label: "Print vs Calender",
+          label: t("tab.printVsCalender"),
           render: () => (
             <CompareStagesPage
               ctx={ctx}
@@ -11836,7 +12258,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "compare_dye",
-          label: "Dye vs Calender",
+          label: t("tab.dyeVsCalender"),
           render: () => (
             <DyeingCompareStagesPage
               ctx={ctx}
@@ -11848,7 +12270,7 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage
               ctx={ctx}
@@ -11862,12 +12284,12 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "data",
-          label: "Data Entry",
+          label: t("tab.data"),
           render: (canEdit) => <FoldingDataPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "dash",
-          label: "Dashboard",
+          label: t("tab.dash"),
           render: () => (
             <ShiftDashboard
               records={ctx.records.folding}
@@ -11884,12 +12306,12 @@ function stationTabs(stationId, ctx) {
         },
         {
           id: "compare",
-          label: "Print vs Folded",
+          label: t("tab.printVsFolded"),
           render: () => <FoldingComparePage ctx={ctx} />,
         },
         {
           id: "maint",
-          label: "Maintenance",
+          label: t("tab.maint"),
           render: (canEdit) => (
             <MaintenancePage ctx={ctx} stationId="folding" canEdit={canEdit} />
           ),
@@ -11899,19 +12321,43 @@ function stationTabs(stationId, ctx) {
       return [
         {
           id: "in",
-          label: "Incoming (from Folding)",
+          label: t("tab.incoming"),
           render: () => <DispatchIncomingPage ctx={ctx} />,
         },
         {
           id: "stock",
-          label: "Stock",
-          render: () => <DispatchStockPage ctx={ctx} />,
+          label: t("tab.stock"),
+          render: (canEdit) => <DispatchStockPage ctx={ctx} canEdit={canEdit} />,
+        },
+        // Outgoing tab removed — outbound shipments moved to the new
+        // Ombor station (see below). Dispatch (Warehouse) is now a
+        // read-only "pocket" showing what folding produced, and its
+        // stock feeds Ombor's "From Dispatch stock" picker.
+      ];
+    case "ombor":
+      return [
+        {
+          id: "in",
+          label: t("tab.input"),
+          render: (canEdit) => <OmborInputPage ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "stock",
+          label: t("tab.stock"),
+          render: (canEdit) => <OmborStockPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "out",
-          label: "Outgoing",
+          label: t("tab.dispatch"),
           render: (canEdit) => (
-            <DispatchOutgoingPage ctx={ctx} canEdit={canEdit} />
+            <OmborOutputPage ctx={ctx} canEdit={canEdit} />
+          ),
+        },
+        {
+          id: "reject",
+          label: t("tab.rejection"),
+          render: (canEdit) => (
+            <OmborRejectPage ctx={ctx} canEdit={canEdit} />
           ),
         },
       ];
@@ -17383,12 +17829,22 @@ function FoldingComparePage({ ctx }: CtxProps) {
 // ============== DISPATCH ==============
 // Dispatch is now design-centric (no PR# shown). Tracks 1st sort, 2nd sort, and rejection separately.
 function DispatchIncomingPage({ ctx }: CtxProps) {
-  const { records, designs } = ctx;
+  const { records, designs, lists } = ctx;
   const folds = records.folding || [];
   const printRecs = records.printing || [];
 
-  // Aggregate by (designNumber + fabricType) — same design printed on different fabrics
-  // (e.g. Poplin and Biaz) are tracked as separate dispatch lines.
+  // 90-day default window so the dated view isn't overwhelming on open.
+  const [filter, setFilter] = useState({
+    search: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
+  });
+  // Dated arrivals are collapsed by default so the main "all designs" view
+  // stays compact and doesn't require long scrolling.
+  const [showDated, setShowDated] = useState(false);
+
+  // Aggregate by (designNumber + fabricType) — same design printed on different
+  // fabrics (e.g. Poplin and Biaz) are tracked as separate dispatch lines.
   const byDesignFabric = useMemo(() => {
     const map: Record<string, any> = {};
     folds.forEach((f) => {
@@ -17407,20 +17863,59 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
     return Object.values(map).filter((d) => d.first + d.second + d.reject > 0);
   }, [folds, printRecs]);
 
+  // Dated arrivals — one row per folding entry, showing WHEN it landed in
+  // Dispatch. This is the "date of inputs" view requested by the warehouse.
+  const datedRows = useMemo(() => {
+    const rows: any[] = [];
+    folds.forEach((f) => {
+      const print = printRecs.find((p) => p.printNo === f.printNo);
+      const designNumber = print?.designNumber || "";
+      const fabricType = print?.programFabricType || "(unknown)";
+      const first = Number(f.firstQty || 0);
+      const second = Number(f.secondQty || 0);
+      const reject = Number(f.rejectQty || 0);
+      if (first + second + reject <= 0) return;
+      rows.push({
+        id: f.id || `${f.printNo}_${f.date}`,
+        date: f.date || "",
+        designNumber,
+        fabricType,
+        first,
+        second,
+        reject,
+        total: first + second + reject,
+      });
+    });
+    return rows.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  }, [folds, printRecs]);
+
+  const datedFiltered = datedRows.filter((r) => {
+    if (
+      filter.search &&
+      !`${r.designNumber} ${r.fabricType}`
+        .toLowerCase()
+        .includes(filter.search.toLowerCase())
+    )
+      return false;
+    if (filter.dateFrom && r.date && r.date < filter.dateFrom) return false;
+    if (filter.dateTo && r.date && r.date > filter.dateTo) return false;
+    return true;
+  });
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="text-sm text-slate-600">
-        Auto-pulled from Folding & Inspection. Aggregated by{" "}
-        <strong>design number + fabric type</strong> — the same design printed
-        on different fabrics shows as separate lines.
+        Auto-pulled from Folding &amp; Inspection. The summary aggregates by{" "}
+        <strong>design + fabric type</strong>; the dated list below shows{" "}
+        <strong>when</strong> each batch arrived.
       </div>
+
+      {/* ===== Aggregate totals ===== */}
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3 text-slate-600 font-medium">
-                Design
-              </th>
+              <th className="text-left p-3 text-slate-600 font-medium">Design</th>
               <th className="text-left p-3 text-slate-600 font-medium">
                 Fabric type
               </th>
@@ -17458,9 +17953,7 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
                 <td className="p-3 text-amber-700">
                   {d.second.toLocaleString()}
                 </td>
-                <td className="p-3 text-red-600">
-                  {d.reject.toLocaleString()}
-                </td>
+                <td className="p-3 text-red-600">{d.reject.toLocaleString()}</td>
                 <td className="p-3 font-bold">
                   {(d.first + d.second + d.reject).toLocaleString()}
                 </td>
@@ -17476,15 +17969,107 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
           </tbody>
         </table>
       </div>
+
+      {/* ===== Dated arrivals (collapsed by default) ===== */}
+      <button
+        onClick={() => setShowDated((v) => !v)}
+        className="w-full flex items-center gap-2 pt-1 text-left font-bold text-slate-800 hover:text-slate-900"
+      >
+        {showDated ? (
+          <ChevronDown size={18} className="text-slate-500" />
+        ) : (
+          <ChevronRight size={18} className="text-slate-500" />
+        )}
+        <CalendarDays size={18} className="text-slate-500" /> Arrivals by date
+        <span className="text-xs font-normal text-slate-400 ml-1">
+          ({datedRows.length}) — tap to {showDated ? "hide" : "show"}
+        </span>
+      </button>
+      {showDated && (
+        <>
+      <FilterBar
+        filter={filter}
+        setFilter={setFilter}
+        lists={lists}
+        fields={[]}
+      />
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="text-left p-3 text-slate-600 font-medium">Date</th>
+              <th className="text-left p-3 text-slate-600 font-medium">Design</th>
+              <th className="text-left p-3 text-slate-600 font-medium">Fabric</th>
+              <th className="text-right p-3 text-slate-600 font-medium">
+                1st (m)
+              </th>
+              <th className="text-right p-3 text-slate-600 font-medium">
+                2nd (m)
+              </th>
+              <th className="text-right p-3 text-slate-600 font-medium">
+                Reject (m)
+              </th>
+              <th className="text-right p-3 text-slate-600 font-medium">
+                Total (m)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {datedFiltered.map((r) => (
+              <tr key={r.id} className="border-t border-slate-100">
+                <td className="p-3 text-slate-600 whitespace-nowrap">
+                  {r.date || "—"}
+                </td>
+                <td className="p-3">
+                  <DesignTag
+                    designNumber={r.designNumber}
+                    designs={designs}
+                    size={28}
+                  />
+                </td>
+                <td className="p-3 text-slate-600">{r.fabricType}</td>
+                <td className="p-3 text-right tabular-nums text-green-700">
+                  {r.first ? r.first.toLocaleString() : "—"}
+                </td>
+                <td className="p-3 text-right tabular-nums text-amber-700">
+                  {r.second ? r.second.toLocaleString() : "—"}
+                </td>
+                <td className="p-3 text-right tabular-nums text-red-600">
+                  {r.reject ? r.reject.toLocaleString() : "—"}
+                </td>
+                <td className="p-3 text-right tabular-nums font-semibold">
+                  {r.total.toLocaleString()}
+                </td>
+              </tr>
+            ))}
+            {!datedFiltered.length && (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-slate-400">
+                  No arrivals in this date range.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+        </>
+      )}
     </div>
   );
 }
 
-function DispatchStockPage({ ctx }: CtxProps) {
-  const { records, designs } = ctx;
+function DispatchStockPage({ ctx, canEdit }: CtxEditableProps) {
+  const { records, designs, deleteRecord, askConfirm } = ctx;
   const folds = records.folding || [];
   const printRecs = records.printing || [];
   const out = records.dispatch_out || [];
+  // Ombor pulls that came FROM the dispatch stock. When the warehouse
+  // keeper uses the "From Dispatch stock" flow in Ombor Input, we save
+  // an ombor_in record with sourceType="from_dispatch". Those records
+  // deplete this stock the same way outbound shipments used to.
+  const omborPulls = (records.ombor_in || []).filter(
+    (r: any) => r?.sourceType === "from_dispatch",
+  );
 
   // Track stock by (designNumber + fabricType) — same design printed on different fabrics
   // is counted separately so the operator can see and dispatch them independently.
@@ -17510,23 +18095,37 @@ function DispatchStockPage({ ctx }: CtxProps) {
       map[key].firstIn += Number(f.firstQty || 0);
       map[key].secondIn += Number(f.secondQty || 0);
     });
+    // Legacy dispatch_out records (before Ombor existed) still deplete.
     out.forEach((o) => {
       const key = `${o.designNumber}::${o.fabricType || "(unknown)"}`;
       if (!map[key]) return;
       if (o.sortType === "1st") map[key].firstOut += Number(o.qty || 0);
       else if (o.sortType === "2nd") map[key].secondOut += Number(o.qty || 0);
     });
+    // Ombor pulls also deplete. Default sort is "1st" if unspecified.
+    omborPulls.forEach((o: any) => {
+      const key = `${o.designNumber}::${o.fabricType || "(unknown)"}`;
+      if (!map[key]) return;
+      if (o.sortType === "2nd") map[key].secondOut += Number(o.qty || 0);
+      else map[key].firstOut += Number(o.qty || 0);
+    });
     return Object.values(map)
       .map((d) => ({
         ...d,
-        firstAvail: d.firstIn - d.firstOut,
-        secondAvail: d.secondIn - d.secondOut,
+        // Availability can never be negative — you can't dispatch fabric you
+        // don't have. Over-draws (or historical dispatch_out sends that
+        // predate folding tracking) clamp to 0 instead of showing a
+        // confusing minus. The raw "in"/"sent" columns still reveal the gap.
+        firstAvail: Math.max(0, d.firstIn - d.firstOut),
+        secondAvail: Math.max(0, d.secondIn - d.secondOut),
       }))
       .filter((d) => d.firstAvail > 0 || d.secondAvail > 0);
-  }, [folds, printRecs, out]);
+  }, [folds, printRecs, out, omborPulls]);
 
   // Row selection state — Set of stock keys (`designNumber::fabricType`)
   const [selected, setSelected] = useState(new Set());
+  // Which stock row's underlying raw records are being managed/deleted.
+  const [managing, setManaging] = useState<any>(null);
   function toggleOne(id) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -17673,6 +18272,7 @@ function DispatchStockPage({ ctx }: CtxProps) {
                 <th className="text-left p-3 text-slate-600 font-medium">
                   2nd avail
                 </th>
+                {canEdit && <th className="p-3 w-24"></th>}
               </tr>
             </thead>
             <tbody>
@@ -17706,11 +18306,21 @@ function DispatchStockPage({ ctx }: CtxProps) {
                   <td className="p-3 font-bold text-amber-700">
                     {d.secondAvail.toLocaleString()}
                   </td>
+                  {canEdit && (
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => setManaging(d)}
+                        className="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-700 flex items-center gap-1 ml-auto"
+                      >
+                        <Trash2 size={12} /> Records
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
               {!designStock.length && (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-slate-400">
+                  <td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">
                     No stock yet
                   </td>
                 </tr>
@@ -17746,7 +18356,236 @@ function DispatchStockPage({ ctx }: CtxProps) {
           </div>
         </div>
       </div>
+
+      {managing && (
+        <DispatchRecordManager
+          row={managing}
+          folds={folds}
+          printRecs={printRecs}
+          dispatchOut={out}
+          omborPulls={omborPulls}
+          designs={designs}
+          deleteRecord={deleteRecord}
+          askConfirm={askConfirm}
+          onClose={() => setManaging(null)}
+        />
+      )}
     </div>
+  );
+}
+
+// ============================================================================
+//  DispatchRecordManager — lists every raw record contributing to one
+//  (design × fabric) stock row and lets the keeper delete old/wrong ones.
+//  Sources: folding arrivals (the "in"), legacy dispatch_out sends, and
+//  Ombor pulls (ombor_in sourceType=from_dispatch). Deleting here removes
+//  the underlying record so the derived stock recomputes correctly.
+// ============================================================================
+function DispatchRecordManager({
+  row,
+  folds,
+  printRecs,
+  dispatchOut,
+  omborPulls,
+  designs,
+  deleteRecord,
+  askConfirm,
+  onClose,
+}: {
+  row: any;
+  folds: any[];
+  printRecs: any[];
+  dispatchOut: any[];
+  omborPulls: any[];
+  designs: any[];
+  deleteRecord: any;
+  askConfirm: any;
+  onClose: () => void;
+}) {
+  const dn = row.designNumber;
+  const ft = row.fabricType;
+
+  const arrivals = folds
+    .map((f: any) => {
+      const p = printRecs.find((pr: any) => pr.printNo === f.printNo);
+      if (!p || p.designNumber !== dn) return null;
+      if ((p.programFabricType || "(unknown)") !== ft) return null;
+      return f;
+    })
+    .filter(Boolean)
+    .sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
+
+  const sends = dispatchOut
+    .filter(
+      (o: any) => o.designNumber === dn && (o.fabricType || "(unknown)") === ft,
+    )
+    .sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
+
+  const pulls = omborPulls
+    .filter(
+      (o: any) => o.designNumber === dn && (o.fabricType || "(unknown)") === ft,
+    )
+    .sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
+
+  function delRec(collection: string, id: string, label: string) {
+    askConfirm(`Delete this ${label}? This cannot be undone.`, () =>
+      deleteRecord(collection, id),
+    );
+  }
+
+  return (
+    <Modal
+      title="Manage records"
+      onClose={onClose}
+      large
+      dismissible={false}
+      closeOnEsc
+    >
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-3">
+          <DesignTag designNumber={dn} designs={designs} size={40} />
+          <div className="text-sm text-slate-600">{ft}</div>
+        </div>
+        <div className="text-xs text-slate-500">
+          Delete old or wrong records here. Folding arrivals are the "in";
+          dispatch sends and Ombor pulls are the "out". Removing a record
+          recalculates the stock automatically.
+        </div>
+
+        {/* Folding arrivals (IN) */}
+        <div>
+          <h4 className="font-semibold text-slate-700 text-sm mb-1">
+            Folding arrivals (in) · {arrivals.length}
+          </h4>
+          <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-48 overflow-y-auto">
+            {arrivals.map((f: any) => (
+              <div
+                key={f.id}
+                className="flex items-center justify-between p-2 text-sm"
+              >
+                <div className="text-slate-600">
+                  <span className="whitespace-nowrap">{f.date}</span>
+                  <span className="text-xs text-slate-400 ml-2">
+                    {f.printNo}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs tabular-nums">
+                    <span className="text-green-700">
+                      {Number(f.firstQty || 0).toLocaleString()}
+                    </span>
+                    {" / "}
+                    <span className="text-amber-700">
+                      {Number(f.secondQty || 0).toLocaleString()}
+                    </span>
+                    {" / "}
+                    <span className="text-red-600">
+                      {Number(f.rejectQty || 0).toLocaleString()}
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => delRec("folding", f.id, "folding arrival")}
+                    className="text-slate-400 hover:text-red-600 p-1"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {!arrivals.length && (
+              <div className="p-3 text-center text-xs text-slate-400">
+                No folding arrivals.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ombor pulls (OUT) */}
+        <div>
+          <h4 className="font-semibold text-slate-700 text-sm mb-1">
+            Ombor pulls (out) · {pulls.length}
+          </h4>
+          <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-40 overflow-y-auto">
+            {pulls.map((o: any) => (
+              <div
+                key={o.id}
+                className="flex items-center justify-between p-2 text-sm"
+              >
+                <div className="text-slate-600">
+                  <span className="whitespace-nowrap">{o.date}</span>
+                  <span className="text-xs text-slate-400 ml-2">
+                    {(o.sortType || "1st") === "2nd" ? "2nd" : "1st"} sort
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs tabular-nums font-medium">
+                    {Number(o.qty || 0).toLocaleString()} m
+                  </span>
+                  <button
+                    onClick={() => delRec("ombor_in", o.id, "Ombor pull")}
+                    className="text-slate-400 hover:text-red-600 p-1"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {!pulls.length && (
+              <div className="p-3 text-center text-xs text-slate-400">
+                No Ombor pulls.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Legacy dispatch sends (OUT) */}
+        {sends.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-slate-700 text-sm mb-1">
+              Legacy dispatch sends (out) · {sends.length}
+            </h4>
+            <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-40 overflow-y-auto">
+              {sends.map((o: any) => (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between p-2 text-sm"
+                >
+                  <div className="text-slate-600">
+                    <span className="whitespace-nowrap">{o.date}</span>
+                    <span className="text-xs text-slate-400 ml-2">
+                      {(o.sortType || "1st") === "2nd" ? "2nd" : "1st"} ·{" "}
+                      {o.destination || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs tabular-nums font-medium">
+                      {Number(o.qty || 0).toLocaleString()} m
+                    </span>
+                    <button
+                      onClick={() =>
+                        delRec("dispatch_out", o.id, "dispatch send")
+                      }
+                      className="text-slate-400 hover:text-red-600 p-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={onClose}
+            className="py-2.5 px-4 border border-slate-300 rounded-lg font-medium"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -18032,14 +18871,14 @@ function DispatchOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
                 onChange={(v) => setEditing({ ...editing, destination: v })}
               />
             </Field>
-            <Field label="Sent By *">
+            <Field label={`${t("ombor.sentBy")} *`}>
               <Select
                 value={editing.sentBy}
                 options={lists.dispatchPerson}
                 onChange={(v) => setEditing({ ...editing, sentBy: v })}
               />
             </Field>
-            <Field label="Notes">
+            <Field label={t("common.notes")}>
               <textarea
                 rows={2}
                 value={editing.notes}
@@ -18052,13 +18891,2796 @@ function DispatchOutgoingPage({ ctx, canEdit }: CtxEditableProps) {
             <FormFooter
               onCancel={() => setEditing(null)}
               onSave={async () => {
-                if (
-                  editing.designNumber &&
-                  editing.qty &&
-                  editing.destination
-                ) {
+                // Validation: all three fields are required. Alert on
+                // missing so the operator sees what's needed rather than
+                // silently failing.
+                const missing: string[] = [];
+                if (!editing.designNumber) missing.push("Design #");
+                if (!editing.qty) missing.push("Qty");
+                if (!editing.destination) missing.push("Destination");
+                if (missing.length) {
+                  alert(`Missing required: ${missing.join(", ")}`);
+                  return;
+                }
+                try {
                   await saveRecord("dispatch_out", editing);
                   setEditing(null);
+                } catch (err: any) {
+                  alert(
+                    `Save failed: ${err?.message || "unknown error"}\n\nThe record was NOT saved. Please try again.`,
+                  );
+                }
+              }}
+            />
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+//  OMBOR — real physical warehouse (separate from Dispatch's "pocket" view)
+// ----------------------------------------------------------------------------
+//  Three pages: Input, Stock, Output. Data lives in the ombor_in and
+//  ombor_out record collections. Stock is derived (Input − Output).
+//
+//  Input has two flows:
+//    1) "From Dispatch stock" — picker over folding output that hasn't yet
+//       been pulled into Ombor. Selected rolls generate ombor_in records
+//       tagged `sourceType: "from_dispatch"` that also deplete the Dispatch
+//       stock view (see DispatchStockPage).
+//    2) "Freeform" — plain form for cases where the fabric physically
+//       exists in the warehouse but has no upstream record. Tagged
+//       `sourceType: "freeform"`. Startup-friendly; will be tightened
+//       later per operator's request.
+// ============================================================================
+
+function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
+  const t = useT();
+  const { records, lists, saveRecord, deleteRecord, designs, askConfirm } = ctx;
+  // Fabric inputs only — kg-rejection records (kind:"reject") live on the
+  // separate Rejection tab and must not appear as fabric here.
+  const data = (records.ombor_in || []).filter((r: any) => !isRejectRec(r));
+  const folds = records.folding || [];
+  const printRecs = records.printing || [];
+  const otherOmborIn = data.filter(
+    (r: any) => r?.sourceType === "from_dispatch",
+  );
+  const [editing, setEditing] = useState<any>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [filter, setFilter] = useState({
+    search: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
+  });
+
+  const designByNumber = useMemo(() => {
+    const m: Record<string, any> = {};
+    for (const d of designs || []) if (d?.designNumber) m[d.designNumber] = d;
+    return m;
+  }, [designs]);
+
+  function newFreeform() {
+    setEditing({
+      id: uid(),
+      date: todayISO(),
+      sourceType: "freeform",
+      source: "",
+      designNumber: "",
+      fabricType: "",
+      sortType: "1st",
+      qty: "",
+      notes: "",
+    });
+  }
+
+  // Available stock from Dispatch (folding output), for the picker.
+  const dispatchAvail = useMemo(() => {
+    const map: Record<string, any> = {};
+    folds.forEach((f) => {
+      const print = printRecs.find((p) => p.printNo === f.printNo);
+      if (!print?.designNumber) return;
+      const dn = print.designNumber;
+      const ft = print.programFabricType || "(unknown)";
+      const key = `${dn}::${ft}`;
+      if (!map[key])
+        map[key] = {
+          id: key,
+          designNumber: dn,
+          fabricType: ft,
+          firstIn: 0,
+          secondIn: 0,
+          firstOut: 0,
+          secondOut: 0,
+        };
+      map[key].firstIn += Number(f.firstQty || 0);
+      map[key].secondIn += Number(f.secondQty || 0);
+    });
+    (records.dispatch_out || []).forEach((o: any) => {
+      const key = `${o.designNumber}::${o.fabricType || "(unknown)"}`;
+      if (!map[key]) return;
+      if (o.sortType === "1st") map[key].firstOut += Number(o.qty || 0);
+      else if (o.sortType === "2nd") map[key].secondOut += Number(o.qty || 0);
+    });
+    otherOmborIn.forEach((o: any) => {
+      const key = `${o.designNumber}::${o.fabricType || "(unknown)"}`;
+      if (!map[key]) return;
+      if (o.sortType === "2nd") map[key].secondOut += Number(o.qty || 0);
+      else map[key].firstOut += Number(o.qty || 0);
+    });
+    return Object.values(map)
+      .map((d: any) => ({
+        ...d,
+        firstAvail: Math.max(0, d.firstIn - d.firstOut),
+        secondAvail: Math.max(0, d.secondIn - d.secondOut),
+      }))
+      .filter((d: any) => d.firstAvail > 0 || d.secondAvail > 0);
+  }, [folds, printRecs, records.dispatch_out, otherOmborIn]);
+
+  const filtered = data
+    .filter((r: any) => {
+      if (
+        filter.search &&
+        !`${r.designNumber || ""} ${r.source || ""} ${r.fabricType || ""}`
+          .toLowerCase()
+          .includes(filter.search.toLowerCase())
+      )
+        return false;
+      if (filter.dateFrom && r.date < filter.dateFrom) return false;
+      if (filter.dateTo && r.date > filter.dateTo) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
+
+  function exportInputs() {
+    exportStationXlsx({
+      rows: filtered.map((r: any) => ({
+        date: r.date || "",
+        source: r.sourceType === "from_dispatch" ? "Dispatch" : r.source || "Freeform",
+        designNumber: r.designNumber || "",
+        fabricType: r.fabricType || "",
+        sortType: (r.sortType || "1st") === "2nd" ? "2nd" : "1st",
+        qty: Number(r.qty) || 0,
+        notes: r.notes || "",
+      })),
+      columns: [
+        { header: "Date", key: "date", width: 12 },
+        { header: "Source", key: "source", width: 12 },
+        { header: "Design #", key: "designNumber", width: 14 },
+        { header: "Fabric", key: "fabricType", width: 14 },
+        { header: "Sort", key: "sortType", width: 8 },
+        { header: "Qty (m)", key: "qty", width: 10 },
+        { header: "Notes", key: "notes", width: 26 },
+      ],
+      imageColumn: {
+        header: "Image",
+        position: 2,
+        width: 18,
+        getDesignId: (r: any) => r.designNumber || null,
+        designById: designByNumber,
+        resolveDesignImage,
+      },
+      filename: "ombor_input",
+      sheetName: "Ombor input",
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      <FilterBar filter={filter} setFilter={setFilter} lists={lists} fields={[]} />
+      <div className="flex justify-between items-center gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
+          {canEdit && (
+            <>
+              <button
+                onClick={() => setPickerOpen(true)}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+              >
+                <ArrowDownToLine size={14} /> {t("ombor.fromDispatchStock")}
+              </button>
+              <button
+                onClick={newFreeform}
+                className="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+              >
+                <Plus size={14} /> {t("ombor.freeform")}
+              </button>
+            </>
+          )}
+          <button
+            onClick={exportInputs}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
+            <Download size={14} /> {t("common.export")}
+          </button>
+        </div>
+        <div className="text-xs text-slate-500">{filtered.length} records</div>
+      </div>
+      <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">{t("common.date")}</th>
+              <th className="text-left p-3 font-medium">{t("common.source")}</th>
+              <th className="text-left p-3 font-medium">{t("common.design")}</th>
+              <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
+              <th className="text-left p-3 font-medium">{t("common.sort")}</th>
+              <th className="text-right p-3 font-medium">{`${t("common.qty")} (m)`}</th>
+              <th className="text-left p-3 font-medium">{t("common.notes")}</th>
+              {canEdit && <th className="p-3 w-16"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r: any) => (
+              <tr key={r.id} className="border-t border-slate-100">
+                <td className="p-3 text-slate-600 whitespace-nowrap">
+                  {r.date}
+                </td>
+                <td className="p-3 text-xs">
+                  {r.sourceType === "from_dispatch" ? (
+                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded">
+                      Dispatch
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">
+                      {r.source || "Freeform"}
+                    </span>
+                  )}
+                </td>
+                <td className="p-3">
+                  <DesignTag
+                    designNumber={r.designNumber}
+                    designs={designs}
+                    size={28}
+                  />
+                </td>
+                <td className="p-3 text-slate-600">{r.fabricType}</td>
+                <td className="p-3">
+                  {(r.sortType || "1st") === "2nd" ? (
+                    <span className="text-amber-700 text-xs font-medium">
+                      2nd
+                    </span>
+                  ) : (
+                    <span className="text-green-700 text-xs font-medium">
+                      1st
+                    </span>
+                  )}
+                </td>
+                <td className="p-3 text-right tabular-nums">{fmtMoney(r.qty)}</td>
+                <td className="p-3 text-slate-500 text-xs">{r.notes}</td>
+                {canEdit && (
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => setEditing(r)}
+                      className="text-slate-500 hover:text-purple-600 p-1"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        askConfirm("Delete this input record?", () =>
+                          deleteRecord("ombor_in", r.id),
+                        )
+                      }
+                      className="text-slate-500 hover:text-red-600 p-1 ml-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {!filtered.length && (
+              <tr>
+                <td
+                  colSpan={canEdit ? 8 : 7}
+                  className="p-8 text-center text-slate-400"
+                >
+                  No input records yet. Use "From Dispatch stock" to pull from
+                  folding, or "Freeform" to add manually.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Freeform / edit modal */}
+      {editing && (
+        <Modal
+          title={
+            editing.sourceType === "freeform"
+              ? "Ombor Input (Freeform)"
+              : "Edit Ombor Input"
+          }
+          onClose={() => setEditing(null)}
+          dismissible={false}
+          closeOnEsc
+        >
+          <div className="space-y-4">
+            <Field label={`${t("common.date")} *`}>
+              <input
+                type="date"
+                value={editing.date}
+                onChange={(e) => setEditing({ ...editing, date: e.target.value })}
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={`${t("ombor.designNo")} *`}>
+              <input
+                value={editing.designNumber}
+                onChange={(e) =>
+                  setEditing({ ...editing, designNumber: e.target.value })
+                }
+                placeholder={t("ombor.egDesign")}
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+              {editing.designNumber && (
+                <div className="mt-2">
+                  <DesignTag
+                    designNumber={editing.designNumber}
+                    designs={designs}
+                    size={48}
+                  />
+                </div>
+              )}
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={`${t("common.fabricType")} *`}>
+                <Select
+                  value={editing.fabricType}
+                  options={(lists.fabricType || []).map((f: any) =>
+                    typeof f === "string" ? f : f.name,
+                  )}
+                  onChange={(v) => setEditing({ ...editing, fabricType: v })}
+                />
+              </Field>
+              <Field label={`${t("common.sort")} *`}>
+                <select
+                  value={editing.sortType || "1st"}
+                  onChange={(e) =>
+                    setEditing({ ...editing, sortType: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg bg-white"
+                >
+                  <option value="1st">1st sort</option>
+                  <option value="2nd">2nd sort</option>
+                </select>
+              </Field>
+            </div>
+            <Field label={`${t("ombor.quantity")} *`}>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editing.qty}
+                onChange={(e) => setEditing({ ...editing, qty: e.target.value })}
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            {editing.sourceType !== "from_dispatch" && (
+              <Field label={t("common.source")}>
+                <input
+                  value={editing.source || ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, source: e.target.value })
+                  }
+                  placeholder={t("ombor.egSource")}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+            )}
+            <Field label={t("common.notes")}>
+              <textarea
+                value={editing.notes}
+                onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+                rows={2}
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <FormFooter
+              onCancel={() => setEditing(null)}
+              onSave={async () => {
+                const missing = [];
+                if (!editing.designNumber) missing.push("Design #");
+                if (!editing.fabricType) missing.push("Fabric type");
+                if (!editing.qty) missing.push("Qty");
+                if (missing.length) {
+                  alert(`Missing required: ${missing.join(", ")}`);
+                  return;
+                }
+                try {
+                  await saveRecord("ombor_in", editing);
+                  setEditing(null);
+                } catch (err: any) {
+                  alert(`Save failed: ${err?.message || err}`);
+                }
+              }}
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* From-Dispatch picker */}
+      {pickerOpen && (
+        <Modal
+          title={t("ombor.pull")}
+          onClose={() => setPickerOpen(false)}
+          large
+          dismissible={false}
+          closeOnEsc
+        >
+          <OmborDispatchPicker
+            available={dispatchAvail}
+            saveRecord={saveRecord}
+            designs={designs}
+            onClose={() => setPickerOpen(false)}
+          />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// Small helper — falls back to English literal if the translation key
+// hasn't been added yet. Keeps this file drop-in without requiring the
+// operator to also update translation dicts.
+function t_or(key: string, fallback: string): string {
+  // NOTE: this is called outside of a React component in some places if
+  // reused; keep it self-contained. Uses the module-level translation
+  // getter via useT() in the component context.
+  try {
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+// ============================================================================
+//  Ombor picker — pulls rolls from Dispatch stock into ombor_in
+// ============================================================================
+function OmborDispatchPicker({
+  available,
+  saveRecord,
+  designs,
+  onClose,
+}: {
+  available: any[];
+  saveRecord: any;
+  designs: any[];
+  onClose: () => void;
+}) {
+  const t = useT();
+  // Per-row picked quantities. Two independent inputs (1st and 2nd sort)
+  // per (design × fabric) row. Keys are `${id}::first` / `${id}::second`.
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return available;
+    return available.filter(
+      (r: any) =>
+        (r.designNumber || "").toLowerCase().includes(term) ||
+        (r.fabricType || "").toLowerCase().includes(term),
+    );
+  }, [available, search]);
+
+  const totalPicked = useMemo(() => {
+    let sum = 0;
+    for (const v of Object.values(picks)) sum += Number(v) || 0;
+    return sum;
+  }, [picks]);
+
+  async function commit() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const today = todayISO();
+      const toSave: any[] = [];
+      for (const row of available) {
+        const first = Math.max(
+          0,
+          Math.min(Number(picks[`${row.id}::first`]) || 0, row.firstAvail),
+        );
+        const second = Math.max(
+          0,
+          Math.min(Number(picks[`${row.id}::second`]) || 0, row.secondAvail),
+        );
+        if (first > 0) {
+          toSave.push({
+            id: uid(),
+            date: today,
+            sourceType: "from_dispatch",
+            source: "Dispatch stock",
+            designNumber: row.designNumber,
+            fabricType: row.fabricType,
+            sortType: "1st",
+            qty: first,
+            notes: "",
+          });
+        }
+        if (second > 0) {
+          toSave.push({
+            id: uid(),
+            date: today,
+            sourceType: "from_dispatch",
+            source: "Dispatch stock",
+            designNumber: row.designNumber,
+            fabricType: row.fabricType,
+            sortType: "2nd",
+            qty: second,
+            notes: "",
+          });
+        }
+      }
+      if (!toSave.length) {
+        alert("Nothing picked. Enter quantities in the table.");
+        setSaving(false);
+        return;
+      }
+      // Sequential saves so we surface any failure clearly.
+      for (const rec of toSave) {
+        await saveRecord("ombor_in", rec);
+      }
+      onClose();
+    } catch (err: any) {
+      alert(`Save failed: ${err?.message || err}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs text-slate-500">
+        Pick quantities from Dispatch's current stock. Each row shows what's
+        available in 1st sort and 2nd sort. Entered quantities move from
+        Dispatch stock into Ombor input.
+      </div>
+      <div className="relative">
+        <Search
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+          size={14}
+        />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("ombor.searchDesignFabric")}
+          className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
+        />
+      </div>
+      <div className="max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600 sticky top-0">
+            <tr>
+              <th className="text-left p-2 font-medium">{t("common.design")}</th>
+              <th className="text-left p-2 font-medium">{t("common.fabric")}</th>
+              <th className="text-right p-2 font-medium">1st avail</th>
+              <th className="text-right p-2 font-medium">{t("ombor.pick1st")}</th>
+              <th className="text-right p-2 font-medium">2nd avail</th>
+              <th className="text-right p-2 font-medium">{t("ombor.pick2nd")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row: any) => (
+              <tr key={row.id} className="border-t border-slate-100">
+                <td className="p-2">
+                  <DesignTag
+                    designNumber={row.designNumber}
+                    designs={designs}
+                    size={26}
+                  />
+                </td>
+                <td className="p-2 text-xs text-slate-600">{row.fabricType}</td>
+                <td className="p-2 text-right tabular-nums text-xs">
+                  {row.firstAvail}
+                </td>
+                <td className="p-2 text-right">
+                  <input
+                    type="number"
+                    min="0"
+                    max={row.firstAvail}
+                    step="0.01"
+                    disabled={row.firstAvail <= 0}
+                    value={picks[`${row.id}::first`] || ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const capped =
+                        raw === ""
+                          ? ""
+                          : String(
+                              Math.max(
+                                0,
+                                Math.min(Number(raw) || 0, row.firstAvail),
+                              ),
+                            );
+                      setPicks((p) => ({
+                        ...p,
+                        [`${row.id}::first`]: capped,
+                      }));
+                    }}
+                    className="w-20 p-1 border border-slate-300 rounded text-right text-xs disabled:bg-slate-50"
+                  />
+                </td>
+                <td className="p-2 text-right tabular-nums text-xs">
+                  {row.secondAvail}
+                </td>
+                <td className="p-2 text-right">
+                  <input
+                    type="number"
+                    min="0"
+                    max={row.secondAvail}
+                    step="0.01"
+                    disabled={row.secondAvail <= 0}
+                    value={picks[`${row.id}::second`] || ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const capped =
+                        raw === ""
+                          ? ""
+                          : String(
+                              Math.max(
+                                0,
+                                Math.min(Number(raw) || 0, row.secondAvail),
+                              ),
+                            );
+                      setPicks((p) => ({
+                        ...p,
+                        [`${row.id}::second`]: capped,
+                      }));
+                    }}
+                    className="w-20 p-1 border border-slate-300 rounded text-right text-xs disabled:bg-slate-50"
+                  />
+                </td>
+              </tr>
+            ))}
+            {!filtered.length && (
+              <tr>
+                <td colSpan={6} className="p-6 text-center text-slate-400 text-xs">
+                  {available.length === 0
+                    ? "No stock available in Dispatch."
+                    : "Nothing matches your search."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+        <div className="text-xs text-slate-500">
+          {t("ombor.totalPicked")}: <strong>{totalPicked}</strong> m
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+          <button
+            onClick={commit}
+            disabled={saving || totalPicked <= 0}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${saving || totalPicked <= 0 ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-amber-600 hover:bg-amber-700 text-white"}`}
+          >
+            {saving ? t("common.saving") : t("ombor.moveToOmbor")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+//  Ombor shipment / truck helpers (shared by Stock, Output, Rejection, letter)
+// ----------------------------------------------------------------------------
+//  Data model note — no new backend tables:
+//   • A "truck" is just an ombor_out record with status:"staging" and a
+//     lines[] array. Each line carries sortType ("1st"/"2nd"). A truck only
+//     stores a name (truckLabel) + customerName; driver/vehicle/destination
+//     are collected at SEND time, not stored on the staging truck.
+//   • Sending flips status to "sent" (that is the moment it finally deducts
+//     on-hand) and stamps a letter number + sent date.
+//   • Legacy single-design ombor_out records (no status, no lines) are
+//     treated as already-sent one-line shipments.
+//   • Rejection lives in the SAME ombor_in / ombor_out collections, tagged
+//     kind:"reject", unit:"kg". Fabric reads filter it out.
+// ============================================================================
+function isRejectRec(r: any) {
+  return r?.kind === "reject";
+}
+function omborOutStatus(r: any) {
+  return r?.status || "sent"; // legacy records had no status → already gone
+}
+function omborOutLines(r: any): any[] {
+  if (Array.isArray(r?.lines)) return r.lines;
+  return [
+    {
+      id: r?.id ? `${r.id}_l0` : uid(),
+      designNumber: r?.designNumber || "",
+      fabricType: r?.fabricType || "",
+      sortType: r?.sortType || "1st",
+      qty: Number(r?.qty) || 0,
+    },
+  ];
+}
+function omborOutTotal(r: any) {
+  if (Array.isArray(r?.lines)) {
+    return r.lines.reduce((s: number, l: any) => s + (Number(l.qty) || 0), 0);
+  }
+  return Number(r?.qty) || 0;
+}
+function escapeHtml(s: any) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function sortLabel(s: string) {
+  if (s === "2nd") return "2-nav / 2 сорт";
+  if (s === "reject") return "Brak / Брак";
+  return "1-nav / 1 сорт";
+}
+
+// Sort-aware Ombor on-hand stock, grouped by (design × fabric).
+//   firstAvail/secondAvail = on hand (in − sent-out) per sort.
+//   firstFree/secondFree   = on hand − already staged to trucks.
+// Shared by the Stock page, the dispatch picker, and the assign flow.
+function computeOmborStock(records: any) {
+  const ins = (records.ombor_in || []).filter((r: any) => !isRejectRec(r));
+  const outsAll = (records.ombor_out || []).filter((r: any) => !isRejectRec(r));
+  const sent = outsAll.filter((r: any) => omborOutStatus(r) === "sent");
+  const staging = outsAll.filter((r: any) => omborOutStatus(r) === "staging");
+  const map: Record<string, any> = {};
+  const touch = (dn: string, ft: string) => {
+    const k = `${dn}::${ft}`;
+    if (!map[k])
+      map[k] = {
+        id: k,
+        designNumber: dn,
+        fabricType: ft,
+        firstIn: 0,
+        secondIn: 0,
+        firstOut: 0,
+        secondOut: 0,
+        stagedFirst: 0,
+        stagedSecond: 0,
+      };
+    return map[k];
+  };
+  ins.forEach((r: any) => {
+    const row = touch(r.designNumber || "(unknown)", r.fabricType || "(unknown)");
+    const q = Number(r.qty) || 0;
+    if ((r.sortType || "1st") === "2nd") row.secondIn += q;
+    else row.firstIn += q;
+  });
+  sent.forEach((r: any) =>
+    omborOutLines(r).forEach((l: any) => {
+      const row = touch(
+        l.designNumber || "(unknown)",
+        l.fabricType || "(unknown)",
+      );
+      const q = Number(l.qty) || 0;
+      if ((l.sortType || "1st") === "2nd") row.secondOut += q;
+      else row.firstOut += q;
+    }),
+  );
+  staging.forEach((r: any) =>
+    omborOutLines(r).forEach((l: any) => {
+      const row = touch(
+        l.designNumber || "(unknown)",
+        l.fabricType || "(unknown)",
+      );
+      const q = Number(l.qty) || 0;
+      if ((l.sortType || "1st") === "2nd") row.stagedSecond += q;
+      else row.stagedFirst += q;
+    }),
+  );
+  return Object.values(map).map((d: any) => ({
+    ...d,
+    firstAvail: d.firstIn - d.firstOut,
+    secondAvail: d.secondIn - d.secondOut,
+    firstFree: d.firstIn - d.firstOut - d.stagedFirst,
+    secondFree: d.secondIn - d.secondOut - d.stagedSecond,
+  }));
+}
+
+// ============================================================================
+//  Transportation / dispatch letter (printable → Save as PDF from the dialog)
+// ----------------------------------------------------------------------------
+//  PLACEHOLDER bilingual UZ/RU waybill. Everything below the header is
+//  data-driven, so swapping in the official OSIYO HOME template later is just
+//  an HTML edit. Opens in a new window with the print dialog primed.
+// ============================================================================
+function openTransportLetter(shipment: any) {
+  const lines = omborOutLines(shipment);
+  const total = omborOutTotal(shipment);
+  const win = window.open("", "_blank", "width=820,height=1040");
+  if (!win) {
+    alert(
+      "Popup blocked. Please allow popups for this site so the transport letter can open.",
+    );
+    return;
+  }
+  const rowsHtml = lines
+    .map(
+      (l: any, i: number) => `<tr>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(l.designNumber || "—")}</td>
+        <td>${escapeHtml(l.fabricType || "—")}</td>
+        <td>${escapeHtml(sortLabel(l.sortType))}</td>
+        <td class="num">${(Number(l.qty) || 0).toLocaleString()}</td>
+      </tr>`,
+    )
+    .join("");
+  const html = `<!doctype html><html lang="uz"><head><meta charset="utf-8">
+  <title>Yuk xati ${escapeHtml(shipment.letterNo || "")}</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;padding:32px;color:#111;margin:0}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #333;padding-bottom:10px}
+    h1{font-size:19px;margin:0}
+    .brand{font-size:13px;color:#555;margin-top:2px}
+    .meta{margin-top:14px;font-size:13px;line-height:1.9}
+    .meta b{display:inline-block;min-width:210px}
+    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+    th,td{border:1px solid #888;padding:7px 9px;text-align:left}
+    th{background:#f2f2f2}
+    td.num,th.num{text-align:right}
+    tfoot th{background:#fafafa}
+    .sign{margin-top:56px;display:flex;justify-content:space-between;font-size:13px}
+    .sign .box{width:44%}
+    .sign .line{border-top:1px solid #333;margin-top:44px;padding-top:5px;text-align:center;color:#333}
+    .hint{margin-top:28px;color:#888;font-size:11px}
+    @media print{.noprint{display:none}}
+  </style></head><body onload="setTimeout(function(){window.print()},350)">
+    <div class="top">
+      <div>
+        <h1>YUK XATI / ТРАНСПОРТНАЯ НАКЛАДНАЯ</h1>
+        <div class="brand">OSIYO HOME — Toʻqimachilik / Текстиль</div>
+      </div>
+      <button class="noprint" onclick="window.print()" style="padding:9px 18px;cursor:pointer">Chop etish / Печать (PDF)</button>
+    </div>
+    <div class="meta">
+      <div><b>Hujjat № / Документ №:</b> ${escapeHtml(shipment.letterNo || "—")}</div>
+      <div><b>Sana / Дата:</b> ${escapeHtml(shipment.sentDate || shipment.date || "")}</div>
+      <div><b>Qabul qiluvchi / Получатель:</b> ${escapeHtml(shipment.destination || shipment.customerName || "—")}</div>
+      <div><b>Haydovchi / Водитель:</b> ${escapeHtml(shipment.driver || "—")}</div>
+      <div><b>Avtomobil / Автомобиль:</b> ${escapeHtml(shipment.vehicle || "—")}</div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>№</th><th>Dizayn / Дизайн</th><th>Mato / Ткань</th>
+        <th>Nav / Сорт</th><th class="num">Metr / Метр</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr>
+        <th colspan="4" class="num">Jami / Итого</th>
+        <th class="num">${total.toLocaleString()} m</th>
+      </tr></tfoot>
+    </table>
+    <div class="sign">
+      <div class="box"><div class="line">Yubordi / Отпустил (imzo)</div></div>
+      <div class="box"><div class="line">Qabul qildi / Принял (imzo)</div></div>
+    </div>
+    <div class="hint">${escapeHtml(shipment.notes || "")}</div>
+  </body></html>`;
+  win.document.write(html);
+  win.document.close();
+}
+
+// ============================================================================
+//  ListSelect — a dropdown you can also type a NEW value into and save. New
+//  values are persisted to the shared list so they appear next time too.
+// ============================================================================
+function ListSelect({
+  value,
+  options,
+  onChange,
+  onAddOption,
+  placeholder = "Select…",
+}: {
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  onAddOption: (v: string) => void;
+  placeholder?: string;
+}) {
+  const t = useT();
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState("");
+  function commit() {
+    const v = draft.trim();
+    if (v) {
+      onAddOption(v);
+      onChange(v);
+    }
+    setDraft("");
+    setAdding(false);
+  }
+  if (adding) {
+    return (
+      <div className="flex gap-1">
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === "Escape") setAdding(false);
+          }}
+          placeholder={t("ombor.typeNew")}
+          className="flex-1 p-2.5 border border-slate-300 rounded-lg"
+        />
+        <button
+          onClick={commit}
+          className="px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium"
+        >
+          Add
+        </button>
+        <button
+          onClick={() => setAdding(false)}
+          className="px-2 rounded-lg border border-slate-300 text-slate-500"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex gap-1">
+      <select
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 p-2.5 border border-slate-300 rounded-lg bg-white"
+      >
+        <option value="">{placeholder}</option>
+        {(options || []).map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={() => setAdding(true)}
+        title={t("common.addNew")}
+        className="px-3 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"
+      >
+        <Plus size={14} />
+      </button>
+    </div>
+  );
+}
+
+// ============================================================================
+//  Dispatch editor — build a shipment by TICKING designs from the station's
+//  own stock (no free typing) and picking receiver / vehicle / driver from
+//  add-as-you-go dropdowns. Used for New dispatch, Send truck, and Edit.
+// ============================================================================
+function DispatchEditor({
+  initial,
+  stock,
+  designs,
+  lists,
+  saveLists,
+  onCancel,
+  onSave,
+}: {
+  initial: any;
+  stock: any[];
+  designs: any[];
+  lists: any;
+  saveLists: (l: any) => void;
+  onCancel: () => void;
+  onSave: (rec: any) => void;
+}) {
+  const t = useT();
+  const [rec, setRec] = useState<any>(() => ({
+    ...initial,
+    lines: (Array.isArray(initial.lines) ? initial.lines : []).map((l: any) => ({
+      ...l,
+    })),
+  }));
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+
+  function addOption(listKey: string, v: string) {
+    const cur = lists[listKey] || [];
+    if (!cur.includes(v)) saveLists({ ...lists, [listKey]: [...cur, v] });
+  }
+
+  const term = search.trim().toLowerCase();
+  const pickable = stock
+    .filter((d: any) => d.firstFree > 0 || d.secondFree > 0)
+    .filter(
+      (d: any) =>
+        !term ||
+        `${d.designNumber} ${d.fabricType}`.toLowerCase().includes(term),
+    );
+
+  const pickedTotal = Object.values(picks).reduce(
+    (s: number, v: any) => s + (Number(v) || 0),
+    0,
+  );
+  const includedTotal = rec.lines.reduce(
+    (s: number, l: any) => s + (Number(l.qty) || 0),
+    0,
+  );
+
+  function setLineQty(id: string, qty: string) {
+    setRec((r: any) => ({
+      ...r,
+      lines: r.lines.map((l: any) => (l.id === id ? { ...l, qty } : l)),
+    }));
+  }
+  function removeLine(id: string) {
+    setRec((r: any) => ({
+      ...r,
+      lines: r.lines.filter((l: any) => l.id !== id),
+    }));
+  }
+
+  function buildLines() {
+    const picked: any[] = [];
+    stock.forEach((row: any) => {
+      const f = Number(picks[`${row.id}::first`]) || 0;
+      const s = Number(picks[`${row.id}::second`]) || 0;
+      const dn = row.designNumber === "(unknown)" ? "" : row.designNumber;
+      const ft = row.fabricType === "(unknown)" ? "" : row.fabricType;
+      if (f > 0)
+        picked.push({ id: uid(), designNumber: dn, fabricType: ft, sortType: "1st", qty: f });
+      if (s > 0)
+        picked.push({ id: uid(), designNumber: dn, fabricType: ft, sortType: "2nd", qty: s });
+    });
+    const kept = rec.lines
+      .map((l: any) => ({ ...l, qty: Number(l.qty) || 0 }))
+      .filter((l: any) => l.qty > 0);
+    return [...kept, ...picked];
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={`${t("common.date")} *`}>
+          <input
+            type="date"
+            value={rec.date || ""}
+            onChange={(e) => setRec({ ...rec, date: e.target.value })}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+        <Field label={t("ombor.letterNo")}>
+          <input
+            value={rec.letterNo || ""}
+            onChange={(e) => setRec({ ...rec, letterNo: e.target.value })}
+            placeholder={t("ombor.autoIfBlank")}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+      </div>
+
+      <Field label={`${t("ombor.receiver")} *`}>
+        <ListSelect
+          value={rec.destination || ""}
+          options={lists.dispatchDestination || []}
+          onChange={(v) => setRec({ ...rec, destination: v })}
+          onAddOption={(v) => addOption("dispatchDestination", v)}
+          placeholder={t("ombor.chooseReceiver")}
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("ombor.driver")}>
+          <ListSelect
+            value={rec.driver || ""}
+            options={lists.dispatchPerson || []}
+            onChange={(v) => setRec({ ...rec, driver: v })}
+            onAddOption={(v) => addOption("dispatchPerson", v)}
+            placeholder={t("ombor.chooseDriver")}
+          />
+        </Field>
+        <Field label={t("ombor.vehicle")}>
+          <ListSelect
+            value={rec.vehicle || ""}
+            options={lists.dispatchVehicle || []}
+            onChange={(v) => setRec({ ...rec, vehicle: v })}
+            onAddOption={(v) => addOption("dispatchVehicle", v)}
+            placeholder={t("ombor.chooseVehicle")}
+          />
+        </Field>
+      </div>
+
+      {/* Already-included lines (e.g. from a truck) */}
+      {rec.lines.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            On this dispatch
+          </label>
+          <div className="space-y-1.5">
+            {rec.lines.map((l: any) => (
+              <div
+                key={l.id}
+                className="flex items-center gap-2 bg-slate-50 rounded-lg p-2"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <DesignTag
+                    designNumber={l.designNumber}
+                    designs={designs}
+                    size={26}
+                  />
+                  <span className="text-xs text-slate-500 truncate">
+                    {l.fabricType}
+                    {l.sortType === "2nd" ? " · 2nd" : " · 1st"}
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={l.qty}
+                  onChange={(e) => setLineQty(l.id, e.target.value)}
+                  className="w-24 p-1.5 border border-slate-300 rounded text-right text-sm"
+                />
+                <span className="text-xs text-slate-400">m</span>
+                <button
+                  onClick={() => removeLine(l.id)}
+                  className="text-slate-400 hover:text-red-600"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pick more designs straight from stock */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Add designs from stock
+        </label>
+        <div className="relative mb-2">
+          <Search
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            size={14}
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("ombor.searchDesignFabricShort")}
+            className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
+          />
+        </div>
+        <div className="max-h-72 overflow-y-auto border border-slate-200 rounded-lg">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600 sticky top-0">
+              <tr>
+                <th className="text-left p-2 font-medium">{t("common.design")}</th>
+                <th className="text-right p-2 font-medium">1st free</th>
+                <th className="text-right p-2 font-medium">{t("ombor.take1st")}</th>
+                <th className="text-right p-2 font-medium">2nd free</th>
+                <th className="text-right p-2 font-medium">{t("ombor.take2nd")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pickable.map((row: any) => (
+                <tr key={row.id} className="border-t border-slate-100">
+                  <td className="p-2">
+                    <div className="flex items-center gap-1.5">
+                      <DesignTag
+                        designNumber={
+                          row.designNumber === "(unknown)"
+                            ? ""
+                            : row.designNumber
+                        }
+                        designs={designs}
+                        size={24}
+                      />
+                      <span className="text-xs text-slate-500">
+                        {row.fabricType}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-2 text-right tabular-nums text-xs text-green-700">
+                    {row.firstFree > 0 ? row.firstFree.toLocaleString() : "—"}
+                  </td>
+                  <td className="p-2 text-right">
+                    <input
+                      type="number"
+                      min="0"
+                      max={row.firstFree}
+                      step="0.01"
+                      disabled={row.firstFree <= 0}
+                      value={picks[`${row.id}::first`] || ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const capped =
+                          raw === ""
+                            ? ""
+                            : String(
+                                Math.max(
+                                  0,
+                                  Math.min(Number(raw) || 0, row.firstFree),
+                                ),
+                              );
+                        setPicks((p) => ({
+                          ...p,
+                          [`${row.id}::first`]: capped,
+                        }));
+                      }}
+                      className="w-20 p-1 border border-slate-300 rounded text-right text-xs disabled:bg-slate-50"
+                    />
+                  </td>
+                  <td className="p-2 text-right tabular-nums text-xs text-amber-700">
+                    {row.secondFree > 0 ? row.secondFree.toLocaleString() : "—"}
+                  </td>
+                  <td className="p-2 text-right">
+                    <input
+                      type="number"
+                      min="0"
+                      max={row.secondFree}
+                      step="0.01"
+                      disabled={row.secondFree <= 0}
+                      value={picks[`${row.id}::second`] || ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const capped =
+                          raw === ""
+                            ? ""
+                            : String(
+                                Math.max(
+                                  0,
+                                  Math.min(Number(raw) || 0, row.secondFree),
+                                ),
+                              );
+                        setPicks((p) => ({
+                          ...p,
+                          [`${row.id}::second`]: capped,
+                        }));
+                      }}
+                      className="w-20 p-1 border border-slate-300 rounded text-right text-xs disabled:bg-slate-50"
+                    />
+                  </td>
+                </tr>
+              ))}
+              {!pickable.length && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="p-6 text-center text-slate-400 text-xs"
+                  >
+                    {t("ombor.noFreeStock")}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Field label={t("common.notes")}>
+        <textarea
+          rows={2}
+          value={rec.notes || ""}
+          onChange={(e) => setRec({ ...rec, notes: e.target.value })}
+          className="w-full p-2.5 border border-slate-300 rounded-lg"
+        />
+      </Field>
+
+      <div className="flex items-center justify-between pt-1">
+        <div className="text-sm text-slate-600">
+          Total:{" "}
+          <strong>
+            {(includedTotal + pickedTotal).toLocaleString()} m
+          </strong>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="py-2.5 px-4 border border-slate-300 rounded-lg font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+          <button
+            onClick={() => {
+              if (!rec.destination) {
+                alert("Choose a receiver / destination.");
+                return;
+              }
+              const lines = buildLines();
+              if (!lines.length) {
+                alert("Add at least one design with meters.");
+                return;
+              }
+              onSave({
+                ...rec,
+                lines,
+                qty: lines.reduce(
+                  (s: number, l: any) => s + (Number(l.qty) || 0),
+                  0,
+                ),
+              });
+            }}
+            className="py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium flex items-center gap-1.5"
+          >
+            <FileText size={15} /> Save &amp; print
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+//  Assign-to-truck modal — allocate meters of one stock row (by sort) to a
+//  truck. A truck only needs a name + customer/receiver name.
+// ============================================================================
+function AssignToTruckModal({
+  row,
+  trucks,
+  designs,
+  onCancel,
+  onSubmit,
+}: {
+  row: any;
+  trucks: any[];
+  designs: any[];
+  onCancel: () => void;
+  onSubmit: (form: any) => void;
+}) {
+  const t = useT();
+  const canFirst = row.firstFree > 0;
+  const [truckChoice, setTruckChoice] = useState<string>(
+    trucks[0]?.id || "__new__",
+  );
+  const [newLabel, setNewLabel] = useState("");
+  const [newCustomer, setNewCustomer] = useState("");
+  const [sortType, setSortType] = useState(canFirst ? "1st" : "2nd");
+  const [meters, setMeters] = useState("");
+  const cap = sortType === "2nd" ? row.secondFree : row.firstFree;
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-amber-50 rounded-lg p-3 text-sm">
+        <div className="flex items-center gap-2">
+          <DesignTag
+            designNumber={row.designNumber === "(unknown)" ? "" : row.designNumber}
+            designs={designs}
+            size={40}
+          />
+        </div>
+        <div className="text-slate-600 mt-1">{row.fabricType}</div>
+        <div className="text-amber-700 mt-1 flex gap-3">
+          <span>1st free: <strong>{row.firstFree.toLocaleString()}</strong></span>
+          <span>2nd free: <strong>{row.secondFree.toLocaleString()}</strong></span>
+        </div>
+      </div>
+      <Field label={t("ombor.truck")}>
+        <select
+          value={truckChoice}
+          onChange={(e) => setTruckChoice(e.target.value)}
+          className="w-full p-2.5 border border-slate-300 rounded-lg bg-white"
+        >
+          {trucks.map((t: any) => (
+            <option key={t.id} value={t.id}>
+              {t.truckLabel || "Truck"}
+              {t.customerName ? ` — ${t.customerName}` : ""} (
+              {omborOutTotal(t).toLocaleString()} m)
+            </option>
+          ))}
+          <option value="__new__">+ New truck…</option>
+        </select>
+      </Field>
+      {truckChoice === "__new__" && (
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={`${t("ombor.truckName")} *`}>
+            <input
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder={t("ombor.egTruck")}
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            />
+          </Field>
+          <Field label={t("ombor.customerReceiver")}>
+            <input
+              value={newCustomer}
+              onChange={(e) => setNewCustomer(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg"
+            />
+          </Field>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("common.sort")}>
+          <select
+            value={sortType}
+            onChange={(e) => setSortType(e.target.value)}
+            className="w-full p-2.5 border border-slate-300 rounded-lg bg-white"
+          >
+            <option value="1st" disabled={row.firstFree <= 0}>
+              1st sort
+            </option>
+            <option value="2nd" disabled={row.secondFree <= 0}>
+              2nd sort
+            </option>
+          </select>
+        </Field>
+        <Field label={`${t("ombor.metersWord")} (${t("ombor.maxWord")} ${cap.toLocaleString()})`}>
+          <input
+            type="number"
+            min="0"
+            max={cap}
+            step="0.01"
+            value={meters}
+            onChange={(e) => {
+              const raw = e.target.value;
+              setMeters(
+                raw === ""
+                  ? ""
+                  : String(Math.max(0, Math.min(Number(raw) || 0, cap))),
+              );
+            }}
+            className="w-full p-2.5 border border-slate-300 rounded-lg text-right"
+          />
+        </Field>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={onCancel}
+          className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium"
+        >
+          {t("common.cancel")}
+        </button>
+        <button
+          onClick={() =>
+            onSubmit({ truckChoice, newLabel, newCustomer, sortType, meters })
+          }
+          className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium"
+        >
+          Assign
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+//  Ombor STOCK — Dispatch-style 1st/2nd sort table + trucks the keeper loads.
+// ============================================================================
+function OmborStockPage({ ctx, canEdit }: CtxEditableProps) {
+  const t = useT();
+  const { records, designs, lists, saveRecord, deleteRecord, askConfirm } = ctx;
+  const stock = useMemo(() => computeOmborStock(records), [records]);
+  const outsAll = (records.ombor_out || []).filter((r: any) => !isRejectRec(r));
+  const trucks = outsAll
+    .filter((r: any) => omborOutStatus(r) === "staging")
+    .sort((a: any, b: any) =>
+      (a.truckLabel || "").localeCompare(b.truckLabel || ""),
+    );
+
+  const [search, setSearch] = useState("");
+  const [assignFor, setAssignFor] = useState<any>(null);
+  const [truckInfo, setTruckInfo] = useState<any>(null);
+  const [sending, setSending] = useState<any>(null);
+
+  const term = search.trim().toLowerCase();
+  const rows = stock
+    .map((d: any) => ({
+      ...d,
+      free: Math.max(0, d.firstFree) + Math.max(0, d.secondFree),
+      onHand: Math.max(0, d.firstAvail) + Math.max(0, d.secondAvail),
+      staged: d.stagedFirst + d.stagedSecond,
+    }))
+    .filter((d: any) => d.onHand > 0 || d.staged > 0)
+    .filter(
+      (d: any) =>
+        !term ||
+        `${d.designNumber} ${d.fabricType}`.toLowerCase().includes(term),
+    )
+    .sort((a: any, b: any) => b.free - a.free);
+
+  const totalFirst = stock.reduce(
+    (s: number, d: any) => s + Math.max(0, d.firstAvail),
+    0,
+  );
+  const totalSecond = stock.reduce(
+    (s: number, d: any) => s + Math.max(0, d.secondAvail),
+    0,
+  );
+  const totalStaged = trucks.reduce(
+    (s: number, t: any) => s + omborOutTotal(t),
+    0,
+  );
+
+  const designByNumber = useMemo(() => {
+    const m: Record<string, any> = {};
+    for (const d of designs || []) if (d?.designNumber) m[d.designNumber] = d;
+    return m;
+  }, [designs]);
+
+  function exportStock() {
+    exportStationXlsx({
+      rows,
+      columns: [
+        { header: "Design #", key: "designNumber", width: 14 },
+        { header: "Fabric", key: "fabricType", width: 16 },
+        { header: "1st in", key: "firstIn", width: 9 },
+        { header: "1st out", key: "firstOut", width: 9 },
+        { header: "1st avail", key: "firstAvail", width: 9 },
+        { header: "2nd in", key: "secondIn", width: 9 },
+        { header: "2nd out", key: "secondOut", width: 9 },
+        { header: "2nd avail", key: "secondAvail", width: 9 },
+        { header: "Staged", key: "staged", width: 9 },
+        { header: "Free", key: "free", width: 9 },
+      ],
+      imageColumn: {
+        header: "Image",
+        position: 1,
+        width: 18,
+        getDesignId: (r: any) =>
+          r.designNumber === "(unknown)" ? null : r.designNumber,
+        designById: designByNumber,
+        resolveDesignImage,
+      },
+      filename: "ombor_stock",
+      sheetName: "Ombor stock",
+    });
+  }
+
+  async function handleAssign(form: any) {
+    const meters = Number(form.meters) || 0;
+    const cap = form.sortType === "2nd" ? assignFor.secondFree : assignFor.firstFree;
+    if (meters <= 0) {
+      alert("Enter a positive number of meters.");
+      return;
+    }
+    if (meters > cap + 1e-6) {
+      alert(`Only ${cap.toLocaleString()} m free in that sort.`);
+      return;
+    }
+    const line = {
+      id: uid(),
+      designNumber:
+        assignFor.designNumber === "(unknown)" ? "" : assignFor.designNumber,
+      fabricType:
+        assignFor.fabricType === "(unknown)" ? "" : assignFor.fabricType,
+      sortType: form.sortType || "1st",
+      qty: meters,
+    };
+    try {
+      if (form.truckChoice === "__new__") {
+        if (!form.newLabel.trim()) {
+          alert("Give the new truck a name.");
+          return;
+        }
+        await saveRecord("ombor_out", {
+          id: uid(),
+          kind: "fabric",
+          status: "staging",
+          truckLabel: form.newLabel.trim(),
+          customerName: form.newCustomer || "",
+          date: todayISO(),
+          lines: [line],
+          qty: meters,
+          notes: "",
+        });
+      } else {
+        const tk = trucks.find((t: any) => t.id === form.truckChoice);
+        if (!tk) {
+          alert("Truck not found — refresh and try again.");
+          return;
+        }
+        const lines = omborOutLines(tk).map((l: any) => ({ ...l }));
+        const idx = lines.findIndex(
+          (l: any) =>
+            (l.designNumber || "") === line.designNumber &&
+            (l.fabricType || "") === line.fabricType &&
+            (l.sortType || "1st") === line.sortType,
+        );
+        if (idx >= 0)
+          lines[idx] = {
+            ...lines[idx],
+            qty: (Number(lines[idx].qty) || 0) + meters,
+          };
+        else lines.push(line);
+        await saveRecord("ombor_out", {
+          ...tk,
+          lines,
+          qty: lines.reduce((s: number, l: any) => s + (Number(l.qty) || 0), 0),
+        });
+      }
+      setAssignFor(null);
+    } catch (err: any) {
+      alert(`Assign failed: ${err?.message || err}`);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Sort totals */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="text-sm text-green-700">1st Sort Stock</div>
+          <div className="text-2xl font-bold text-green-900">
+            {fmtMoney(totalFirst)}m
+          </div>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="text-sm text-amber-700">2nd Sort Stock</div>
+          <div className="text-2xl font-bold text-amber-900">
+            {fmtMoney(totalSecond)}m
+          </div>
+        </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <div className="text-sm text-slate-600">{t("ombor.stagedToTrucks")}</div>
+          <div className="text-2xl font-bold text-slate-800">
+            {fmtMoney(totalStaged)}m
+          </div>
+        </div>
+      </div>
+
+      {/* Trucks */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <Truck size={18} className="text-amber-600" /> {t("ombor.trucks")}
+        </h3>
+        {canEdit && (
+          <button
+            onClick={() =>
+              setTruckInfo({
+                id: uid(),
+                kind: "fabric",
+                status: "staging",
+                truckLabel: "",
+                customerName: "",
+                date: todayISO(),
+                lines: [],
+                qty: 0,
+                notes: "",
+                __isNew: true,
+              })
+            }
+            className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
+            <Plus size={14} /> {t("ombor.newTruck")}
+          </button>
+        )}
+      </div>
+      {!trucks.length && (
+        <div className="bg-white rounded-2xl p-6 text-center text-slate-400 text-sm shadow-sm">
+          {t("ombor.noTrucks")}
+        </div>
+      )}
+      <div className="grid md:grid-cols-2 gap-3">
+        {trucks.map((tk: any) => {
+          const lines = omborOutLines(tk);
+          return (
+            <div
+              key={tk.id}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden border border-amber-100"
+            >
+              <div className="flex items-center justify-between p-3 bg-amber-50">
+                <div>
+                  <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Truck size={15} className="text-amber-600" />
+                    {tk.truckLabel || "Truck"}
+                  </div>
+                  {tk.customerName && (
+                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                      <UserCircle size={11} /> {tk.customerName}
+                    </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-amber-700">
+                    {fmtMoney(omborOutTotal(tk))} m
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-slate-400">
+                    ready
+                  </div>
+                </div>
+              </div>
+              <div className="p-3">
+                {lines.length ? (
+                  <div className="space-y-1.5">
+                    {lines.map((l: any) => (
+                      <div
+                        key={l.id}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <DesignTag
+                            designNumber={l.designNumber}
+                            designs={designs}
+                            size={24}
+                          />
+                          <span className="text-slate-500 text-xs truncate">
+                            {l.fabricType}
+                            {l.sortType === "2nd" ? " · 2nd" : " · 1st"}
+                          </span>
+                        </div>
+                        <span className="tabular-nums font-medium">
+                          {fmtMoney(l.qty)} m
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 py-2 text-center">
+                    Empty — tick designs from the stock table below.
+                  </div>
+                )}
+              </div>
+              {canEdit && (
+                <div className="flex gap-1 p-2 border-t border-slate-100">
+                  <button
+                    onClick={() => setTruckInfo({ ...tk })}
+                    className="flex-1 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg flex items-center justify-center gap-1"
+                  >
+                    <Edit2 size={12} /> Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      setSending({
+                        ...tk,
+                        destination: tk.customerName || "",
+                        driver: "",
+                        vehicle: "",
+                        letterNo: `YX-${todayISO().replace(/-/g, "")}-${String(
+                          outsAll.filter(
+                            (r: any) => omborOutStatus(r) === "sent",
+                          ).length + 1,
+                        ).padStart(3, "0")}`,
+                      })
+                    }
+                    disabled={!lines.length}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-lg flex items-center justify-center gap-1 ${
+                      lines.length
+                        ? "bg-rose-600 hover:bg-rose-700 text-white"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    }`}
+                  >
+                    <Truck size={12} /> {t("ombor.send")}
+                  </button>
+                  <button
+                    onClick={() =>
+                      askConfirm(
+                        "Delete this truck? Its allocations return to free stock.",
+                        () => deleteRecord("ombor_out", tk.id),
+                      )
+                    }
+                    className="py-1.5 px-2 text-xs text-slate-400 hover:text-red-600 rounded-lg"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Stock table */}
+      <div className="flex items-center justify-between pt-2">
+        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <Package size={18} className="text-slate-500" /> Per-design stock
+        </h3>
+        <button
+          onClick={exportStock}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
+          <Download size={14} /> {t("common.export")}
+        </button>
+      </div>
+      <div className="relative">
+        <Search
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+          size={14}
+        />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("ombor.searchDesignFabricShort")}
+          className="w-full pl-8 pr-2 py-2 border border-slate-200 rounded-lg text-sm"
+        />
+      </div>
+      <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">{t("common.design")}</th>
+              <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
+              <th className="text-right p-3 font-medium">1st in</th>
+              <th className="text-right p-3 font-medium">1st out</th>
+              <th className="text-right p-3 font-medium">1st avail</th>
+              <th className="text-right p-3 font-medium">2nd in</th>
+              <th className="text-right p-3 font-medium">2nd out</th>
+              <th className="text-right p-3 font-medium">2nd avail</th>
+              <th className="text-right p-3 font-medium">{t("ombor.staged")}</th>
+              <th className="text-right p-3 font-medium">{t("ombor.free")}</th>
+              {canEdit && <th className="p-3 w-24"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((d: any) => (
+              <tr key={d.id} className="border-t border-slate-100">
+                <td className="p-3">
+                  <DesignTag
+                    designNumber={
+                      d.designNumber === "(unknown)" ? "" : d.designNumber
+                    }
+                    designs={designs}
+                    size={28}
+                  />
+                </td>
+                <td className="p-3 text-slate-600">{d.fabricType}</td>
+                <td className="p-3 text-right tabular-nums text-slate-400">
+                  {fmtMoney(d.firstIn)}
+                </td>
+                <td className="p-3 text-right tabular-nums text-slate-400">
+                  {fmtMoney(d.firstOut)}
+                </td>
+                <td className="p-3 text-right tabular-nums font-semibold text-green-700">
+                  {fmtMoney(d.firstAvail)}
+                </td>
+                <td className="p-3 text-right tabular-nums text-slate-400">
+                  {fmtMoney(d.secondIn)}
+                </td>
+                <td className="p-3 text-right tabular-nums text-slate-400">
+                  {fmtMoney(d.secondOut)}
+                </td>
+                <td className="p-3 text-right tabular-nums font-semibold text-amber-700">
+                  {fmtMoney(d.secondAvail)}
+                </td>
+                <td className="p-3 text-right tabular-nums text-amber-600">
+                  {d.staged ? fmtMoney(d.staged) : "—"}
+                </td>
+                <td className="p-3 text-right tabular-nums font-bold text-emerald-700">
+                  {fmtMoney(d.free)}
+                </td>
+                {canEdit && (
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => setAssignFor(d)}
+                      disabled={d.free <= 0}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 ml-auto ${
+                        d.free > 0
+                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                      }`}
+                    >
+                      <ArrowRight size={12} /> {t("ombor.assign")}
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {!rows.length && (
+              <tr>
+                <td
+                  colSpan={canEdit ? 11 : 10}
+                  className="p-8 text-center text-slate-400"
+                >
+                  No stock on hand.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modals */}
+      {assignFor && (
+        <Modal
+          title={t("ombor.assignToTruck")}
+          onClose={() => setAssignFor(null)}
+          dismissible={false}
+          closeOnEsc
+        >
+          <AssignToTruckModal
+            row={assignFor}
+            trucks={trucks}
+            designs={designs}
+            onCancel={() => setAssignFor(null)}
+            onSubmit={handleAssign}
+          />
+        </Modal>
+      )}
+
+      {truckInfo && (
+        <Modal
+          title={truckInfo.__isNew ? t("ombor.newTruck") : t("ombor.editTruck")}
+          onClose={() => setTruckInfo(null)}
+          dismissible={false}
+          closeOnEsc
+        >
+          <TruckInfoForm
+            initial={truckInfo}
+            designs={designs}
+            onCancel={() => setTruckInfo(null)}
+            onSave={async (clean: any) => {
+              try {
+                await saveRecord("ombor_out", clean);
+                setTruckInfo(null);
+              } catch (err: any) {
+                alert(`Save failed: ${err?.message || err}`);
+              }
+            }}
+          />
+        </Modal>
+      )}
+
+      {sending && (
+        <Modal
+          title={`${t("ombor.send")} ${sending.truckLabel || t("ombor.truck")}`}
+          onClose={() => setSending(null)}
+          large
+          dismissible={false}
+          closeOnEsc
+        >
+          <DispatchEditor
+            initial={sending}
+            stock={stock}
+            designs={designs}
+            lists={lists}
+            saveLists={ctx.saveLists}
+            onCancel={() => setSending(null)}
+            onSave={async (rec: any) => {
+              try {
+                const finalRec = {
+                  ...rec,
+                  status: "sent",
+                  sentDate: rec.date,
+                  letterNo:
+                    rec.letterNo ||
+                    `YX-${todayISO().replace(/-/g, "")}-${String(
+                      outsAll.filter((r: any) => omborOutStatus(r) === "sent")
+                        .length + 1,
+                    ).padStart(3, "0")}`,
+                };
+                await saveRecord("ombor_out", finalRec);
+                setSending(null);
+                openTransportLetter(finalRec);
+              } catch (err: any) {
+                alert(`Send failed: ${err?.message || err}`);
+              }
+            }}
+          />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+//  Truck info form — name + customer, plus tick/untick the designs currently
+//  loaded on the truck (to fix a mis-assignment).
+// ============================================================================
+function TruckInfoForm({
+  initial,
+  designs,
+  onCancel,
+  onSave,
+}: {
+  initial: any;
+  designs: any[];
+  onCancel: () => void;
+  onSave: (rec: any) => void;
+}) {
+  const t = useT();
+  const [rec, setRec] = useState<any>(() => ({
+    ...initial,
+    lines: (Array.isArray(initial.lines) ? initial.lines : []).map((l: any) => ({
+      ...l,
+    })),
+  }));
+  // Which existing lines are kept (ticked). Start all ticked.
+  const [kept, setKept] = useState<Record<string, boolean>>(() => {
+    const m: Record<string, boolean> = {};
+    (Array.isArray(initial.lines) ? initial.lines : []).forEach(
+      (l: any) => (m[l.id] = true),
+    );
+    return m;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={`${t("ombor.truckName")} *`}>
+          <input
+            value={rec.truckLabel}
+            onChange={(e) => setRec({ ...rec, truckLabel: e.target.value })}
+            placeholder={t("ombor.egTruck")}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+        <Field label={t("ombor.customerReceiver")}>
+          <input
+            value={rec.customerName}
+            onChange={(e) => setRec({ ...rec, customerName: e.target.value })}
+            className="w-full p-2.5 border border-slate-300 rounded-lg"
+          />
+        </Field>
+      </div>
+
+      {rec.lines.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Designs on this truck — untick to remove
+          </label>
+          <div className="space-y-1.5 border border-slate-200 rounded-lg p-2">
+            {rec.lines.map((l: any) => (
+              <label
+                key={l.id}
+                className="flex items-center gap-2 text-sm cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={kept[l.id] !== false}
+                  onChange={(e) =>
+                    setKept((k) => ({ ...k, [l.id]: e.target.checked }))
+                  }
+                />
+                <DesignTag
+                  designNumber={l.designNumber}
+                  designs={designs}
+                  size={24}
+                />
+                <span className="text-slate-500 text-xs flex-1">
+                  {l.fabricType}
+                  {l.sortType === "2nd" ? " · 2nd" : " · 1st"}
+                </span>
+                <span className="tabular-nums font-medium">
+                  {fmtMoney(l.qty)} m
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <FormFooter
+        onCancel={onCancel}
+        onSave={() => {
+          if (!rec.truckLabel.trim()) {
+            alert("Truck name is required.");
+            return;
+          }
+          const lines = rec.lines.filter((l: any) => kept[l.id] !== false);
+          const { __isNew, ...clean } = rec;
+          onSave({
+            ...clean,
+            lines,
+            qty: lines.reduce(
+              (s: number, l: any) => s + (Number(l.qty) || 0),
+              0,
+            ),
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+// ============================================================================
+//  Ombor DISPATCH — history of sent shipments (multi-design). Reprint the
+//  letter, edit, delete, or build a brand-new dispatch straight from stock.
+// ============================================================================
+function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
+  const t = useT();
+  const { records, designs, lists, saveRecord, deleteRecord, askConfirm } = ctx;
+  const stock = useMemo(() => computeOmborStock(records), [records]);
+  const sent = (records.ombor_out || []).filter(
+    (r: any) => !isRejectRec(r) && omborOutStatus(r) === "sent",
+  );
+  const [editing, setEditing] = useState<any>(null);
+  // "design" = dispatched totals grouped by design (with drill-down into the
+  // letters that included each design); "letters" = full archive of every
+  // transport letter (per-letter cards).
+  const [mode, setMode] = useState<"design" | "letters">("design");
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [filter, setFilter] = useState({
+    search: "",
+    dateFrom: defaultDateRange().dateFrom,
+    dateTo: defaultDateRange().dateTo,
+  });
+
+  const designByNumber = useMemo(() => {
+    const m: Record<string, any> = {};
+    for (const d of designs || []) if (d?.designNumber) m[d.designNumber] = d;
+    return m;
+  }, [designs]);
+
+  function newDispatch() {
+    setEditing({
+      id: uid(),
+      kind: "fabric",
+      status: "sent",
+      date: todayISO(),
+      destination: "",
+      driver: "",
+      vehicle: "",
+      letterNo: `YX-${todayISO().replace(/-/g, "")}-${String(
+        sent.length + 1,
+      ).padStart(3, "0")}`,
+      lines: [],
+      qty: 0,
+      notes: "",
+    });
+  }
+
+  const filtered = sent
+    .filter((r: any) => {
+      const d = r.sentDate || r.date || "";
+      const lineText = omborOutLines(r)
+        .map((l: any) => l.designNumber)
+        .join(" ");
+      if (
+        filter.search &&
+        !`${r.destination || ""} ${r.letterNo || ""} ${lineText}`
+          .toLowerCase()
+          .includes(filter.search.toLowerCase())
+      )
+        return false;
+      // The "letters" archive shows every letter regardless of date;
+      // the "by design" view respects the date window so you can scope totals.
+      if (mode === "design") {
+        if (filter.dateFrom && d < filter.dateFrom) return false;
+        if (filter.dateTo && d > filter.dateTo) return false;
+      }
+      return true;
+    })
+    .sort((a: any, b: any) =>
+      (b.sentDate || b.date || "").localeCompare(a.sentDate || a.date || ""),
+    );
+
+  // Design-wise aggregate of what's been dispatched (grouped by design +
+  // fabric + sort), each with the list of letters that included that design
+  // so you can drill from a design down to its transport letters.
+  const byDesign = useMemo(() => {
+    const map: Record<string, any> = {};
+    filtered.forEach((r: any) => {
+      omborOutLines(r).forEach((l: any) => {
+        const dn = l.designNumber || "(no design)";
+        const ft = l.fabricType || "";
+        const st = l.sortType === "2nd" ? "2nd" : "1st";
+        const key = `${dn}::${ft}::${st}`;
+        if (!map[key])
+          map[key] = {
+            key,
+            designNumber: dn,
+            fabricType: ft,
+            sortType: st,
+            total: 0,
+            letters: [],
+          };
+        map[key].total += Number(l.qty) || 0;
+        map[key].letters.push({
+          shipment: r,
+          letterNo: r.letterNo || "—",
+          date: r.sentDate || r.date || "",
+          destination: r.destination || "—",
+          qty: Number(l.qty) || 0,
+        });
+      });
+    });
+    return Object.values(map)
+      .map((d: any) => ({
+        ...d,
+        letters: d.letters.sort((a: any, b: any) =>
+          (b.date || "").localeCompare(a.date || ""),
+        ),
+      }))
+      .sort((a: any, b: any) => b.total - a.total);
+  }, [filtered]);
+
+  function exportDispatch() {
+    const flat: any[] = [];
+    filtered.forEach((r: any) => {
+      omborOutLines(r).forEach((l: any) => {
+        flat.push({
+          date: r.sentDate || r.date || "",
+          letterNo: r.letterNo || "",
+          destination: r.destination || "",
+          driver: r.driver || "",
+          vehicle: r.vehicle || "",
+          designNumber: l.designNumber || "",
+          fabricType: l.fabricType || "",
+          sortType: l.sortType === "2nd" ? "2nd" : "1st",
+          qty: Number(l.qty) || 0,
+        });
+      });
+    });
+    exportStationXlsx({
+      rows: flat,
+      columns: [
+        { header: "Date", key: "date", width: 12 },
+        { header: "Letter №", key: "letterNo", width: 16 },
+        { header: "Design #", key: "designNumber", width: 14 },
+        { header: "Fabric", key: "fabricType", width: 14 },
+        { header: "Sort", key: "sortType", width: 8 },
+        { header: "Qty (m)", key: "qty", width: 10 },
+        { header: "Receiver", key: "destination", width: 18 },
+        { header: "Driver", key: "driver", width: 14 },
+        { header: "Vehicle", key: "vehicle", width: 14 },
+      ],
+      imageColumn: {
+        header: "Image",
+        position: 2,
+        width: 18,
+        getDesignId: (r: any) => r.designNumber || null,
+        designById: designByNumber,
+        resolveDesignImage,
+      },
+      filename: "ombor_dispatch",
+      sheetName: "Ombor dispatch",
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Design-wise totals vs full transport-letter archive */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setMode("design")}
+          className={`px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1.5 ${mode === "design" ? "bg-white shadow text-rose-700" : "text-slate-600"}`}
+        >
+          <Package size={13} /> {t("ombor.byDesign")}
+        </button>
+        <button
+          onClick={() => setMode("letters")}
+          className={`px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1.5 ${mode === "letters" ? "bg-white shadow text-rose-700" : "text-slate-600"}`}
+        >
+          <FileText size={13} /> {t("ombor.transportLetters")} ({sent.length})
+        </button>
+      </div>
+      {mode === "design" ? (
+        <div className="text-xs text-slate-500">
+          {t("ombor.byDesignHelp")}
+        </div>
+      ) : (
+        <div className="text-xs text-slate-500">
+          {t("ombor.lettersHelp")}
+        </div>
+      )}
+      <FilterBar filter={filter} setFilter={setFilter} lists={lists} fields={[]} />
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          {canEdit && mode === "design" && (
+            <button
+              onClick={newDispatch}
+              className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            >
+              <Plus size={14} /> {t("ombor.newDispatch")}
+            </button>
+          )}
+          <button
+            onClick={exportDispatch}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
+            <Download size={14} /> {t("common.export")}
+          </button>
+        </div>
+        <div className="text-xs text-slate-500">
+          {mode === "design"
+            ? `${byDesign.length} designs`
+            : `${filtered.length} letters`}
+        </div>
+      </div>
+
+      {mode === "letters" ? (
+      <div className="space-y-2">
+        {filtered.map((r: any) => {
+          const lines = omborOutLines(r);
+          return (
+            <div
+              key={r.id}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-3 border-b border-slate-100">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">
+                      {r.letterNo || "—"}
+                    </span>
+                    <span className="text-sm font-medium text-slate-800">
+                      {r.destination || "—"}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays size={11} /> {r.sentDate || r.date}
+                    </span>
+                    {r.driver && (
+                      <span className="flex items-center gap-1">
+                        <UserCircle size={11} /> {r.driver}
+                      </span>
+                    )}
+                    {r.vehicle && (
+                      <span className="flex items-center gap-1">
+                        <Truck size={11} /> {r.vehicle}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-slate-800">
+                    {fmtMoney(omborOutTotal(r))} m
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    {lines.length} design{lines.length === 1 ? "" : "s"}
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 flex items-center gap-1.5 flex-wrap">
+                {lines.map((l: any) => (
+                  <span
+                    key={l.id}
+                    className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-full pl-1 pr-2 py-0.5 text-xs"
+                  >
+                    <DesignTag
+                      designNumber={l.designNumber}
+                      designs={designs}
+                      size={20}
+                    />
+                    <span className="text-slate-500">
+                      {fmtMoney(l.qty)}m{l.sortType === "2nd" ? " · 2nd" : ""}
+                    </span>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-1 p-2 border-t border-slate-100">
+                <button
+                  onClick={() => openTransportLetter(r)}
+                  className="flex-1 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 rounded-lg flex items-center justify-center gap-1"
+                >
+                  <FileText size={13} /> {t("ombor.printLetter")}
+                </button>
+                {canEdit && (
+                  <>
+                    <button
+                      onClick={() => setEditing({ ...r })}
+                      className="py-1.5 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-1"
+                    >
+                      <Edit2 size={12} /> Edit
+                    </button>
+                    <button
+                      onClick={() =>
+                        askConfirm(
+                          "Delete this shipment? Its meters return to stock.",
+                          () => deleteRecord("ombor_out", r.id),
+                        )
+                      }
+                      className="py-1.5 px-2 text-xs text-slate-400 hover:text-red-600 rounded-lg"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {!filtered.length && (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 shadow-sm">
+            {t("ombor.noLettersFound")}
+          </div>
+        )}
+      </div>
+      ) : (
+        <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="text-left p-3 font-medium">{t("common.design")}</th>
+                <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
+                <th className="text-left p-3 font-medium">{t("common.sort")}</th>
+                <th className="text-right p-3 font-medium">{`${t("common.total")} (m)`}</th>
+                <th className="text-right p-3 font-medium">{t("ombor.letters")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byDesign.map((d: any) => (
+                <React.Fragment key={d.key}>
+                  <tr
+                    className="border-t border-slate-100 cursor-pointer hover:bg-slate-50"
+                    onClick={() =>
+                      setExpandedKey(expandedKey === d.key ? null : d.key)
+                    }
+                  >
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5">
+                        {expandedKey === d.key ? (
+                          <ChevronDown size={14} className="text-slate-400" />
+                        ) : (
+                          <ChevronRight size={14} className="text-slate-400" />
+                        )}
+                        <DesignTag
+                          designNumber={
+                            d.designNumber === "(no design)"
+                              ? ""
+                              : d.designNumber
+                          }
+                          designs={designs}
+                          size={28}
+                        />
+                      </div>
+                    </td>
+                    <td className="p-3 text-slate-600">{d.fabricType}</td>
+                    <td className="p-3">
+                      {d.sortType === "2nd" ? (
+                        <span className="text-amber-700 text-xs font-medium">
+                          2nd
+                        </span>
+                      ) : (
+                        <span className="text-green-700 text-xs font-medium">
+                          1st
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 text-right tabular-nums font-semibold">
+                      {fmtMoney(d.total)}
+                    </td>
+                    <td className="p-3 text-right text-slate-500">
+                      {d.letters.length}
+                    </td>
+                  </tr>
+                  {expandedKey === d.key &&
+                    d.letters.map((lt: any, i: number) => (
+                      <tr
+                        key={i}
+                        className="bg-slate-50/60 border-t border-slate-100"
+                      >
+                        <td
+                          className="p-2 pl-10 text-xs text-slate-500"
+                          colSpan={2}
+                        >
+                          <span className="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                            {lt.letterNo}
+                          </span>
+                          <span className="ml-2">{lt.date}</span>
+                          <span className="ml-2">→ {lt.destination}</span>
+                        </td>
+                        <td className="p-2"></td>
+                        <td className="p-2 text-right tabular-nums text-xs">
+                          {fmtMoney(lt.qty)} m
+                        </td>
+                        <td className="p-2 text-right">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openTransportLetter(lt.shipment);
+                            }}
+                            className="text-xs text-rose-700 hover:underline flex items-center gap-1 ml-auto"
+                          >
+                            <FileText size={11} /> Print
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </React.Fragment>
+              ))}
+              {!byDesign.length && (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                    {t("ombor.noDispatches")}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {editing && (
+        <Modal
+          title={
+            sent.find((r: any) => r.id === editing.id)
+              ? "Edit dispatch"
+              : "New dispatch"
+          }
+          onClose={() => setEditing(null)}
+          large
+          dismissible={false}
+          closeOnEsc
+        >
+          <DispatchEditor
+            initial={editing}
+            stock={stock}
+            designs={designs}
+            lists={lists}
+            saveLists={ctx.saveLists}
+            onCancel={() => setEditing(null)}
+            onSave={async (rec: any) => {
+              try {
+                const finalRec = {
+                  ...rec,
+                  status: "sent",
+                  sentDate: rec.sentDate || rec.date,
+                  letterNo:
+                    rec.letterNo ||
+                    `YX-${todayISO().replace(/-/g, "")}-${String(
+                      sent.length + 1,
+                    ).padStart(3, "0")}`,
+                };
+                await saveRecord("ombor_out", finalRec);
+                setEditing(null);
+                openTransportLetter(finalRec);
+              } catch (err: any) {
+                alert(`Save failed: ${err?.message || err}`);
+              }
+            }}
+          />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+//  Ombor Rejection (kg) — brak fabric to the container beside the warehouse.
+//  Tracked in KILOGRAMS. Out records capture WHO is taking it.
+// ============================================================================
+function OmborRejectPage({ ctx, canEdit }: CtxEditableProps) {
+  const t = useT();
+  const { records, lists, saveRecord, deleteRecord, askConfirm } = ctx;
+  const ins = (records.ombor_in || []).filter(isRejectRec);
+  const outs = (records.ombor_out || []).filter(isRejectRec);
+  const [editing, setEditing] = useState<any>(null);
+
+  const totalIn = ins.reduce((s: number, r: any) => s + (Number(r.qty) || 0), 0);
+  const totalOut = outs.reduce(
+    (s: number, r: any) => s + (Number(r.qty) || 0),
+    0,
+  );
+  const onHand = totalIn - totalOut;
+
+  const rows = [
+    ...ins.map((r: any) => ({ ...r, _dir: "in" })),
+    ...outs.map((r: any) => ({ ...r, _dir: "out" })),
+  ].sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
+
+  function addRec(dir: "in" | "out") {
+    setEditing({
+      id: uid(),
+      kind: "reject",
+      unit: "kg",
+      _dir: dir,
+      date: todayISO(),
+      qty: "",
+      taker: "",
+      notes: "",
+    });
+  }
+
+  function exportReject() {
+    exportStationXlsx({
+      rows: rows.map((r: any) => ({
+        date: r.date,
+        direction: r._dir === "in" ? t("ombor.toContainer") : t("ombor.shippedOut"),
+        qty: Number(r.qty) || 0,
+        taker: r.taker || "",
+        notes: r.notes || "",
+      })),
+      columns: [
+        { header: "Date", key: "date", width: 12 },
+        { header: "Direction", key: "direction", width: 14 },
+        { header: "Kg", key: "qty", width: 10 },
+        { header: "Taken by", key: "taker", width: 16 },
+        { header: "Notes", key: "notes", width: 28 },
+      ],
+      filename: "ombor_rejection",
+      sheetName: "Ombor rejection",
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+            To container (in)
+          </div>
+          <div className="text-2xl font-bold text-slate-700">
+            {fmtMoney(totalIn)} kg
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+            {t("ombor.shippedOut")}
+          </div>
+          <div className="text-2xl font-bold text-slate-500">
+            {fmtMoney(totalOut)} kg
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+            In container now
+          </div>
+          <div className="text-2xl font-bold text-red-600">
+            {fmtMoney(onHand)} kg
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        {canEdit && (
+          <>
+            <button
+              onClick={() => addRec("in")}
+              className="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            >
+              <ArrowDownToLine size={14} /> {t("ombor.addToContainer")}
+            </button>
+            <button
+              onClick={() => addRec("out")}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            >
+              <ArrowUpFromLine size={14} /> {t("ombor.shipOut")}
+            </button>
+          </>
+        )}
+        <button
+          onClick={exportReject}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
+          <Download size={14} /> {t("common.export")}
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">{t("common.date")}</th>
+              <th className="text-left p-3 font-medium">{t("common.direction")}</th>
+              <th className="text-right p-3 font-medium">Kg</th>
+              <th className="text-left p-3 font-medium">{t("ombor.takenBy")}</th>
+              <th className="text-left p-3 font-medium">{t("common.notes")}</th>
+              {canEdit && <th className="p-3 w-16"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r: any) => (
+              <tr key={r.id} className="border-t border-slate-100">
+                <td className="p-3 text-slate-600 whitespace-nowrap">
+                  {r.date}
+                </td>
+                <td className="p-3">
+                  {r._dir === "in" ? (
+                    <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-xs">
+                      {t("ombor.toContainer")}
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-xs">
+                      {t("ombor.shippedOut")}
+                    </span>
+                  )}
+                </td>
+                <td className="p-3 text-right tabular-nums font-medium">
+                  {fmtMoney(r.qty)}
+                </td>
+                <td className="p-3 text-slate-600 text-xs">{r.taker || "—"}</td>
+                <td className="p-3 text-slate-500 text-xs">{r.notes}</td>
+                {canEdit && (
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => setEditing({ ...r })}
+                      className="text-slate-500 hover:text-purple-600 p-1"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        askConfirm("Delete this rejection record?", () =>
+                          deleteRecord(
+                            r._dir === "in" ? "ombor_in" : "ombor_out",
+                            r.id,
+                          ),
+                        )
+                      }
+                      className="text-slate-500 hover:text-red-600 p-1 ml-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {!rows.length && (
+              <tr>
+                <td
+                  colSpan={canEdit ? 6 : 5}
+                  className="p-8 text-center text-slate-400"
+                >
+                  No rejection recorded yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <Modal
+          title={
+            editing._dir === "in"
+              ? "Rejection → container"
+              : "Rejection shipped out"
+          }
+          onClose={() => setEditing(null)}
+          dismissible={false}
+          closeOnEsc
+        >
+          <div className="space-y-4">
+            <Field label={`${t("common.date")} *`}>
+              <input
+                type="date"
+                value={editing.date}
+                onChange={(e) =>
+                  setEditing({ ...editing, date: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={`${t("ombor.weight")} *`}>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={editing.qty}
+                onChange={(e) =>
+                  setEditing({ ...editing, qty: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg text-right"
+              />
+            </Field>
+            {editing._dir === "out" && (
+              <Field label={t("ombor.takenBy")}>
+                <input
+                  value={editing.taker || ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, taker: e.target.value })
+                  }
+                  placeholder={t("ombor.nameCompany")}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+            )}
+            <Field label={t("common.notes")}>
+              <textarea
+                rows={2}
+                value={editing.notes}
+                onChange={(e) =>
+                  setEditing({ ...editing, notes: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <FormFooter
+              onCancel={() => setEditing(null)}
+              onSave={async () => {
+                if (!editing.qty || Number(editing.qty) <= 0) {
+                  alert("Enter the weight in kg.");
+                  return;
+                }
+                const collection =
+                  editing._dir === "in" ? "ombor_in" : "ombor_out";
+                const { _dir, ...clean } = editing;
+                try {
+                  await saveRecord(collection, {
+                    ...clean,
+                    kind: "reject",
+                    unit: "kg",
+                    qty: Number(editing.qty),
+                  });
+                  setEditing(null);
+                } catch (err: any) {
+                  alert(`Save failed: ${err?.message || err}`);
                 }
               }}
             />
@@ -25752,6 +29374,7 @@ function FilterBar({
   lists: Lists;
   fields?: string[];
 }) {
+  const t = useT();
   return (
     <div className="bg-white rounded-lg p-3 shadow-sm flex items-center gap-2 flex-wrap">
       <div className="relative flex-1 min-w-[180px]">
@@ -25762,7 +29385,7 @@ function FilterBar({
         <input
           value={filter.search}
           onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-          placeholder="Search..."
+          placeholder={`${t("common.search")}...`}
           className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm"
         />
       </div>
@@ -25772,7 +29395,7 @@ function FilterBar({
         onChange={(e) => setFilter({ ...filter, dateFrom: e.target.value })}
         className="border border-slate-200 rounded text-sm p-1.5"
       />
-      <span className="text-slate-400 text-xs">to</span>
+      <span className="text-slate-400 text-xs">{t("common.to")}</span>
       <input
         type="date"
         value={filter.dateTo}
@@ -25785,7 +29408,7 @@ function FilterBar({
           onChange={(e) => setFilter({ ...filter, shift: e.target.value })}
           className="border border-slate-200 rounded text-sm p-1.5"
         >
-          <option value="">All shifts</option>
+          <option value="">{t("common.allShifts")}</option>
           {(lists.shift || []).map((s) => (
             <option key={s} value={s}>
               {s}
@@ -25799,7 +29422,7 @@ function FilterBar({
           onChange={(e) => setFilter({ ...filter, fabricType: e.target.value })}
           className="border border-slate-200 rounded text-sm p-1.5"
         >
-          <option value="">All fabric types</option>
+          <option value="">{t("common.allFabrics")}</option>
           {(lists.fabricType || []).map((s) => (
             <option key={s} value={s}>
               {s}
@@ -25819,7 +29442,7 @@ function FilterBar({
         }
         className="text-xs text-slate-500 hover:text-slate-700 px-2"
       >
-        Clear
+        {t("common.clearFilters")}
       </button>
     </div>
   );
@@ -25848,15 +29471,19 @@ function ActionBar({
   showDelete?: boolean;
   askConfirm?: (message: string, onConfirm: () => void) => void;
 }) {
+  const t = useT();
   function handleDelete() {
     if (askConfirm)
-      askConfirm(`Delete ${selectedCount} record(s)?`, onDeleteSelected);
+      askConfirm(
+        `${t("common.delete")} ${selectedCount} ${t("common.records")}?`,
+        onDeleteSelected,
+      );
     else onDeleteSelected();
   }
   function handleArchive() {
     if (askConfirm)
       askConfirm(
-        `Archive ${selectedCount} record(s)? They'll stay in the database but render faded and out of the way.`,
+        `${t("common.archiveSelected")} (${selectedCount})? ${t("common.archiveHint")}`,
         onArchiveSelected,
       );
     else onArchiveSelected();
@@ -25874,7 +29501,7 @@ function ActionBar({
         )}
         {selectedCount > 0 && (
           <span className="text-sm text-slate-600">
-            {selectedCount} selected
+            {selectedCount} {t("common.selected")}
           </span>
         )}
       </div>
@@ -25885,7 +29512,7 @@ function ActionBar({
             className="text-amber-700 hover:bg-amber-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
             title="Soft-hide these records (kept in DB)"
           >
-            <Archive size={14} /> Archive selected
+            <Archive size={14} /> {t("common.archiveSelected")}
           </button>
         )}
         {selectedCount > 0 && showDelete && (
@@ -25893,7 +29520,7 @@ function ActionBar({
             onClick={handleDelete}
             className="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
           >
-            <Trash2 size={14} /> Delete selected
+            <Trash2 size={14} /> {t("common.deleteSelected")}
           </button>
         )}
         {onExport && (
@@ -25901,8 +29528,10 @@ function ActionBar({
             onClick={onExport}
             className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
           >
-            <Download size={14} /> Export{" "}
-            {selectedCount > 0 ? "selected" : "all"}
+            <Download size={14} />{" "}
+            {selectedCount > 0
+              ? t("common.exportSelected")
+              : t("common.exportAll")}
           </button>
         )}
       </div>
@@ -25929,6 +29558,7 @@ function DataTable({
   hideSelect?: boolean;
   askConfirm?: (message: string, onConfirm: () => void) => void;
 }) {
+  const t = useT();
   // Internal sort state. `sort` is { key, dir } — dir is 'asc' or 'desc'. null = use parent's order.
   const [sort, setSort] = useState(null);
 
@@ -26018,7 +29648,7 @@ function DataTable({
                   <button
                     onClick={() => toggleSort(c.key)}
                     className="inline-flex items-center gap-1 hover:text-purple-600 transition"
-                    title="Click to sort"
+                    title={t("common.clickToSort")}
                   >
                     {c.label}
                     <SortIcon colKey={c.key} />
@@ -26066,7 +29696,7 @@ function DataTable({
                     <button
                       onClick={() =>
                         askConfirm
-                          ? askConfirm("Delete this record?", () =>
+                          ? askConfirm(t("common.deleteRecord"), () =>
                               onDelete(r.id),
                             )
                           : onDelete(r.id)
@@ -26086,7 +29716,7 @@ function DataTable({
                 colSpan={columns.length + 2}
                 className="p-8 text-center text-slate-400 text-sm"
               >
-                No records
+                {t("common.noRecords")}
               </td>
             </tr>
           )}
@@ -26351,6 +29981,7 @@ function FormFooter({
   onCancel: () => void;
   onSave: () => void;
 }) {
+  const t = useT();
   return (
     <div className="flex gap-2 pt-2">
       <button
@@ -26358,14 +29989,14 @@ function FormFooter({
         onClick={onCancel}
         className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium"
       >
-        Cancel
+        {t("common.cancel")}
       </button>
       <button
         type="submit"
         onClick={onSave}
         className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium"
       >
-        Save
+        {t("common.save")}
       </button>
     </div>
   );
