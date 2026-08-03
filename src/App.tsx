@@ -2731,6 +2731,27 @@ const storage = {
       return null;
     }
   },
+  // Change YOUR OWN passcode. This deliberately does NOT go through
+  // POST /users — that route upserts the document, and if the backend uses
+  // findOneAndUpdate the model's pre-save bcrypt hook never runs, which
+  // would write the passcode in PLAINTEXT and lock the account out (login
+  // compares with bcrypt). The dedicated route does assign + save().
+  // Note: the backend must answer a wrong current passcode with 400, not
+  // 401 — apiFetch treats 401 as "session dead" and signs the user out.
+  async changePasscodeApi(
+    currentPasscode: string,
+    newPasscode: string,
+  ): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await apiFetch("/auth/change-passcode", {
+        method: "POST",
+        body: JSON.stringify({ currentPasscode, newPasscode }),
+      });
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.message || "Request failed" };
+    }
+  },
   async fetchMe(): Promise<any | null> {
     if (!getToken()) return null;
     try {
@@ -4831,8 +4852,21 @@ function AppInner() {
   async function deleteUser(id) {
     const item = users.find((u) => u.id === id);
     if (!item) return;
-    if (item.login === "admin") {
-      alert("The default super-admin can't be deleted.");
+    // The old rule protected whichever account happened to be called
+    // "admin", which made a duplicate super-admin impossible to remove.
+    // The real risks are only two: deleting the account you are using, and
+    // deleting the last super-admin (nobody left who can manage users).
+    if (item.id === user?.id) {
+      alert("You can't delete the account you're signed in as.");
+      return;
+    }
+    if (
+      item.role === "admin" &&
+      users.filter((u) => u.role === "admin").length <= 1
+    ) {
+      alert(
+        "This is the only super-admin left. Create another one before deleting it.",
+      );
       return;
     }
     try {
@@ -7050,19 +7084,6 @@ function ChangeOwnPasswordModal({
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // How we prove the person at the keyboard knows the CURRENT passcode:
-  //  - API mode: /auth/me never returns the passcode (it is hashed server
-  //    side), so the only honest check is to ask the server to authenticate
-  //    it. That refreshes the JWT, which is harmless — same user.
-  //  - Artifact mode: passcodes live in plaintext on the user object.
-  async function verifyCurrent(pwd: string) {
-    if (storage.isApiMode) {
-      const res = await storage.loginApi(currentUser.login, pwd);
-      return !!(res && res.user);
-    }
-    return String(currentUser.passcode ?? "") === pwd;
-  }
-
   async function submit() {
     setErr("");
     if (!cur || !next || !again) {
@@ -7083,18 +7104,25 @@ function ChangeOwnPasswordModal({
     }
     setBusy(true);
     try {
-      if (!(await verifyCurrent(cur))) {
-        setErr("Current passcode is wrong.");
-        return;
+      if (storage.isApiMode) {
+        // Server owns the check AND the hashing. Going through POST /users
+        // instead would round-trip the passcode as a plain field and, if the
+        // backend upserts, store it unhashed — locking the account out.
+        const res = await storage.changePasscodeApi(cur, next);
+        if (!res.ok) {
+          setErr(res.error || "Couldn't change the passcode.");
+          return;
+        }
+      } else {
+        // Artifact mode: passcodes live in plaintext on the user object.
+        if (String(currentUser.passcode ?? "") !== cur) {
+          setErr("Current passcode is wrong.");
+          return;
+        }
+        const full = users.find((u) => u.id === currentUser.id) || currentUser;
+        await saveUser({ ...full, passcode: next });
+        setUser({ ...currentUser, passcode: next });
       }
-      // Merge onto the FULL record from the users list. `currentUser` comes
-      // from /auth/me in API mode and can be missing fields that a full PUT
-      // would otherwise wipe (allowedPages, allowedDepartments, ...).
-      const full = users.find((u) => u.id === currentUser.id) || currentUser;
-      await saveUser({ ...full, passcode: next });
-      // Keep the in-memory session in step — artifact mode only, so we never
-      // put a plaintext passcode on the API-mode session object.
-      if (!storage.isApiMode) setUser({ ...currentUser, passcode: next });
       setDone(true);
       setTimeout(onClose, 1400);
     } catch {
@@ -7217,6 +7245,13 @@ function UsersAdmin({ ctx }: CtxProps) {
     return visibleUsers.filter((u) => u.role === filterRole);
   }, [visibleUsers, filterRole]);
 
+  // Guard against deleting the last super-admin. Counted over ALL users,
+  // not the filtered view, so a role filter can't make the count look low.
+  const adminCount = useMemo(
+    () => users.filter((u) => u.role === "admin").length,
+    [users],
+  );
+
   // Group by role for cleaner display
   const grouped = useMemo(() => {
     const g = { admin: [], dept_admin: [], operator: [], guest: [] };
@@ -7282,8 +7317,14 @@ function UsersAdmin({ ctx }: CtxProps) {
   }
 
   function handleDelete(u) {
-    if (u.login === "admin") {
-      alert("Can't delete the default super-admin.");
+    if (u.id === currentUser.id) {
+      alert("You can't delete the account you're signed in as.");
+      return;
+    }
+    if (u.role === "admin" && adminCount <= 1) {
+      alert(
+        "This is the only super-admin left. Create another one before deleting it.",
+      );
       return;
     }
     if (!canManageThisUser(currentUser, u)) {
@@ -7430,7 +7471,10 @@ function UsersAdmin({ ctx }: CtxProps) {
                   {list.map((u) => {
                     const isMe = u.id === currentUser.id;
                     const canManage = canManageThisUser(currentUser, u);
-                    const canDelete = canManage && u.login !== "admin";
+                    // Super-admins ARE deletable now (that's how a duplicate
+                    // like "superadmin" gets removed) — except the last one.
+                    const canDelete =
+                      canManage && !(u.role === "admin" && adminCount <= 1);
                     return (
                       <tr
                         key={u.id}
