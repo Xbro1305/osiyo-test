@@ -97,6 +97,12 @@ import {
   EyeOff,
   Lock,
   ListChecks,
+  FlaskConical,
+  FileSpreadsheet,
+  Fish,
+  GitBranch,
+  Bug,
+  Gauge,
   Database,
   Activity,
   ChevronLeft,
@@ -226,6 +232,185 @@ const TRANSLATIONS = {
     "stage.calendering": "Calendering",
     "stage.folding": "Folding & Inspection",
     "stage.dispatch": "Dispatch (Warehouse)",
+    "stage.quality": "Quality & R&D",
+    "qc.tab.codes": "Defect codes",
+    "qc.tab.log": "Defect log",
+    "qc.tab.pareto": "Pareto",
+    "qc.tab.fishbone": "Fishbone",
+    "qc.tab.fivewhys": "5 Whys",
+    "qc.tab.pfmea": "PFMEA",
+    "qc.tab.eightd": "8D reports",
+    "qc.tab.guide": "Guide",
+    "qc.date": "Date",
+    "qc.stage": "Stage",
+    "qc.defect": "Defect",
+    "qc.status": "Status",
+    "qc.open": "Open",
+    "qc.closed": "Closed",
+    "qc.person": "Person",
+    "qc.search": "Search…",
+    "qc.loading": "Loading…",
+    "qc.delete": "Delete",
+    "qc.export": "Export Excel",
+    "qc.import": "Import Excel",
+    "qc.importing": "Importing…",
+    "qc.template": "Template",
+    "qc.dc.code": "Code",
+    "qc.dc.name": "Defect name",
+    "qc.dc.stageCreated": "Stage created",
+    "qc.dc.causeArea": "Typical cause area",
+    "qc.dc.active": "Active",
+    "qc.dc.newCode": "New code",
+    "qc.dc.loadStarter": "Load starter set",
+    "qc.dc.searchCodes": "Search codes…",
+    "qc.dc.countN": "{n} codes",
+    "qc.dc.none": "No defect codes yet.",
+    "qc.dc.editTitle": "Edit defect code",
+    "qc.dc.newTitle": "New defect code",
+    "qc.dc.fCode": "Code *",
+    "qc.dc.fName": "Defect name *",
+    "qc.dc.activeInUse": "Active (in use)",
+    "qc.dc.deleteConfirm": "Delete this defect code?",
+    "qc.dc.importedN": "Imported {n} code(s).",
+    "qc.dc.importFail": "Import failed:",
+    "qc.log.shift": "Shift",
+    "qc.log.batch": "Program No.",
+    "qc.log.article": "Article",
+    "qc.log.machine": "Machine",
+    "qc.log.position": "Position",
+    "qc.log.metres": "Metres",
+    "qc.log.metresAffected": "Metres affected",
+    "qc.log.design": "Design",
+    "qc.log.designName": "Design name",
+    "qc.log.designPh": "Pick a design number from the gallery",
+    "qc.log.image": "Image",
+    "qc.log.posSelvedge": "Selvedge",
+    "qc.log.posLeft": "Left",
+    "qc.log.posRight": "Right",
+    "qc.log.posMiddle": "Middle",
+    "qc.log.posNotePh": "Note (optional)",
+    "qc.log.logDefect": "Log defect",
+    "qc.log.to": "to",
+    "qc.log.none": "No defects logged.",
+    "qc.log.editTitle": "Edit log entry",
+    "qc.log.newTitle": "Log a defect",
+    "qc.log.fDate": "Date *",
+    "qc.log.fBatch": "Program No.",
+    "qc.log.fCode": "Defect code *",
+    "qc.log.fMetres": "Metres affected *",
+    "qc.log.positionPh": "e.g. full width, 220",
+    "qc.log.deleteConfirm": "Delete this log entry?",
+    "qc.pareto.month": "Month",
+    "qc.pareto.rankBy": "Rank / focus by",
+    "qc.pareto.byMetres": "Metres affected",
+    "qc.pareto.byCount": "Occurrences (how often)",
+    "qc.pareto.byMetresShort": "metres affected",
+    "qc.pareto.byCountShort": "occurrences",
+    "qc.pareto.inspected": "Total metres inspected",
+    "qc.pareto.metresAffected": "Metres affected",
+    "qc.pareto.defectsLogged": "Defects logged",
+    "qc.pareto.defectRate": "Defect rate",
+    "qc.pareto.ofInspected": "of inspected",
+    "qc.pareto.rankedByLabel": "Pareto — ranked by {by}",
+    "qc.pareto.noData": "No data for this period.",
+    "qc.pareto.cumShort": "cum",
+    "qc.pareto.vital": "Teal bars are the vital ~80% — tackle those first.",
+    "qc.pareto.occurrences": "Occurrences",
+    "qc.pareto.perTime": "Metres / time",
+    "qc.pareto.share": "Share %",
+    "qc.pareto.cumulative": "Cumulative %",
+    "qc.pareto.rank": "Rank",
+    "qc.pareto.tableNote": "\"Metres / time\" separates a rare-but-huge defect from a frequent-but-tiny one. Switch \"Rank by\" to see each ordering.",
+    "qc.fb.new": "New fishbone",
+    "qc.fb.none": "No fishbone worksheets yet.",
+    "qc.fb.editTitle": "Fishbone worksheet",
+    "qc.fb.fDefect": "Defect being analysed *",
+    "qc.fb.personPh": "Who is doing this",
+    "qc.fb.causesLine": "One possible cause per line…",
+    "qc.fb.causesCount": "{n} possible causes across 6M",
+    "qc.fb.noDefect": "(no defect)",
+    "qc.fb.deleteConfirm": "Delete this fishbone?",
+    "qc.fb.machine": "Machine",
+    "qc.fb.method": "Method",
+    "qc.fb.material": "Material",
+    "qc.fb.man": "Man / people",
+    "qc.fb.measurement": "Measurement",
+    "qc.fb.environment": "Environment",
+    "qc.w.new": "New 5 Whys",
+    "qc.w.none": "No 5 Whys worksheets yet.",
+    "qc.w.editTitle": "5 Whys worksheet",
+    "qc.w.problem": "Problem statement *",
+    "qc.w.why": "Why",
+    "qc.w.whyPh": "Why…?",
+    "qc.w.answerPh": "Answer",
+    "qc.w.evidencePh": "Evidence this is true",
+    "qc.w.addWhy": "Add another why",
+    "qc.w.rootCause": "Root cause (a system/process gap)",
+    "qc.w.escapeCause": "Escape cause (why we didn't catch it)",
+    "qc.w.rootLabel": "Root cause:",
+    "qc.w.whys": "Whys",
+    "qc.w.whysCount": "{n} whys",
+    "qc.w.noProblem": "(no problem)",
+    "qc.w.deleteConfirm": "Delete this worksheet?",
+    "qc.pfmea.new": "New PFMEA row",
+    "qc.pfmea.none": "No PFMEA rows yet.",
+    "qc.pfmea.editTitle": "Edit PFMEA row",
+    "qc.pfmea.rankedNote": "Ranked by RPN — highest risk first",
+    "qc.pfmea.step": "Step",
+    "qc.pfmea.failure": "Failure mode",
+    "qc.pfmea.effect": "Effect",
+    "qc.pfmea.cause": "Cause",
+    "qc.pfmea.func": "Function",
+    "qc.pfmea.fStep": "Process step *",
+    "qc.pfmea.fFailure": "Potential failure mode *",
+    "qc.pfmea.fEffect": "Effect on customer",
+    "qc.pfmea.fCause": "Potential cause",
+    "qc.pfmea.fPrevention": "Current prevention control",
+    "qc.pfmea.fDetection": "Current detection control",
+    "qc.pfmea.fS": "Severity (S)",
+    "qc.pfmea.fO": "Occurrence (O)",
+    "qc.pfmea.fD": "Detection (D)",
+    "qc.pfmea.rpnHint": "(Detection: 1 = always caught, 10 = never)",
+    "qc.pfmea.history": "Change history",
+    "qc.pfmea.histNote": "Each update saves the previous state here, so you can see how this row evolved.",
+    "qc.pfmea.histUpdates": "updates",
+    "qc.pfmea.prevention": "Prevention control",
+    "qc.pfmea.detection": "Detection control",
+    "qc.pfmea.deleteRow": "Delete this PFMEA row?",
+    "qc.8d.new": "New 8D report",
+    "qc.8d.none": "No 8D reports yet.",
+    "qc.8d.reportNo": "Report no.",
+    "qc.8d.fReportNo": "Report no. *",
+    "qc.8d.customer": "Customer / origin",
+    "qc.8d.dateOpened": "Date opened",
+    "qc.8d.champion": "Champion",
+    "qc.8d.champLabel": "champion",
+    "qc.8d.targetClose": "Target close",
+    "qc.8d.openMsg": "Open — work in progress",
+    "qc.8d.closedMsg": "Closed — problem solved",
+    "qc.8d.markClosed": "Mark as solved / closed",
+    "qc.8d.reopen": "Reopen",
+    "qc.8d.photos": "Paper report photos",
+    "qc.8d.uploadJpg": "Upload JPG",
+    "qc.8d.adding": "Adding…",
+    "qc.8d.noPhotos": "No photos yet — snap the paper 8D and upload it.",
+    "qc.8d.disciplines": "{n}/9 disciplines filled",
+    "qc.8d.opened": "Opened",
+    "qc.8d.deleteConfirm": "Delete this 8D report?",
+    "qc.8d.d0": "D0 — Immediate response",
+    "qc.8d.d1": "D1 — Form the team",
+    "qc.8d.d2": "D2 — Describe the problem (5W2H)",
+    "qc.8d.d3": "D3 — Interim containment",
+    "qc.8d.d4": "D4 — Root cause (fishbone + 5 Whys)",
+    "qc.8d.d5": "D5 — Permanent corrective action",
+    "qc.8d.d6": "D6 — Implement & verify",
+    "qc.8d.d7": "D7 — Prevent recurrence",
+    "qc.8d.d8": "D8 — Recognise the team & close",
+    "qc.guide.title": "Quality & R&D — Method Guide",
+    "qc.guide.creditEn": "This quality system was assembled by T.J (1.08.2026) — bringing these root-cause methods into one place to steadily reduce the printing department's rejection rate.",
+    "qc.guide.creditUz": "Whoever continues this work: log defects honestly, follow the Pareto, and close every loop with 8D.",
+    "qc.guide.intro": "A short reference for each method used in this station — in English and Uzbek.",
+    "qc.guide.footer": "Quality is not an accident — it is logged, analysed and improved every shift.",
     "stage.ombor": "Ombor",
     "stations.title": "Stations",
     // ===== Topbar =====
@@ -789,6 +974,185 @@ const TRANSLATIONS = {
     "stage.calendering": "Kalandrlash",
     "stage.folding": "Sifat Nazorati",
     "stage.dispatch": "Joʻnatma (Ombor)",
+    "stage.quality": "Sifat va R&D",
+    "qc.tab.codes": "Nuqson kodlari",
+    "qc.tab.log": "Nuqsonlar jurnali",
+    "qc.tab.pareto": "Pareto",
+    "qc.tab.fishbone": "Fishbone (baliq skeleti)",
+    "qc.tab.fivewhys": "5 Nega",
+    "qc.tab.pfmea": "PFMEA",
+    "qc.tab.eightd": "8D hisobotlar",
+    "qc.tab.guide": "Qo'llanma",
+    "qc.date": "Sana",
+    "qc.stage": "Bosqich",
+    "qc.defect": "Nuqson",
+    "qc.status": "Holat",
+    "qc.open": "Ochiq",
+    "qc.closed": "Yopilgan",
+    "qc.person": "Mas'ul shaxs",
+    "qc.search": "Qidirish…",
+    "qc.loading": "Yuklanmoqda…",
+    "qc.delete": "O'chirish",
+    "qc.export": "Excelga eksport",
+    "qc.import": "Excel import",
+    "qc.importing": "Import qilinmoqda…",
+    "qc.template": "Shablon",
+    "qc.dc.code": "Kod",
+    "qc.dc.name": "Nuqson nomi",
+    "qc.dc.stageCreated": "Yuzaga kelgan bosqich",
+    "qc.dc.causeArea": "Odatiy sabab sohasi",
+    "qc.dc.active": "Faol",
+    "qc.dc.newCode": "Yangi kod",
+    "qc.dc.loadStarter": "Boshlang'ich to'plam",
+    "qc.dc.searchCodes": "Kodlarni qidirish…",
+    "qc.dc.countN": "{n} ta kod",
+    "qc.dc.none": "Hali nuqson kodlari yo'q.",
+    "qc.dc.editTitle": "Nuqson kodini tahrirlash",
+    "qc.dc.newTitle": "Yangi nuqson kodi",
+    "qc.dc.fCode": "Kod *",
+    "qc.dc.fName": "Nuqson nomi *",
+    "qc.dc.activeInUse": "Faol (ishlatilmoqda)",
+    "qc.dc.deleteConfirm": "Bu nuqson kodini o'chirilsinmi?",
+    "qc.dc.importedN": "{n} ta kod import qilindi.",
+    "qc.dc.importFail": "Import xatosi:",
+    "qc.log.shift": "Smena",
+    "qc.log.batch": "Programma raqami",
+    "qc.log.article": "Artikul",
+    "qc.log.machine": "Dastgoh",
+    "qc.log.position": "Joylashuv",
+    "qc.log.metres": "Metr",
+    "qc.log.metresAffected": "Zararlangan metr",
+    "qc.log.design": "Dizayn",
+    "qc.log.designName": "Dizayn nomi",
+    "qc.log.designPh": "Galereyadan dizayn raqamini tanlang",
+    "qc.log.image": "Rasm",
+    "qc.log.posSelvedge": "Chekka (selvedge)",
+    "qc.log.posLeft": "Chap",
+    "qc.log.posRight": "O'ng",
+    "qc.log.posMiddle": "O'rta",
+    "qc.log.posNotePh": "Izoh (ixtiyoriy)",
+    "qc.log.logDefect": "Nuqson qayd etish",
+    "qc.log.to": "gacha",
+    "qc.log.none": "Hali nuqson qayd etilmagan.",
+    "qc.log.editTitle": "Yozuvni tahrirlash",
+    "qc.log.newTitle": "Nuqsonni qayd etish",
+    "qc.log.fDate": "Sana *",
+    "qc.log.fBatch": "Programma raqami",
+    "qc.log.fCode": "Nuqson kodi *",
+    "qc.log.fMetres": "Zararlangan metr *",
+    "qc.log.positionPh": "masalan: to'liq eni, 220",
+    "qc.log.deleteConfirm": "Bu yozuvni o'chirilsinmi?",
+    "qc.pareto.month": "Oy",
+    "qc.pareto.rankBy": "Saralash / e'tibor",
+    "qc.pareto.byMetres": "Zararlangan metr",
+    "qc.pareto.byCount": "Takrorlanish (necha marta)",
+    "qc.pareto.byMetresShort": "zararlangan metr",
+    "qc.pareto.byCountShort": "takrorlanish",
+    "qc.pareto.inspected": "Tekshirilgan umumiy metr",
+    "qc.pareto.metresAffected": "Zararlangan metr",
+    "qc.pareto.defectsLogged": "Qayd etilgan nuqsonlar",
+    "qc.pareto.defectRate": "Nuqson darajasi",
+    "qc.pareto.ofInspected": "tekshirilgandan",
+    "qc.pareto.rankedByLabel": "Pareto — {by} bo'yicha saralangan",
+    "qc.pareto.noData": "Bu davr uchun ma'lumot yo'q.",
+    "qc.pareto.cumShort": "jami",
+    "qc.pareto.vital": "Yashil ustunlar asosiy ~80% — avval shularni hal qiling.",
+    "qc.pareto.occurrences": "Takrorlanish",
+    "qc.pareto.perTime": "Metr / marta",
+    "qc.pareto.share": "Ulush %",
+    "qc.pareto.cumulative": "Yig'indi %",
+    "qc.pareto.rank": "O'rin",
+    "qc.pareto.tableNote": "\"Metr / marta\" kam uchrab katta nuqsonni tez-tez uchrab kichik nuqsondan ajratadi. Har xil tartibni ko'rish uchun \"Saralash\"ni almashtiring.",
+    "qc.fb.new": "Yangi fishbone",
+    "qc.fb.none": "Hali fishbone varaqlari yo'q.",
+    "qc.fb.editTitle": "Fishbone varaqasi",
+    "qc.fb.fDefect": "Tahlil qilinayotgan nuqson *",
+    "qc.fb.personPh": "Kim bajarmoqda",
+    "qc.fb.causesLine": "Har qatorda bitta ehtimoliy sabab…",
+    "qc.fb.causesCount": "6M bo'yicha {n} ta ehtimoliy sabab",
+    "qc.fb.noDefect": "(nuqson yo'q)",
+    "qc.fb.deleteConfirm": "Bu fishbone o'chirilsinmi?",
+    "qc.fb.machine": "Mashina",
+    "qc.fb.method": "Usul",
+    "qc.fb.material": "Material",
+    "qc.fb.man": "Inson / xodim",
+    "qc.fb.measurement": "O'lchov",
+    "qc.fb.environment": "Muhit",
+    "qc.w.new": "Yangi 5 Nega",
+    "qc.w.none": "Hali 5 Nega varaqlari yo'q.",
+    "qc.w.editTitle": "5 Nega varaqasi",
+    "qc.w.problem": "Muammo bayoni *",
+    "qc.w.why": "Nega",
+    "qc.w.whyPh": "Nega…?",
+    "qc.w.answerPh": "Javob",
+    "qc.w.evidencePh": "Buni tasdiqlovchi dalil",
+    "qc.w.addWhy": "Yana \"nega\" qo'shish",
+    "qc.w.rootCause": "Asosiy sabab (tizim/jarayon kamchiligi)",
+    "qc.w.escapeCause": "O'tkazib yuborish sababi (nega aniqlamadik)",
+    "qc.w.rootLabel": "Asosiy sabab:",
+    "qc.w.whys": "Negalar",
+    "qc.w.whysCount": "{n} ta nega",
+    "qc.w.noProblem": "(muammo yo'q)",
+    "qc.w.deleteConfirm": "Bu varaqni o'chirilsinmi?",
+    "qc.pfmea.new": "Yangi PFMEA qatori",
+    "qc.pfmea.none": "Hali PFMEA qatorlari yo'q.",
+    "qc.pfmea.editTitle": "PFMEA qatorini tahrirlash",
+    "qc.pfmea.rankedNote": "RPN bo'yicha — eng yuqori xavf birinchi",
+    "qc.pfmea.step": "Bosqich",
+    "qc.pfmea.failure": "Nosozlik turi",
+    "qc.pfmea.effect": "Ta'sir",
+    "qc.pfmea.cause": "Sabab",
+    "qc.pfmea.func": "Vazifa",
+    "qc.pfmea.fStep": "Jarayon bosqichi *",
+    "qc.pfmea.fFailure": "Ehtimoliy nosozlik turi *",
+    "qc.pfmea.fEffect": "Mijozga ta'siri",
+    "qc.pfmea.fCause": "Ehtimoliy sabab",
+    "qc.pfmea.fPrevention": "Joriy oldini olish nazorati",
+    "qc.pfmea.fDetection": "Joriy aniqlash nazorati",
+    "qc.pfmea.fS": "Jiddiylik (S)",
+    "qc.pfmea.fO": "Yuzaga kelish (O)",
+    "qc.pfmea.fD": "Aniqlash (D)",
+    "qc.pfmea.rpnHint": "(Aniqlash: 1 = doim aniqlanadi, 10 = hech qachon)",
+    "qc.pfmea.history": "O'zgarishlar tarixi",
+    "qc.pfmea.histNote": "Har bir yangilanishda oldingi holat shu yerga saqlanadi — qator qanday o'zgarganini ko'rasiz.",
+    "qc.pfmea.histUpdates": "yangilanishlar",
+    "qc.pfmea.prevention": "Oldini olish nazorati",
+    "qc.pfmea.detection": "Aniqlash nazorati",
+    "qc.pfmea.deleteRow": "Bu PFMEA qatorini o'chirilsinmi?",
+    "qc.8d.new": "Yangi 8D hisobot",
+    "qc.8d.none": "Hali 8D hisobotlar yo'q.",
+    "qc.8d.reportNo": "Hisobot raqami",
+    "qc.8d.fReportNo": "Hisobot raqami *",
+    "qc.8d.customer": "Mijoz / manba",
+    "qc.8d.dateOpened": "Ochilgan sana",
+    "qc.8d.champion": "Yetakchi",
+    "qc.8d.champLabel": "yetakchi",
+    "qc.8d.targetClose": "Rejalashtirilgan yopilish",
+    "qc.8d.openMsg": "Ochiq — ish jarayonida",
+    "qc.8d.closedMsg": "Yopilgan — muammo hal qilindi",
+    "qc.8d.markClosed": "Hal qilindi deb belgilash",
+    "qc.8d.reopen": "Qayta ochish",
+    "qc.8d.photos": "Qog'oz hisobot rasmlari",
+    "qc.8d.uploadJpg": "JPG yuklash",
+    "qc.8d.adding": "Qo'shilmoqda…",
+    "qc.8d.noPhotos": "Hali rasm yo'q — qog'oz 8D ni suratga olib yuklang.",
+    "qc.8d.disciplines": "{n}/9 bosqich to'ldirilgan",
+    "qc.8d.opened": "Ochilgan",
+    "qc.8d.deleteConfirm": "Bu 8D hisobotni o'chirilsinmi?",
+    "qc.8d.d0": "D0 — Zudlik bilan javob",
+    "qc.8d.d1": "D1 — Jamoa tuzish",
+    "qc.8d.d2": "D2 — Muammoni tavsiflash (5W2H)",
+    "qc.8d.d3": "D3 — Vaqtinchalik cheklash",
+    "qc.8d.d4": "D4 — Asosiy sabab (fishbone + 5 Nega)",
+    "qc.8d.d5": "D5 — Doimiy tuzatuvchi chora",
+    "qc.8d.d6": "D6 — Joriy etish va tasdiqlash",
+    "qc.8d.d7": "D7 — Qaytalanishning oldini olish",
+    "qc.8d.d8": "D8 — Jamoani taqdirlash va yopish",
+    "qc.guide.title": "Sifat va R&D — Uslublar qo'llanmasi",
+    "qc.guide.creditEn": "Ushbu sifat tizimi T.J tomonidan yig'ildi (1.08.2026) — bu tub sabab tahlili uslublarini bir joyga jamlab, bosma bo'limi brakini bosqichma-bosqich kamaytirish maqsadida.",
+    "qc.guide.creditUz": "Kim bu ishni davom ettirsa: nuqsonlarni halol qayd eting, Pareto'ga amal qiling va har bir muammoni 8D bilan yakuniga yetkazing.",
+    "qc.guide.intro": "Ushbu stansiyada ishlatiladigan har bir uslub uchun qisqa qo'llanma — ingliz va o'zbek tillarida.",
+    "qc.guide.footer": "Sifat tasodif emas — u har smenada qayd etiladi, tahlil qilinadi va yaxshilanadi.",
     "stage.ombor": "Ombor",
     "stations.title": "Stansiyalar",
     "top.users": "Foydalanuvchilar",
@@ -1390,6 +1754,13 @@ const STAGES = [
     hasMachine: true,
   },
   {
+    id: "quality",
+    name: "Quality & R&D",
+    icon: FlaskConical,
+    color: "bg-teal-600",
+    hasMachine: false,
+  },
+  {
     id: "dispatch",
     name: "Dispatch (Warehouse)",
     icon: Truck,
@@ -1974,6 +2345,12 @@ const PREFIX_TO_PATH: Record<string, string> = {
   "store_sale:": "/store/sales",
   "store_pay:": "/store/payments",
   "store_in:": "/store/stockin",
+  "qc_defcode:": "/qc/defcode",
+  "qc_deflog:": "/qc/deflog",
+  "qc_fishbone:": "/qc/fishbone",
+  "qc_5why:": "/qc/fivewhy",
+  "qc_pfmea:": "/qc/pfmea",
+  "qc_8d:": "/qc/eightd",
   "trash:": "/trash",
 };
 function recPath(stationKey: string): string {
@@ -2831,7 +3208,7 @@ function getUserDepartments(user: User | null) {
       : [];
   if (user.role === "operator") {
     // operators currently belong to printing stations only
-    return user.stationId ? ["printing"] : [];
+    return (user.stationId || operatorStationPages(user).length) ? ["printing"] : [];
   }
   return [];
 }
@@ -2888,7 +3265,11 @@ function canViewPage(user: User | null, pageKey: string) {
   if (user.role === "dept_admin") return user.departmentId === deptId;
   if (user.role === "operator") {
     if (deptId !== "printing") return false;
-    // Match the pageKey to any station the user's stationId covers.
+    // Explicit multi-station operators: allowedPages IS the whitelist.
+    if (operatorStationPages(user).length) {
+      return operatorStationPages(user).includes(pageKey);
+    }
+    // Legacy: match the pageKey to any station the user's stationId covers.
     // `coversStation` handles both single-station ids and hub ids
     // (sing_des, stenter), plus the symmetric merged-group exception
     // for real-station-id operators.
@@ -4955,7 +5336,14 @@ function Shell({ ctx }: CtxProps) {
       // For hub operators (stationId = sing_des / stenter), land on the
       // hub view (two-card landing). For real-station operators, land on
       // the station's own page.
-      if (user.stationId) {
+      if (isMultiStationOperator(user)) {
+        const ids = operatorStationIds(user);
+        if (ids.length === 1) {
+          setCurrentView({ type: "station", stationId: ids[0] });
+        } else {
+          setCurrentView({ type: "department", departmentId: "printing" });
+        }
+      } else if (user.stationId) {
         if (isHubStationId(user.stationId)) {
           const hub = findHubByStationId(user.stationId);
           if (hub) setCurrentView({ type: "station_hub", hubId: hub.id });
@@ -4983,6 +5371,18 @@ function Shell({ ctx }: CtxProps) {
   // single helper so the rules stay uniform.
   const safeView = (() => {
     if (!isOperator) return currentView;
+    // Multi-station operators: may view the printing department picker and any
+    // station in their explicit set. No hub coverage.
+    if (isMultiStationOperator(user)) {
+      if (currentView?.type === "department" && currentView.departmentId === "printing")
+        return currentView;
+      if (currentView?.type === "station" && userCoversStation(user, currentView.stationId))
+        return currentView;
+      const ids = operatorStationIds(user);
+      return ids.length === 1
+        ? { type: "station", stationId: ids[0] }
+        : { type: "department", departmentId: "printing" };
+    }
     // Allowed: station view that's covered by the operator's stationId.
     if (
       currentView?.type === "station" &&
@@ -5015,18 +5415,20 @@ function Shell({ ctx }: CtxProps) {
   // Operators can only access their own station — plus merged-group siblings.
   // The `coversStation` helper centralises the rule.
   if (isOperator) {
-    const allowed =
-      (safeView.type === "station" &&
-        coversStation(user.stationId, safeView.stationId)) ||
-      (safeView.type === "station_hub" &&
-        (() => {
-          const hub = MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId);
-          if (!hub) return false;
-          return (
-            HUB_STATION_IDS[user.stationId] === hub.id ||
-            hub.members.includes(user.stationId)
-          );
-        })());
+    const allowed = isMultiStationOperator(user)
+      ? (safeView.type === "department" && safeView.departmentId === "printing") ||
+        (safeView.type === "station" && userCoversStation(user, safeView.stationId))
+      : (safeView.type === "station" &&
+          coversStation(user.stationId, safeView.stationId)) ||
+        (safeView.type === "station_hub" &&
+          (() => {
+            const hub = MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId);
+            if (!hub) return false;
+            return (
+              HUB_STATION_IDS[user.stationId] === hub.id ||
+              hub.members.includes(user.stationId)
+            );
+          })());
     if (!allowed) return null;
   }
 
@@ -5166,7 +5568,7 @@ function Shell({ ctx }: CtxProps) {
           <span className="mx-1.5 text-slate-300">·</span>
           <span>2026 MAY</span>
         </div>
-        <div className="mt-1 text-slate-400">Version 2.0</div>
+        <div className="mt-1 text-slate-400">Version 0.7</div>
       </footer>
     </div>
   );
@@ -5226,7 +5628,7 @@ function AccessDenied({ ctx }: CtxProps) {
           <span className="mx-1.5 text-slate-300">·</span>
           <span>2026 MAY</span>
         </div>
-        <div className="mt-1 text-slate-400">Version 2.0</div>
+        <div className="mt-1 text-slate-400">Version 0.7</div>
       </footer>
     </div>
   );
@@ -5418,6 +5820,7 @@ function TopBar({
     </header>
   );
 }
+
 function NavBtn({
   icon: Icon,
   label,
@@ -5728,7 +6131,7 @@ const MERGED_STATION_GROUPS: {
     // Same one-operator hub pattern as SING&DES / STENTER.
     id: "folding_hub",
     label: "Folding & Inspection",
-    members: ["folding", "dispatch"],
+    members: ["folding", "dispatch", "quality"],
     icon: Package,
     color: "bg-emerald-500",
     description: "Folding & inspection + dispatch warehouse — one operator",
@@ -5766,6 +6169,7 @@ function findHubForStation(stationId: string) {
 const HUB_STATION_IDS: Record<string, string> = {
   sing_des: "sing_des_hub", // maps operator's stationId → matching hub
   stenter: "stenter_hub",
+  folding_hub: "folding_hub", // Folding & Inspection + Dispatch + Quality & R&D
 };
 function isHubStationId(s: string | undefined | null): boolean {
   return !!s && Object.prototype.hasOwnProperty.call(HUB_STATION_IDS, s);
@@ -5802,6 +6206,34 @@ function stationDisplayName(s: string | undefined | null): string {
   if (isHubStationId(s)) return findHubByStationId(s)?.label || s;
   const stage = STAGES.find((x) => x.id === s);
   return stage?.name || s;
+}
+
+// ===== Multi-station operators =====
+// An operator can be assigned SEVERAL individual stations. Those are stored as
+// `printing.station.<id>` entries in allowedPages. When present, they are the
+// EXACT set the operator can see (no hub auto-coverage). When absent, we fall
+// back to the legacy single/hub `stationId` rule so existing users are
+// unaffected.
+const ASSIGNABLE_STATIONS = [
+  "gray_store", "input", "bleach", "batching", "printing", "curing",
+  "finishing", "calendering", "folding", "quality", "rnd", "dispatch", "ombor",
+];
+function operatorStationPages(user: any): string[] {
+  return (user?.allowedPages || []).filter((p: string) =>
+    p.startsWith("printing.station."),
+  );
+}
+function operatorStationIds(user: any): string[] {
+  return operatorStationPages(user).map((p) => p.slice("printing.station.".length));
+}
+function isMultiStationOperator(user: any): boolean {
+  return user?.role === "operator" && operatorStationPages(user).length > 0;
+}
+function userCoversStation(user: any, target: string): boolean {
+  if (!user || !target) return false;
+  if (isMultiStationOperator(user))
+    return operatorStationPages(user).includes(`printing.station.${target}`);
+  return coversStation(user.stationId || "", target);
 }
 
 // Hub view: small page with one card per member station. Each card links
@@ -5976,12 +6408,16 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
     return s;
   }, []);
   const visibleStations = useMemo(
-    () =>
-      STAGES.filter(
+    () => {
+      const multi = isMultiStationOperator(user);
+      return STAGES.filter(
         (s) =>
           canViewPage(user, `printing.station.${s.id}`) &&
-          !mergedMemberSet.has(s.id),
-      ),
+          // Multi-station operators see each assigned station as its own tile;
+          // everyone else sees hub members folded into their hub tile.
+          (multi || !mergedMemberSet.has(s.id)),
+      );
+    },
     [user, mergedMemberSet],
   );
 
@@ -5989,12 +6425,15 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   // could see ANY of its member stations under the legacy rules. This
   // preserves visibility semantics: if you used to see "Gray Fabric Store"
   // tile, you now see the SING&DES hub tile (and inside the hub you'll
-  // see both Gray Store + SING&DES cards).
+  // see both Gray Store + SING&DES cards). Multi-station operators use
+  // explicit per-station tiles instead, so no hub tiles for them.
   const visibleHubs = useMemo(
     () =>
-      MERGED_STATION_GROUPS.filter((g) =>
-        g.members.some((m) => canViewPage(user, `printing.station.${m}`)),
-      ),
+      isMultiStationOperator(user)
+        ? []
+        : MERGED_STATION_GROUPS.filter((g) =>
+            g.members.some((m) => canViewPage(user, `printing.station.${m}`)),
+          ),
     [user],
   );
   const showMaster = canViewPage(user, "printing.master");
@@ -6929,7 +7368,28 @@ function UserForm({
   onSave: (u: User) => void;
   onCancel: () => void;
 }) {
-  const [f, setF] = useState(user);
+  const [f, setF] = useState(() => {
+    // Editing a legacy operator (station stored as single/hub stationId, no
+    // allowedPages yet): pre-tick the stations they currently cover so the
+    // multi-select reflects reality instead of appearing empty.
+    if (
+      user?.role === "operator" &&
+      !(user.allowedPages || []).some((p) => p.startsWith("printing.station.")) &&
+      user.stationId
+    ) {
+      const ids = isHubStationId(user.stationId)
+        ? membersOfHubId(user.stationId)
+        : [user.stationId];
+      return {
+        ...user,
+        allowedPages: [
+          ...((user.allowedPages || []).filter((p) => !p.startsWith("printing.station."))),
+          ...ids.map((id) => `printing.station.${id}`),
+        ],
+      };
+    }
+    return user;
+  });
   const [showPwd, setShowPwd] = useState(false);
   const set = (k, v) => setF((prev) => ({ ...prev, [k]: v }));
 
@@ -7016,9 +7476,12 @@ function UserForm({
       alert("Pick a department for the department admin");
       return;
     }
-    if (f.role === "operator" && !f.stationId) {
-      alert("Pick a station for the operator");
-      return;
+    if (f.role === "operator") {
+      const st = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
+      if (!st.length) {
+        alert("Pick at least one station for the operator");
+        return;
+      }
     }
     if (f.role === "guest") {
       const allowed = Array.isArray(f.allowedDepartments)
@@ -7058,7 +7521,13 @@ function UserForm({
     const cleaned = { ...f };
     if (cleaned.role !== "operator") delete cleaned.stationId;
     if (cleaned.role !== "dept_admin") delete cleaned.departmentId;
-    if (cleaned.role !== "guest") {
+    if (cleaned.role === "operator") {
+      // Operators store their station set in allowedPages; no departments.
+      delete cleaned.allowedDepartments;
+      cleaned.allowedPages = (cleaned.allowedPages || []).filter((p) =>
+        p.startsWith("printing.station."),
+      );
+    } else if (cleaned.role !== "guest") {
       delete cleaned.allowedDepartments;
       delete cleaned.allowedPages;
     }
@@ -7078,10 +7547,14 @@ function UserForm({
         delete next.allowedDepartments;
         delete next.allowedPages;
       } else if (newRole === "operator") {
-        next.stationId = prev.stationId || "input";
+        next.allowedPages = Array.isArray(prev.allowedPages)
+          ? prev.allowedPages.filter((p) => p.startsWith("printing.station."))
+          : [];
+        next.stationId = next.allowedPages.length
+          ? next.allowedPages[0].slice("printing.station.".length)
+          : prev.stationId || "";
         delete next.departmentId;
         delete next.allowedDepartments;
-        delete next.allowedPages;
       } else if (newRole === "guest") {
         next.allowedDepartments = isDeptAdmin
           ? [currentUser.departmentId]
@@ -7190,36 +7663,38 @@ function UserForm({
               </span>
             </div>
           </Field>
-          <Field label="Assigned station *">
-            <select
-              value={f.stationId || ""}
-              onChange={(e) => set("stationId", e.target.value)}
-              className="w-full p-2.5 border border-slate-300 rounded-lg"
-            >
-              {/* Build a dropdown that consolidates merged stations into
-                  one option per hub. Members of a merged group don't
-                  appear individually — they're folded into their hub.
-                  When admin picks SING&DES, the operator's stationId is
-                  literally "sing_des" (a hub identifier); the access
-                  checks downstream resolve that to "you can access both
-                  gray_store AND input." */}
-              {STAGES.filter((s) => !findHubForStation(s.id)).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-              {/* Hub options. Listed AFTER the single stations so they
-                  appear distinct visually. */}
-              {Object.entries(HUB_STATION_IDS).map(([stationId, hubId]) => {
-                const hub = MERGED_STATION_GROUPS.find((g) => g.id === hubId);
-                if (!hub) return null;
+          <Field label="Assigned stations *">
+            <div className="text-xs text-slate-400 mb-2">
+              Tick every station this operator should see. They'll see only these — nothing else.
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {STAGES.filter((s) => ASSIGNABLE_STATIONS.includes(s.id)).map((s) => {
+                const pageKey = `printing.station.${s.id}`;
+                const pages = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
+                const checked = pages.includes(pageKey);
                 return (
-                  <option key={stationId} value={stationId}>
-                    {hub.label} (covers: {hub.members.map((m) => STAGES.find((s) => s.id === m)?.name || m).join(" + ")})
-                  </option>
+                  <label key={s.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer text-sm ${checked ? "bg-teal-50 border-teal-300 text-teal-800" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        const cur = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
+                        const next = e.target.checked
+                          ? [...cur, pageKey]
+                          : cur.filter((p) => p !== pageKey);
+                        setF((prev) => ({
+                          ...prev,
+                          allowedPages: next,
+                          // Keep stationId = first pick for landing / back-compat.
+                          stationId: next.length ? next[0].slice("printing.station.".length) : "",
+                        }));
+                      }}
+                    />
+                    {s.name}
+                  </label>
                 );
               })}
-            </select>
+            </div>
           </Field>
         </>
       )}
@@ -11978,8 +12453,16 @@ function StationView({
   const stage = STAGES.find((s) => s.id === stationId);
   const t = useT();
   if (!stage) return <div className="text-slate-500">Station not found</div>;
-  const [tab, setTab] = useState("data");
+  // Empty initial tab = "no explicit choice yet". The active tab is then
+  // resolved below as "the one the user picked, or the station's FIRST tab".
+  // This matters because not every station has a tab called "data" (Ombor
+  // starts at "in", Dispatch at "in", Quality at "codes", Gray store at
+  // "stock") — hard-coding "data" made those stations open blank until the
+  // user clicked a tab. It also self-heals when switching between stations
+  // with different tab sets.
+  const [tab, setTab] = useState("");
   const tabs = stationTabs(stationId, ctx, t);
+  const activeTab = tabs.find((tb) => tb.id === tab) || tabs[0];
   const Icon = stage.icon;
   const isOperator = ctx.user.role === "operator";
   // Operators normally only edit their assigned station. Exception: when
@@ -11991,11 +12474,12 @@ function StationView({
     ctx.user.role === "admin" ||
     (ctx.user.role === "dept_admin" && ctx.user.departmentId === "printing") ||
     (ctx.user.role === "operator" &&
-      coversStation(ctx.user.stationId, stationId));
+      userCoversStation(ctx.user, stationId));
   return (
     <div className="space-y-4">
-      {/* Operators are locked to their station — no back button for them. Everyone else can go back to printing dept. */}
-      {!isOperator && (
+      {/* Operators are locked to their station — no back button. Exception:
+          multi-station operators need to return to the picker. */}
+      {(!isOperator || isMultiStationOperator(ctx.user)) && (
         <BackBar
           ctx={ctx}
           to={{ type: "department", departmentId: "printing" }}
@@ -12020,16 +12504,1303 @@ function StationView({
           <button
             key={tb.id}
             onClick={() => setTab(tb.id)}
-            className={`px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap ${tab === tb.id ? "bg-white shadow text-slate-800" : "text-slate-600"}`}
+            className={`px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap ${activeTab?.id === tb.id ? "bg-white shadow text-slate-800" : "text-slate-600"}`}
           >
             {tb.label}
           </button>
         ))}
       </div>
-      <div>{tabs.find((tb) => tb.id === tab)?.render(canEdit)}</div>
+      <div>{activeTab?.render(canEdit)}</div>
     </div>
   );
 }
+
+// ============================================================================
+//  QUALITY & R&D  —  RCA toolkit for the printing department.
+//  Tabs: Defect codes · Defect log · Pareto · Fishbone · 5 Whys · PFMEA ·
+//  8D reports · Guide. Fully bilingual (EN/UZ). Real .xlsx via ExcelJS.
+// ============================================================================
+
+function qcCellText(v: any): any {
+  if (v == null) return "";
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "object") {
+    if (v.text != null) return v.text;
+    if (v.result != null) return v.result;
+    if (Array.isArray(v.richText)) return v.richText.map((t: any) => t.text).join("");
+    if (v.hyperlink) return v.hyperlink;
+    return String(v);
+  }
+  return v;
+}
+
+async function exportRowsToXlsx(
+  rows: any[],
+  columns: { key: string; header: string }[],
+  filename: string,
+  sheetName = "Sheet1",
+) {
+  try {
+    const M: any = await import("exceljs");
+    const ExcelJS = M.default || M;
+    const wb = new ExcelJS.Workbook();
+    const safe = String(sheetName).replace(/[:\\/?*\[\]]/g, " ").slice(0, 31) || "Sheet1";
+    const ws = wb.addWorksheet(safe);
+    ws.columns = columns.map((c) => ({
+      header: c.header,
+      key: c.key,
+      width: Math.max(12, String(c.header).length + 2),
+    }));
+    const hdr = ws.getRow(1);
+    hdr.font = { bold: true };
+    hdr.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE2F1EE" } };
+    rows.forEach((r) => {
+      const o: any = {};
+      columns.forEach((c) => (o[c.key] = r[c.key] ?? ""));
+      ws.addRow(o);
+    });
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}_${todayISO()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } catch (e) {
+    console.error("xlsx export failed:", e);
+    alert("Excel export failed — see console.");
+  }
+}
+
+async function readXlsxRows(file: File): Promise<any[]> {
+  const M: any = await import("exceljs");
+  const ExcelJS = M.default || M;
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(await file.arrayBuffer());
+  const ws = wb.worksheets[0];
+  if (!ws) return [];
+  const headers: Record<number, string> = {};
+  ws.getRow(1).eachCell((cell: any, col: number) => {
+    headers[col] = String(qcCellText(cell.value)).trim();
+  });
+  const out: any[] = [];
+  ws.eachRow((row: any, n: number) => {
+    if (n === 1) return;
+    const o: any = {};
+    row.eachCell((cell: any, col: number) => {
+      const h = headers[col];
+      if (h) o[h] = qcCellText(cell.value);
+    });
+    if (Object.values(o).some((v) => String(v ?? "").trim() !== "")) out.push(o);
+  });
+  return out;
+}
+
+function compressImageToDataUrl(file: File, maxDim = 1600, quality = 0.7): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const s = maxDim / Math.max(width, height);
+        width = Math.round(width * s);
+        height = Math.round(height * s);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const cx = canvas.getContext("2d");
+      cx!.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}
+
+function useQcCollection(prefix: string) {
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  async function reload() {
+    const all = await storage.getAll(prefix);
+    setRows(Array.isArray(all) ? all : []);
+  }
+  useAuthReadyEffect(() => {
+    let c = false;
+    setLoading(true);
+    (async () => {
+      const all = await storage.getAll(prefix);
+      if (!c) {
+        setRows(Array.isArray(all) ? all : []);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      c = true;
+    };
+  }, []);
+  async function save(rec: any) {
+    const r = { ...rec, id: rec.id || uid() };
+    try {
+      await storage.set(prefix + r.id, r);
+      await reload();
+      return r;
+    } catch (err: any) {
+      alert(`Save failed: ${err?.message || err}`);
+      return null;
+    }
+  }
+  async function remove(id: string) {
+    try {
+      await storage.delete(prefix + id);
+      await reload();
+    } catch (err: any) {
+      alert(`Delete failed: ${err?.message || err}`);
+    }
+  }
+  return { rows, loading, reload, save, remove };
+}
+
+// Defect position options — multi-select (a defect can span several places).
+const QC_POSITIONS = [
+  { key: "SELVEDGE", tkey: "qc.log.posSelvedge" },
+  { key: "LEFT", tkey: "qc.log.posLeft" },
+  { key: "RIGHT", tkey: "qc.log.posRight" },
+  { key: "MIDDLE", tkey: "qc.log.posMiddle" },
+];
+const QC_STAGES = [
+  "Grey fabric", "Singeing", "Desizing", "Bleaching", "Printing",
+  "Curing", "Finishing", "Calendering", "Folding / Inspection",
+];
+
+const QC_STARTER_CODES = [
+  ["W1", "Weaving fault carried through (broken/double pick)", "Grey fabric", "Loom setting, weft feeder"],
+  ["W2", "Loom oil stain", "Grey fabric", "Loom lubrication, over-oiling"],
+  ["W3", "Contamination / foreign fibre", "Grey fabric", "Housekeeping, yarn source"],
+  ["P01", "Unsinged strip / uneven singeing", "Singeing", "Blocked burner nozzle"],
+  ["P02", "Residual size (poor desizing)", "Desizing", "Enzyme dose, pH, temp, dwell time"],
+  ["P03", "Scorch mark", "Singeing", "Flame too close, line stopped with flame on"],
+  ["B01", "Listing (side-centre-side variation)", "Bleaching", "Uneven tension/heating across jigger"],
+  ["B02", "Ending (start-to-end variation)", "Bleaching", "Turn count, liquor exhaustion"],
+  ["B03", "Uneven whiteness / grey patch", "Bleaching", "Peroxide, stabiliser, water hardness"],
+  ["B04", "Pinhole / small hole", "Bleaching", "Iron contamination catalysing peroxide"],
+  ["B05", "Poor absorbency", "Bleaching", "Incomplete scouring, wax residue"],
+  ["B06", "Jigger crease mark", "Bleaching", "Roll build-up, tension"],
+  ["R01", "Shade variation vs approved standard", "Printing", "Recipe, weighing, dosing"],
+  ["R02", "Poor rubbing fastness", "Curing", "Under-cure, temperature, binder"],
+  ["R03", "Misprint / out of register", "Printing", "Screen alignment, fabric feed"],
+  ["R04", "Print smudge / doctor blade streak", "Printing", "Blade wear, paste viscosity"],
+];
+
+// ---------------------------------------------------------------------------
+//  1. Defect codes
+// ---------------------------------------------------------------------------
+function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_defcode:");
+  const [editing, setEditing] = useState<any>(null);
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState("");
+  const fileRef = useRef<any>(null);
+
+  const DEFCODE_COLS = [
+    { key: "code", header: t("qc.dc.code") },
+    { key: "name", header: t("qc.dc.name") },
+    { key: "stage", header: t("qc.dc.stageCreated") },
+    { key: "causeArea", header: t("qc.dc.causeArea") },
+    { key: "active", header: t("qc.dc.active") },
+  ];
+
+  const filtered = rows
+    .filter((r) => `${r.code} ${r.name} ${r.stage} ${r.causeArea}`.toLowerCase().includes(q.toLowerCase()))
+    .sort((a, b) => (a.code || "").localeCompare(b.code || ""));
+
+  async function loadStarter() {
+    setBusy("starter");
+    for (const [code, name, stage, causeArea] of QC_STARTER_CODES) await save({ code, name, stage, causeArea, active: true });
+    setBusy("");
+  }
+  function downloadTemplate() {
+    exportRowsToXlsx(
+      [
+        { code: "R01", name: "Shade variation vs approved standard", stage: "Printing", causeArea: "Recipe, weighing, dosing", active: "Yes" },
+        { code: "", name: "", stage: "", causeArea: "", active: "" },
+      ],
+      DEFCODE_COLS, "defect_codes_template", t("qc.tab.codes"),
+    );
+  }
+  function exportCodes() {
+    exportRowsToXlsx(filtered.map((r) => ({ ...r, active: r.active === false ? "No" : "Yes" })), DEFCODE_COLS, "defect_codes", t("qc.tab.codes"));
+  }
+  async function onImport(e: any) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy("import");
+    try {
+      const raw = await readXlsxRows(file);
+      let n = 0;
+      for (const row of raw) {
+        const code = String(row[t("qc.dc.code")] ?? row["Code"] ?? "").trim();
+        const name = String(row[t("qc.dc.name")] ?? row["Defect name"] ?? "").trim();
+        if (!code || !name) continue;
+        const activeStr = String(row[t("qc.dc.active")] ?? row["Active"] ?? "").trim().toLowerCase();
+        const active = !["no", "false", "0", "inactive", "—", "yo'q", "нет", "yoq"].includes(activeStr);
+        const existing = rows.find((r) => (r.code || "").toLowerCase() === code.toLowerCase());
+        await save({
+          ...(existing || {}),
+          code, name,
+          stage: String(row[t("qc.dc.stageCreated")] ?? row["Stage created"] ?? "").trim(),
+          causeArea: String(row[t("qc.dc.causeArea")] ?? row["Typical cause area"] ?? "").trim(),
+          active,
+        });
+        n++;
+      }
+      alert(t("qc.dc.importedN").replace("{n}", String(n)));
+    } catch (err: any) {
+      alert(`${t("qc.dc.importFail")} ${err?.message || err}`);
+    }
+    setBusy("");
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && (
+          <button onClick={() => setEditing({ code: "", name: "", stage: "", causeArea: "", active: true })} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+            <Plus size={15} /> {t("qc.dc.newCode")}
+          </button>
+        )}
+        <button onClick={downloadTemplate} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <FileSpreadsheet size={14} /> {t("qc.template")}
+        </button>
+        {canEdit && (
+          <button onClick={() => fileRef.current?.click()} disabled={busy === "import"} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60">
+            <Upload size={14} /> {busy === "import" ? t("qc.importing") : t("qc.import")}
+          </button>
+        )}
+        <button onClick={exportCodes} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+        <input ref={fileRef} type="file" accept=".xlsx" className="hidden" onChange={onImport} />
+        {canEdit && rows.length === 0 && !loading && (
+          <button onClick={loadStarter} disabled={busy === "starter"} className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-60">
+            {busy === "starter" ? t("qc.loading") : t("qc.dc.loadStarter")}
+          </button>
+        )}
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("qc.dc.searchCodes")} className="border border-slate-200 rounded-lg p-1.5 text-sm flex-1 min-w-[150px]" />
+        <span className="text-xs text-slate-400">{t("qc.dc.countN").replace("{n}", String(filtered.length))}</span>
+      </div>
+
+      <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.dc.name")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.dc.stageCreated")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.dc.causeArea")}</th>
+              <th className="text-center p-3 font-medium">{t("qc.dc.active")}</th>
+              {canEdit && <th className="p-3 w-16"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => (
+              <tr key={r.id} className={`border-t border-slate-100 ${r.active === false ? "opacity-50" : ""}`}>
+                <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
+                <td className="p-3 text-slate-700">{r.name}</td>
+                <td className="p-3 text-slate-500">{r.stage}</td>
+                <td className="p-3 text-slate-500">{r.causeArea}</td>
+                <td className="p-3 text-center">{r.active === false ? "—" : "✓"}</td>
+                {canEdit && (
+                  <td className="p-3 text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
+                      <button onClick={() => askConfirm(t("qc.dc.deleteConfirm"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {!filtered.length && (
+              <tr><td colSpan={canEdit ? 6 : 5} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.dc.none")}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? t("qc.dc.editTitle") : t("qc.dc.newTitle")} onClose={() => setEditing(null)}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("qc.dc.fCode")}><input value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} placeholder="R01" className="w-full p-2.5 border border-slate-300 rounded-lg font-mono" autoFocus /></Field>
+              <Field label={t("qc.dc.stageCreated")}>
+                <select value={editing.stage} onChange={(e) => setEditing({ ...editing, stage: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg">
+                  <option value="">—</option>{QC_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+            </div>
+            <Field label={t("qc.dc.fName")}><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.dc.causeArea")}><input value={editing.causeArea} onChange={(e) => setEditing({ ...editing, causeArea: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} />
+              {t("qc.dc.activeInUse")}
+            </label>
+            <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.code || !editing.name) return; await save(editing); setEditing(null); }} />
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  2. Defect log
+// ---------------------------------------------------------------------------
+function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm, user, designs } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_deflog:");
+  const codes = useQcCollection("qc_defcode:");
+  const codeByCode: Record<string, any> = {};
+  codes.rows.forEach((c) => (codeByCode[c.code] = c));
+  const designById: Record<string, any> = {};
+  (designs || []).forEach((d: any) => (designById[d.id] = d));
+  const dNum = (r: any) => designById[r.designId]?.designNumber || r.article || "";
+  const dName = (r: any) => designById[r.designId]?.name || "";
+  const posLabel = (p: string) => {
+    const opt = QC_POSITIONS.find((o) => o.key === p);
+    return opt ? t(opt.tkey) : p;
+  };
+  const posText = (r: any) => {
+    const arr = Array.isArray(r.positions) ? r.positions : [];
+    const base = arr.length ? arr.map(posLabel).join(", ") : (r.position || "");
+    return [base, r.posNote].filter(Boolean).join(" · ");
+  };
+  // Stage follows the chosen defect code (each code carries its stage); fall
+  // back to any stage stored on older entries.
+  const codeStage = (r: any) => codeByCode[r.code]?.stage || r.stage || "";
+  const [editing, setEditing] = useState<any>(null);
+  const [filter, setFilter] = useState({ from: "", to: "", q: "" });
+
+  const filtered = rows
+    .filter((r) => {
+      if (filter.from && (r.date || "") < filter.from) return false;
+      if (filter.to && (r.date || "") > filter.to) return false;
+      if (filter.q && !`${r.batchNo} ${dNum(r)} ${dName(r)} ${r.code} ${codeByCode[r.code]?.name || ""}`.toLowerCase().includes(filter.q.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+  function exportLog() {
+    exportStationXlsx({
+      rows: filtered.map((r) => ({
+        date: r.date, shift: r.shift, programNo: r.batchNo,
+        designNumber: dNum(r), designName: dName(r), designId: r.designId,
+        stage: codeStage(r), code: r.code, defect: codeByCode[r.code]?.name || "",
+        position: posText(r), metres: Number(r.metres) || 0,
+      })),
+      columns: [
+        { header: t("qc.date"), key: "date" }, { header: t("qc.log.shift"), key: "shift" },
+        { header: t("qc.log.batch"), key: "programNo" },
+        { header: t("qc.log.design"), key: "designNumber" }, { header: t("qc.log.designName"), key: "designName" },
+        { header: t("qc.stage"), key: "stage" }, { header: t("qc.dc.code"), key: "code" },
+        { header: t("qc.dc.name"), key: "defect" }, { header: t("qc.log.position"), key: "position" },
+        { header: t("qc.log.metresAffected"), key: "metres" },
+      ],
+      imageColumn: {
+        header: t("qc.log.image"), position: 5, width: 16,
+        getDesignId: (row: any) => row.designId,
+        designById, resolveDesignImage,
+      },
+      filename: "defect_log", sheetName: t("qc.tab.log"),
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && (
+          <button onClick={() => setEditing({ date: todayISO(), shift: "A", batchNo: "", designId: "", code: "", positions: [], posNote: "", metres: "", note: "", operator: user?.name || "" })} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+            <Plus size={15} /> {t("qc.log.logDefect")}
+          </button>
+        )}
+        <input type="date" value={filter.from} onChange={(e) => setFilter({ ...filter, from: e.target.value })} className="border border-slate-200 rounded p-1.5 text-sm" />
+        <span className="text-slate-400 text-xs">{t("qc.log.to")}</span>
+        <input type="date" value={filter.to} onChange={(e) => setFilter({ ...filter, to: e.target.value })} className="border border-slate-200 rounded p-1.5 text-sm" />
+        <input value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} placeholder={t("qc.search")} className="border border-slate-200 rounded p-1.5 text-sm flex-1 min-w-[120px]" />
+        <button onClick={exportLog} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">{t("qc.date")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.log.shift")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.log.batch")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.log.design")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.stage")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.defect")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.log.position")}</th>
+              <th className="text-right p-3 font-medium">{t("qc.log.metres")}</th>
+              {canEdit && <th className="p-3 w-16"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => {
+              const d = designById[r.designId];
+              const img = d ? resolveDesignImage(d) : "";
+              return (
+              <tr key={r.id} className="border-t border-slate-100">
+                <td className="p-3 whitespace-nowrap text-slate-500">{r.date}</td>
+                <td className="p-3">{r.shift}</td>
+                <td className="p-3 font-mono text-xs">{r.batchNo}</td>
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    {img && <img src={img} className="w-7 h-7 object-cover rounded" />}
+                    <span className="font-mono font-semibold text-slate-700">{dNum(r) || "—"}</span>
+                    {dName(r) && <span className="text-slate-400 text-xs truncate max-w-[120px]">{dName(r)}</span>}
+                  </div>
+                </td>
+                <td className="p-3 text-slate-500">{codeStage(r)}</td>
+                <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
+                <td className="p-3 text-slate-600">{codeByCode[r.code]?.name || "—"}</td>
+                <td className="p-3 text-slate-500">{posText(r)}</td>
+                <td className="p-3 text-right font-semibold tabular-nums">{Number(r.metres) || 0}</td>
+                {canEdit && (
+                  <td className="p-3 text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
+                      <button onClick={() => askConfirm(t("qc.log.deleteConfirm"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                    </div>
+                  </td>
+                )}
+              </tr>
+              );
+            })}
+            {!filtered.length && (
+              <tr><td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.log.none")}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? t("qc.log.editTitle") : t("qc.log.newTitle")} onClose={() => setEditing(null)} large>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Field label={t("qc.log.fDate")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.log.shift")}>
+                <select value={editing.shift} onChange={(e) => setEditing({ ...editing, shift: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+              </Field>
+              <Field label={t("qc.log.fBatch")}><input value={editing.batchNo} onChange={(e) => setEditing({ ...editing, batchNo: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <div className="col-span-2 md:col-span-3">
+                <Field label={t("qc.log.design")}>
+                  <DesignPickerById value={editing.designId} onChange={(id) => setEditing({ ...editing, designId: id })} designs={designs || []} allowMix={false} placeholder={t("qc.log.designPh")} />
+                </Field>
+              </div>
+              <Field label={t("qc.log.fCode")}>
+                <select value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg">
+                  <option value="">—</option>
+                  {codes.rows.filter((c) => c.active !== false).sort((a, b) => (a.code || "").localeCompare(b.code || "")).map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
+                </select>
+              </Field>
+              <div className="col-span-2 md:col-span-3">
+                <Field label={t("qc.log.position")}>
+                  <div className="flex flex-wrap gap-2">
+                    {QC_POSITIONS.map((o) => {
+                      const sel = (editing.positions || []).includes(o.key);
+                      return (
+                        <button
+                          key={o.key}
+                          type="button"
+                          onClick={() => {
+                            const cur = editing.positions || [];
+                            setEditing({ ...editing, positions: sel ? cur.filter((x: string) => x !== o.key) : [...cur, o.key] });
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium border ${sel ? "bg-teal-600 text-white border-teal-600" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}
+                        >
+                          {t(o.tkey)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input value={editing.posNote || ""} onChange={(e) => setEditing({ ...editing, posNote: e.target.value })} placeholder={t("qc.log.posNotePh")} className="w-full mt-2 p-2.5 border border-slate-300 rounded-lg text-sm" />
+                </Field>
+              </div>
+              <Field label={t("qc.log.fMetres")}><input inputMode="numeric" value={editing.metres} onChange={(e) => setEditing({ ...editing, metres: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg text-right" /></Field>
+            </div>
+            {editing.code && codeByCode[editing.code] && (
+              <div className="text-xs text-slate-500 bg-slate-50 rounded-lg p-2">
+                {codeByCode[editing.code].name}
+                {codeByCode[editing.code].stage ? ` · ${t("qc.stage")}: ${codeByCode[editing.code].stage}` : ""}
+                {codeByCode[editing.code].causeArea ? ` · ${codeByCode[editing.code].causeArea}` : ""}
+              </div>
+            )}
+            <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.date || !editing.code) return; await save({ ...editing, stage: codeByCode[editing.code]?.stage || editing.stage || "", metres: Number(editing.metres) || 0 }); setEditing(null); }} />
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  3. Pareto
+// ---------------------------------------------------------------------------
+function QcPareto({ ctx }: { ctx: AppContext }) {
+  const t = useT();
+  const log = useQcCollection("qc_deflog:");
+  const codes = useQcCollection("qc_defcode:");
+  const codeByCode: Record<string, any> = {};
+  codes.rows.forEach((c) => (codeByCode[c.code] = c));
+  const [month, setMonth] = useState("");
+  const [rankBy, setRankBy] = useState<"metres" | "count">("metres");
+  const [inspected, setInspected] = useState("");
+
+  const entries = log.rows.filter((r) => !month || (r.date || "").startsWith(month));
+  const ranked = useMemo(() => {
+    const m: Record<string, { code: string; name: string; metres: number; count: number }> = {};
+    for (const r of entries) {
+      const code = r.code || "(none)";
+      if (!m[code]) m[code] = { code, name: codeByCode[code]?.name || code, metres: 0, count: 0 };
+      m[code].metres += Number(r.metres) || 0;
+      m[code].count += 1;
+    }
+    const arr = Object.values(m).sort((a, b) => (rankBy === "metres" ? b.metres - a.metres : b.count - a.count));
+    const total = arr.reduce((s, x) => s + (rankBy === "metres" ? x.metres : x.count), 0) || 1;
+    let cum = 0;
+    return arr.map((x, i) => {
+      const v = rankBy === "metres" ? x.metres : x.count;
+      cum += v;
+      return { ...x, rank: i + 1, value: v, pct: (v / total) * 100, cumPct: (cum / total) * 100 };
+    });
+  }, [entries, rankBy]);
+
+  const totalMetres = entries.reduce((s, r) => s + (Number(r.metres) || 0), 0);
+  const insp = Number(inspected) || 0;
+  const defectRate = insp > 0 ? (totalMetres / insp) * 100 : null;
+  const maxVal = Math.max(1, ...ranked.map((r) => r.value));
+  const byLabel = rankBy === "metres" ? t("qc.pareto.byMetresShort") : t("qc.pareto.byCountShort");
+
+  function exportPareto() {
+    exportRowsToXlsx(
+      ranked.map((r) => ({ rank: r.rank, code: r.code, name: r.name, count: r.count, metres: r.metres, pct: `${r.pct.toFixed(1)}%`, cumPct: `${r.cumPct.toFixed(1)}%` })),
+      [
+        { key: "rank", header: t("qc.pareto.rank") }, { key: "code", header: t("qc.dc.code") }, { key: "name", header: t("qc.defect") },
+        { key: "count", header: t("qc.pareto.occurrences") }, { key: "metres", header: t("qc.log.metresAffected") },
+        { key: "pct", header: t("qc.pareto.share") }, { key: "cumPct", header: t("qc.pareto.cumulative") },
+      ],
+      "pareto", t("qc.tab.pareto"),
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-4">
+        <div>
+          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.month")}</label>
+          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="border border-slate-300 rounded-lg p-2 text-sm" />
+        </div>
+        <div>
+          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.rankBy")}</label>
+          <select value={rankBy} onChange={(e) => setRankBy(e.target.value as any)} className="border border-slate-300 rounded-lg p-2 text-sm">
+            <option value="metres">{t("qc.pareto.byMetres")}</option>
+            <option value="count">{t("qc.pareto.byCount")}</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.inspected")}</label>
+          <input inputMode="numeric" value={inspected} onChange={(e) => setInspected(e.target.value)} placeholder="10000" className="border border-slate-300 rounded-lg p-2 text-sm w-32" />
+        </div>
+        <div className="text-sm text-slate-600">
+          <div>{t("qc.pareto.metresAffected")}: <b>{totalMetres.toLocaleString()}</b></div>
+          <div>{t("qc.pareto.defectsLogged")}: <b>{entries.length}</b></div>
+          {defectRate != null && <div>{t("qc.pareto.defectRate")}: <b>{defectRate.toFixed(2)}%</b> {t("qc.pareto.ofInspected")}</div>}
+        </div>
+        <div className="flex-1" />
+        <button onClick={exportPareto} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-2 font-semibold text-slate-700 mb-3">
+          <BarChart3 size={16} /> {t("qc.pareto.rankedByLabel").replace("{by}", byLabel)}
+        </div>
+        {ranked.length === 0 ? (
+          <div className="text-center text-slate-400 py-8">{t("qc.pareto.noData")}</div>
+        ) : (
+          <div className="space-y-2">
+            {ranked.map((r) => (
+              <div key={r.code}>
+                <div className="flex justify-between text-xs mb-0.5">
+                  <span className="font-medium text-slate-700"><span className="font-mono text-teal-700">{r.code}</span> {r.name}</span>
+                  <span className="text-slate-500 tabular-nums whitespace-nowrap ml-2">{rankBy === "metres" ? `${r.metres.toLocaleString()} m` : `${r.count}×`} · {t("qc.pareto.cumShort")} {r.cumPct.toFixed(0)}%</span>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${r.cumPct <= 80 ? "bg-teal-500" : "bg-slate-300"}`} style={{ width: `${Math.max(2, (r.value / maxVal) * 100)}%` }} />
+                </div>
+              </div>
+            ))}
+            <div className="text-[11px] text-slate-400 pt-1">{t("qc.pareto.vital")}</div>
+          </div>
+        )}
+      </div>
+
+      {ranked.length > 0 && (
+        <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="text-left p-3 font-medium">#</th>
+                <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
+                <th className="text-left p-3 font-medium">{t("qc.defect")}</th>
+                <th className="text-right p-3 font-medium">{t("qc.pareto.occurrences")}</th>
+                <th className="text-right p-3 font-medium">{t("qc.log.metres")}</th>
+                <th className="text-right p-3 font-medium">{t("qc.pareto.perTime")}</th>
+                <th className="text-right p-3 font-medium">{t("qc.pareto.share")}</th>
+                <th className="text-right p-3 font-medium">{t("qc.pareto.cumulative")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ranked.map((r) => (
+                <tr key={r.code} className={`border-t border-slate-100 ${r.cumPct <= 80 ? "" : "text-slate-400"}`}>
+                  <td className="p-3">{r.rank}</td>
+                  <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
+                  <td className="p-3 text-slate-600">{r.name}</td>
+                  <td className="p-3 text-right tabular-nums">{r.count}</td>
+                  <td className="p-3 text-right tabular-nums">{r.metres.toLocaleString()}</td>
+                  <td className="p-3 text-right tabular-nums text-slate-500">{(r.metres / (r.count || 1)).toFixed(1)}</td>
+                  <td className="p-3 text-right tabular-nums">{r.pct.toFixed(1)}%</td>
+                  <td className="p-3 text-right tabular-nums">{r.cumPct.toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="text-[11px] text-slate-400 p-3 pt-1">{t("qc.pareto.tableNote")}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  4. Fishbone
+// ---------------------------------------------------------------------------
+const FISHBONE_CATS = [
+  { key: "machine", tkey: "qc.fb.machine" },
+  { key: "method", tkey: "qc.fb.method" },
+  { key: "material", tkey: "qc.fb.material" },
+  { key: "man", tkey: "qc.fb.man" },
+  { key: "measurement", tkey: "qc.fb.measurement" },
+  { key: "environment", tkey: "qc.fb.environment" },
+];
+function QcFishbone({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm, user } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_fishbone:");
+  const [editing, setEditing] = useState<any>(null);
+
+  function blank() {
+    const causes: any = {};
+    FISHBONE_CATS.forEach((c) => (causes[c.key] = ""));
+    return { defect: "", date: todayISO(), person: user?.name || "", status: "Open", causes };
+  }
+  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+
+  return (
+    <div className="space-y-3">
+      {canEdit && (
+        <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Plus size={15} /> {t("qc.fb.new")}
+        </button>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rows.map((r) => {
+          const totalCauses = FISHBONE_CATS.reduce((s, c) => s + String(r.causes?.[c.key] || "").split("\n").filter((x) => x.trim()).length, 0);
+          return (
+            <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 font-semibold text-slate-800"><Fish size={16} className="text-teal-600" /> {r.defect || t("qc.fb.noDefect")}</div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">{r.date} · {r.person || r.team || "—"}</div>
+              <div className="text-xs text-slate-400 mt-2">{t("qc.fb.causesCount").replace("{n}", String(totalCauses))}</div>
+            </button>
+          );
+        })}
+        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.fb.none")}</div>}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? t("qc.fb.editTitle") : t("qc.fb.new")} onClose={() => setEditing(null)} large>
+          <div className="space-y-3">
+            <Field label={t("qc.fb.fDefect")}><input value={editing.defect} onChange={(e) => setEditing({ ...editing, defect: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label={t("qc.date")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.person")}><input value={editing.person ?? editing.team ?? ""} onChange={(e) => setEditing({ ...editing, person: e.target.value })} placeholder={t("qc.fb.personPh")} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.status")}>
+                <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="Open">{t("qc.open")}</option><option value="Closed">{t("qc.closed")}</option></select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {FISHBONE_CATS.map((c) => (
+                <Field key={c.key} label={t(c.tkey)}>
+                  <textarea value={editing.causes?.[c.key] || ""} onChange={(e) => setEditing({ ...editing, causes: { ...editing.causes, [c.key]: e.target.value } })} placeholder={t("qc.fb.causesLine")} rows={3} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" />
+                </Field>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              {editing.id && canEdit && (
+                <button onClick={() => askConfirm(t("qc.fb.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+              )}
+              <div className="flex-1" />
+              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.defect) return; await save(editing); setEditing(null); }} />
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  5. Five Whys
+// ---------------------------------------------------------------------------
+function QcFiveWhys({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_5why:");
+  const [editing, setEditing] = useState<any>(null);
+
+  function blank() {
+    return { problem: "", date: todayISO(), whys: [0, 1, 2, 3, 4].map(() => ({ q: "", a: "", evidence: "" })), rootCause: "", escapeCause: "", status: "Open" };
+  }
+  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+  function exportWhys() {
+    exportRowsToXlsx(
+      rows.map((r) => ({ problem: r.problem, date: r.date, status: statusLabel(r.status), whys: (r.whys || []).map((w: any, i: number) => `${i + 1}) ${w.q} -> ${w.a}${w.evidence ? ` [${w.evidence}]` : ""}`).join("  |  "), rootCause: r.rootCause, escapeCause: r.escapeCause })),
+      [
+        { key: "problem", header: t("qc.w.problem") }, { key: "date", header: t("qc.date") }, { key: "status", header: t("qc.status") },
+        { key: "whys", header: t("qc.w.whys") }, { key: "rootCause", header: t("qc.w.rootCause") }, { key: "escapeCause", header: t("qc.w.escapeCause") },
+      ],
+      "five_whys", t("qc.tab.fivewhys"),
+    );
+  }
+  function setWhy(i: number, patch: any) {
+    const whys = [...editing.whys];
+    whys[i] = { ...whys[i], ...patch };
+    setEditing({ ...editing, whys });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && (
+          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+            <Plus size={15} /> {t("qc.w.new")}
+          </button>
+        )}
+        <button onClick={exportWhys} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rows.map((r) => (
+          <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 font-semibold text-slate-800"><GitBranch size={16} className="text-teal-600" /> {r.problem || t("qc.w.noProblem")}</div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+            </div>
+            <div className="text-xs text-slate-500 mt-1">{r.date} · {t("qc.w.whysCount").replace("{n}", String((r.whys || []).length))}</div>
+            {r.rootCause && <div className="text-xs text-slate-600 mt-2"><b>{t("qc.w.rootLabel")}</b> {r.rootCause}</div>}
+          </button>
+        ))}
+        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.w.none")}</div>}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? t("qc.w.editTitle") : t("qc.w.new")} onClose={() => setEditing(null)} large>
+          <div className="space-y-3">
+            <Field label={t("qc.w.problem")}><input value={editing.problem} onChange={(e) => setEditing({ ...editing, problem: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("qc.date")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.status")}>
+                <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="Open">{t("qc.open")}</option><option value="Closed">{t("qc.closed")}</option></select>
+              </Field>
+            </div>
+            <div className="space-y-2">
+              {editing.whys.map((w: any, i: number) => (
+                <div key={i} className="border border-slate-200 rounded-lg p-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold text-teal-700">{t("qc.w.why")} {i + 1}</div>
+                    {editing.whys.length > 1 && (
+                      <button onClick={() => setEditing({ ...editing, whys: editing.whys.filter((_: any, j: number) => j !== i) })} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                    )}
+                  </div>
+                  <input value={w.q} onChange={(e) => setWhy(i, { q: e.target.value })} placeholder={t("qc.w.whyPh")} className="w-full p-2 border border-slate-300 rounded text-sm" />
+                  <input value={w.a} onChange={(e) => setWhy(i, { a: e.target.value })} placeholder={t("qc.w.answerPh")} className="w-full p-2 border border-slate-300 rounded text-sm" />
+                  <input value={w.evidence} onChange={(e) => setWhy(i, { evidence: e.target.value })} placeholder={t("qc.w.evidencePh")} className="w-full p-2 border border-slate-200 rounded text-xs" />
+                </div>
+              ))}
+              <button onClick={() => setEditing({ ...editing, whys: [...editing.whys, { q: "", a: "", evidence: "" }] })} className="text-teal-700 hover:bg-teal-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+                <Plus size={14} /> {t("qc.w.addWhy")}
+              </button>
+            </div>
+            <Field label={t("qc.w.rootCause")}><input value={editing.rootCause} onChange={(e) => setEditing({ ...editing, rootCause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.w.escapeCause")}><input value={editing.escapeCause} onChange={(e) => setEditing({ ...editing, escapeCause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <div className="flex gap-2">
+              {editing.id && canEdit && (
+                <button onClick={() => askConfirm(t("qc.w.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+              )}
+              <div className="flex-1" />
+              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.problem) return; await save(editing); setEditing(null); }} />
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  6. PFMEA
+// ---------------------------------------------------------------------------
+function rpnColor(rpn: number) {
+  if (rpn >= 200) return "bg-red-100 text-red-700";
+  if (rpn >= 100) return "bg-orange-100 text-orange-700";
+  if (rpn >= 40) return "bg-amber-100 text-amber-700";
+  return "bg-green-100 text-green-700";
+}
+function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm, user } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_pfmea:");
+  const [editing, setEditing] = useState<any>(null);
+  const withRpn = rows
+    .map((r) => ({ ...r, rpn: (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0) }))
+    .sort((a, b) => b.rpn - a.rpn);
+
+  function blank() {
+    return { step: "", func: "", failureMode: "", effect: "", s: "", cause: "", o: "", prevention: "", detection: "", d: "" };
+  }
+  const rpnOf = (r: any) => (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0);
+
+  // Save, snapshotting the PREVIOUS stored state into history so the card keeps
+  // a timeline of what it looked like before each update.
+  async function saveWithHistory() {
+    if (!editing.step || !editing.failureMode) return;
+    let history = editing.history || [];
+    if (editing.id) {
+      const prev = rows.find((r) => r.id === editing.id);
+      if (prev) {
+        const snap = {
+          at: new Date().toISOString(),
+          by: user?.name || "",
+          step: prev.step, failureMode: prev.failureMode,
+          s: prev.s, o: prev.o, d: prev.d, rpn: rpnOf(prev),
+          effect: prev.effect, cause: prev.cause,
+          prevention: prev.prevention, detection: prev.detection,
+        };
+        history = [snap, ...history].slice(0, 30);
+      }
+    }
+    await save({ ...editing, history });
+    setEditing(null);
+  }
+
+  const num = (label: string, key: string) => (
+    <Field label={label}><input inputMode="numeric" value={editing[key]} onChange={(e) => setEditing({ ...editing, [key]: e.target.value })} placeholder="1-10" className="w-full p-2.5 border border-slate-300 rounded-lg text-center" /></Field>
+  );
+  function exportPfmea() {
+    exportRowsToXlsx(
+      withRpn.map((r) => ({ step: r.step, func: r.func, failureMode: r.failureMode, effect: r.effect, s: r.s, cause: r.cause, o: r.o, prevention: r.prevention, detection: r.detection, d: r.d, rpn: r.rpn })),
+      [
+        { key: "step", header: t("qc.pfmea.step") }, { key: "func", header: t("qc.pfmea.func") },
+        { key: "failureMode", header: t("qc.pfmea.failure") }, { key: "effect", header: t("qc.pfmea.effect") },
+        { key: "s", header: "S" }, { key: "cause", header: t("qc.pfmea.cause") }, { key: "o", header: "O" },
+        { key: "prevention", header: t("qc.pfmea.prevention") }, { key: "detection", header: t("qc.pfmea.detection") },
+        { key: "d", header: "D" }, { key: "rpn", header: "RPN" },
+      ],
+      "pfmea", t("qc.tab.pfmea"),
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && (
+          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+            <Plus size={15} /> {t("qc.pfmea.new")}
+          </button>
+        )}
+        <button onClick={exportPfmea} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+        <span className="text-xs text-slate-400">{t("qc.pfmea.rankedNote")}</span>
+      </div>
+      <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="text-left p-3 font-medium">#</th>
+              <th className="text-left p-3 font-medium">{t("qc.pfmea.step")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.pfmea.failure")}</th>
+              <th className="text-left p-3 font-medium">{t("qc.pfmea.effect")}</th>
+              <th className="text-center p-3 font-medium">S</th>
+              <th className="text-left p-3 font-medium">{t("qc.pfmea.cause")}</th>
+              <th className="text-center p-3 font-medium">O</th>
+              <th className="text-center p-3 font-medium">D</th>
+              <th className="text-center p-3 font-medium">RPN</th>
+              {canEdit && <th className="p-3 w-16"></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {withRpn.map((r, i) => (
+              <tr key={r.id} className="border-t border-slate-100 align-top">
+                <td className="p-3 text-slate-400 font-medium">{i + 1}</td>
+                <td className="p-3 font-medium text-slate-700">{r.step}</td>
+                <td className="p-3 text-slate-600">{r.failureMode}</td>
+                <td className="p-3 text-slate-500 text-xs">{r.effect}</td>
+                <td className="p-3 text-center">{r.s}</td>
+                <td className="p-3 text-slate-500 text-xs">{r.cause}</td>
+                <td className="p-3 text-center">{r.o}</td>
+                <td className="p-3 text-center">{r.d}</td>
+                <td className="p-3 text-center"><span className={`px-2 py-1 rounded-full font-bold text-xs ${rpnColor(r.rpn)}`}>{r.rpn}</span></td>
+                {canEdit && (
+                  <td className="p-3 text-right">
+                    <div className="flex gap-1 justify-end items-center">
+                      {(r.history || []).length > 0 && (
+                        <span className="text-[10px] text-slate-400 flex items-center gap-0.5 mr-1" title={t("qc.pfmea.histUpdates")}>
+                          <History size={12} /> {(r.history || []).length}
+                        </span>
+                      )}
+                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
+                      <button onClick={() => askConfirm(t("qc.pfmea.deleteRow"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {!withRpn.length && (
+              <tr><td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.pfmea.none")}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? t("qc.pfmea.editTitle") : t("qc.pfmea.new")} onClose={() => setEditing(null)} large>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("qc.pfmea.fStep")}><input value={editing.step} onChange={(e) => setEditing({ ...editing, step: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
+              <Field label={t("qc.pfmea.func")}><input value={editing.func} onChange={(e) => setEditing({ ...editing, func: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            </div>
+            <Field label={t("qc.pfmea.fFailure")}><input value={editing.failureMode} onChange={(e) => setEditing({ ...editing, failureMode: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.pfmea.fEffect")}><input value={editing.effect} onChange={(e) => setEditing({ ...editing, effect: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.pfmea.fCause")}><input value={editing.cause} onChange={(e) => setEditing({ ...editing, cause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("qc.pfmea.fPrevention")}><input value={editing.prevention} onChange={(e) => setEditing({ ...editing, prevention: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.pfmea.fDetection")}><input value={editing.detection} onChange={(e) => setEditing({ ...editing, detection: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            </div>
+            <div className="grid grid-cols-3 gap-3">{num(t("qc.pfmea.fS"), "s")}{num(t("qc.pfmea.fO"), "o")}{num(t("qc.pfmea.fD"), "d")}</div>
+            <div className="text-sm text-slate-500">RPN = S × O × D = <b className="text-slate-800">{(Number(editing.s) || 0) * (Number(editing.o) || 0) * (Number(editing.d) || 0)}</b> <span className="text-xs">{t("qc.pfmea.rpnHint")}</span></div>
+
+            {(editing.history || []).length > 0 && (
+              <div className="border-t border-slate-100 pt-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
+                  <History size={15} /> {t("qc.pfmea.history")}
+                </div>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                  {editing.history.map((h: any, i: number) => (
+                    <div key={i} className="text-xs bg-slate-50 rounded-lg p-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500">
+                          {h.at ? new Date(h.at).toLocaleString() : "—"}{h.by ? ` · ${h.by}` : ""}
+                        </span>
+                        <span className={`px-1.5 py-0.5 rounded-full font-bold ${rpnColor(h.rpn || 0)}`}>RPN {h.rpn ?? "—"}</span>
+                      </div>
+                      <div className="text-slate-600 mt-1">
+                        <span className="font-medium">{h.step}</span>
+                        {h.failureMode ? ` — ${h.failureMode}` : ""}
+                        <span className="text-slate-400"> · S{h.s || 0} O{h.o || 0} D{h.d || 0}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1">{t("qc.pfmea.histNote")}</div>
+              </div>
+            )}
+
+            <FormFooter onCancel={() => setEditing(null)} onSave={saveWithHistory} />
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  7. 8D reports
+// ---------------------------------------------------------------------------
+const EIGHTD_STEPS = [
+  ["d0", "qc.8d.d0"], ["d1", "qc.8d.d1"], ["d2", "qc.8d.d2"], ["d3", "qc.8d.d3"],
+  ["d4", "qc.8d.d4"], ["d5", "qc.8d.d5"], ["d6", "qc.8d.d6"], ["d7", "qc.8d.d7"], ["d8", "qc.8d.d8"],
+];
+function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+  const t = useT();
+  const { askConfirm } = ctx;
+  const { rows, loading, save, remove } = useQcCollection("qc_8d:");
+  const [editing, setEditing] = useState<any>(null);
+  const [zoom, setZoom] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const photoRef = useRef<any>(null);
+
+  function blank() {
+    const d: any = {};
+    EIGHTD_STEPS.forEach(([k]) => (d[k] = ""));
+    return { reportNo: `8D-${new Date().getFullYear()}-`, customer: "", article: "", dateOpened: todayISO(), champion: "", targetClose: "", status: "Open", d, photos: [] };
+  }
+  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+
+  async function onPhoto(e: any) {
+    const files = Array.from(e.target.files || []) as File[];
+    e.target.value = "";
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const added: string[] = [];
+      for (const f of files) added.push(await compressImageToDataUrl(f));
+      setEditing((cur: any) => ({ ...cur, photos: [...(cur.photos || []), ...added] }));
+    } catch (err: any) {
+      alert(`Photo failed: ${err?.message || err}`);
+    }
+    setUploading(false);
+  }
+
+  function exportEightD() {
+    const cols = [
+      { key: "reportNo", header: t("qc.8d.reportNo") }, { key: "customer", header: t("qc.8d.customer") },
+      { key: "article", header: t("qc.log.article") }, { key: "dateOpened", header: t("qc.8d.dateOpened") },
+      { key: "champion", header: t("qc.8d.champion") }, { key: "targetClose", header: t("qc.8d.targetClose") },
+      { key: "status", header: t("qc.status") },
+      ...EIGHTD_STEPS.map(([k, tk]) => ({ key: k, header: t(tk) })),
+      { key: "photos", header: t("qc.8d.photos") },
+    ];
+    exportRowsToXlsx(
+      rows.map((r) => {
+        const o: any = { reportNo: r.reportNo, customer: r.customer, article: r.article, dateOpened: r.dateOpened, champion: r.champion, targetClose: r.targetClose, status: statusLabel(r.status) };
+        EIGHTD_STEPS.forEach(([k]) => (o[k] = r.d?.[k] || ""));
+        o.photos = (r.photos || []).length;
+        return o;
+      }),
+      cols, "eightd_reports", t("qc.tab.eightd"),
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && (
+          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+            <Plus size={15} /> {t("qc.8d.new")}
+          </button>
+        )}
+        <button onClick={exportEightD} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <Download size={14} /> {t("qc.export")}
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rows.map((r) => {
+          const done = EIGHTD_STEPS.filter(([k]) => String(r.d?.[k] || "").trim()).length;
+          return (
+            <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 font-semibold text-slate-800"><AlertTriangle size={16} className="text-teal-600" /> {r.reportNo}</div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">{r.customer} · {r.article}</div>
+              <div className="text-xs text-slate-400 mt-2">{t("qc.8d.opened")} {r.dateOpened} · {t("qc.8d.champLabel")} {r.champion || "—"}{(r.photos || []).length ? ` · ${r.photos.length}📷` : ""}</div>
+              <div className="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden"><div className="h-full bg-teal-500 rounded-full" style={{ width: `${(done / 9) * 100}%` }} /></div>
+              <div className="text-[10px] text-slate-400 mt-1">{t("qc.8d.disciplines").replace("{n}", String(done))}</div>
+            </button>
+          );
+        })}
+        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.8d.none")}</div>}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? `${t("qc.tab.eightd")} ${editing.reportNo}` : t("qc.8d.new")} onClose={() => setEditing(null)} large>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between gap-2 rounded-lg p-2.5 ${editing.status === "Closed" ? "bg-green-50" : "bg-amber-50"}`}>
+              <span className={`text-sm font-medium ${editing.status === "Closed" ? "text-green-700" : "text-amber-700"}`}>
+                {editing.status === "Closed" ? `✓ ${t("qc.8d.closedMsg")}` : `● ${t("qc.8d.openMsg")}`}
+              </span>
+              {canEdit && (
+                <button onClick={() => setEditing({ ...editing, status: editing.status === "Closed" ? "Open" : "Closed" })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${editing.status === "Closed" ? "bg-white text-amber-700 border border-amber-200" : "bg-green-600 text-white"}`}>
+                  {editing.status === "Closed" ? t("qc.8d.reopen") : t("qc.8d.markClosed")}
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Field label={t("qc.8d.fReportNo")}><input value={editing.reportNo} onChange={(e) => setEditing({ ...editing, reportNo: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg font-mono" /></Field>
+              <Field label={t("qc.8d.customer")}><input value={editing.customer} onChange={(e) => setEditing({ ...editing, customer: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.log.article")}><input value={editing.article} onChange={(e) => setEditing({ ...editing, article: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.8d.dateOpened")}><input type="date" value={editing.dateOpened} onChange={(e) => setEditing({ ...editing, dateOpened: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.8d.champion")}><input value={editing.champion} onChange={(e) => setEditing({ ...editing, champion: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.8d.targetClose")}><input type="date" value={editing.targetClose} onChange={(e) => setEditing({ ...editing, targetClose: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            </div>
+
+            <div className="space-y-2">
+              {EIGHTD_STEPS.map(([k, tk]) => (
+                <Field key={k} label={t(tk)}>
+                  <textarea value={editing.d?.[k] || ""} onChange={(e) => setEditing({ ...editing, d: { ...editing.d, [k]: e.target.value } })} rows={2} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" />
+                </Field>
+              ))}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium text-slate-600">{t("qc.8d.photos")}</span>
+                {canEdit && (
+                  <button onClick={() => photoRef.current?.click()} disabled={uploading} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60">
+                    <Camera size={14} /> {uploading ? t("qc.8d.adding") : t("qc.8d.uploadJpg")}
+                  </button>
+                )}
+                <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={onPhoto} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(editing.photos || []).map((src: string, i: number) => (
+                  <div key={i} className="relative group">
+                    <img src={src} onClick={() => setZoom(src)} className="w-24 h-24 object-cover rounded-lg border border-slate-200 cursor-pointer" />
+                    {canEdit && (
+                      <button onClick={() => setEditing({ ...editing, photos: editing.photos.filter((_: any, j: number) => j !== i) })} className="absolute -top-1.5 -right-1.5 bg-white border border-slate-200 rounded-full p-0.5 shadow text-slate-500 hover:text-red-600"><X size={12} /></button>
+                    )}
+                  </div>
+                ))}
+                {!(editing.photos || []).length && <span className="text-xs text-slate-400">{t("qc.8d.noPhotos")}</span>}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {editing.id && canEdit && (
+                <button onClick={() => askConfirm(t("qc.8d.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+              )}
+              <div className="flex-1" />
+              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.reportNo) return; await save(editing); setEditing(null); }} />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {zoom && (
+        <div onClick={() => setZoom("")} className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-6 cursor-zoom-out">
+          <img src={zoom} className="max-w-full max-h-full rounded-lg shadow-2xl" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  8. Guide — bilingual method reference (always shows EN + UZ)
+// ---------------------------------------------------------------------------
+const QC_GUIDE = [
+  {
+    icon: ListChecks,
+    en: { name: "Defect codes", body: "The master list of defect names and their short codes. Everything else depends on it — the log, Pareto and PFMEA all reference these codes. Set it up once with your inspectors, keep 15–25 live codes, and review quarterly. Use the Excel template to fill many at once and import them." },
+    uz: { name: "Nuqson kodlari", body: "Nuqson nomlari va ularning qisqa kodlari ro'yxati. Qolgan hamma narsa shunga bog'liq — jurnal, Pareto va PFMEA shu kodlarga tayanadi. Buni nazoratchilar bilan bir marta sozlang, 15–25 ta faol kodni saqlang va choraklik ko'rib chiqing. Ko'p kodni birdan to'ldirish uchun Excel shablonidan foydalaning va import qiling." },
+  },
+  {
+    icon: Bug,
+    en: { name: "Defect log", body: "One row per defect found at inspection — not one row per roll. Record the date, shift, batch, stage, machine, defect code and, most importantly, the metres affected. Fill it in every shift. This honest daily record is the fuel for every analysis that follows." },
+    uz: { name: "Nuqsonlar jurnali", body: "Tekshiruvda topilgan har bir nuqson uchun bitta qator — har bir rulon uchun emas. Sana, smena, partiya, bosqich, dastgoh, nuqson kodi va eng muhimi — zararlangan metrni yozing. Har smenada to'ldiring. Bu halol kunlik yozuv keyingi barcha tahlillar uchun asosdir." },
+  },
+  {
+    icon: BarChart3,
+    en: { name: "Pareto", body: "Reads the defect log and ranks defects so you know what to fix first. The 80/20 rule: usually a few defects cause most of the loss. Rank by metres affected to chase the biggest fabric loss, or by occurrences to chase the most frequent problem — a defect can be rare but huge, or frequent but small. Fix the vital few, not the trivial many." },
+    uz: { name: "Pareto tahlili", body: "Nuqsonlar jurnalini o'qiydi va nuqsonlarni saralaydi — nimadan boshlashni bilib olasiz. 80/20 qoidasi: odatda bir nechta nuqson eng katta yo'qotishni keltiradi. Eng katta mato yo'qotishini quvish uchun zararlangan metr bo'yicha, eng tez-tez uchraydigan muammoni quvish uchun takrorlanish bo'yicha saralang — nuqson kam uchrab katta, yoki tez-tez uchrab kichik bo'lishi mumkin. Kam sonli muhimlarini hal qiling." },
+  },
+  {
+    icon: Fish,
+    en: { name: "Fishbone (Ishikawa)", body: "A 6M brainstorm for one defect: Machine, Method, Material, Man, Measurement, Environment. Write the defect in the head, then list possible causes on each bone. This produces suspects, not proof — the next step is to test them. Use it after Pareto names your top defect." },
+    uz: { name: "Fishbone (Ishikava)", body: "Bitta nuqson uchun 6M miya hujumi: Mashina, Usul, Material, Inson, O'lchov, Muhit. Nuqsonni boshiga yozing, so'ng har bir suyakka ehtimoliy sabablarni sanang. Bu isbot emas, gumondorlarni beradi — keyingi qadam ularni sinab ko'rish. Pareto asosiy nuqsonni aniqlagach ishlating." },
+  },
+  {
+    icon: GitBranch,
+    en: { name: "5 Whys", body: "Take one suspected cause and ask 'why?' until you reach a system or process gap — never stop at 'the operator made a mistake', that is one or two levels too early. Record the evidence at each step. You can add more than five whys when needed. Ends with a root cause and an escape cause (why we didn't catch it)." },
+    uz: { name: "5 Nega", body: "Bitta gumon qilingan sababni oling va tizim yoki jarayon kamchiligiga yetguncha 'nega?' deb so'rang — hech qachon 'ishchi xato qildi'da to'xtamang, bu bir-ikki bosqich erta. Har qadamda dalilni yozing. Kerak bo'lsa beshtadan ortiq 'nega' qo'shishingiz mumkin. Asosiy sabab va o'tkazib yuborish sababi bilan yakunlanadi." },
+  },
+  {
+    icon: Gauge,
+    en: { name: "PFMEA", body: "Process Failure Mode & Effects Analysis. For each process step, rate Severity, Occurrence and Detection from 1–10; RPN = S × O × D. Higher RPN = higher risk, shown at the top. Detection 1 means you always catch it, 10 means you never do. Start with your top three Pareto defects, not all stages at once." },
+    uz: { name: "PFMEA", body: "Jarayon nosozliklari va ularning ta'sirini tahlil qilish. Har bir jarayon bosqichi uchun Jiddiylik, Yuzaga kelish va Aniqlashni 1–10 oralig'ida baholang; RPN = S × O × D. RPN qanchalik yuqori bo'lsa, xavf shuncha katta — yuqorida ko'rsatiladi. Aniqlash 1 — doim aniqlaysiz, 10 — hech qachon. Barcha bosqichni emas, avval Pareto'dagi eng yuqori uchta nuqsonni oling." },
+  },
+  {
+    icon: AlertTriangle,
+    en: { name: "8D report", body: "The formal eight-discipline response to a customer complaint or a major internal failure. D0–D3 within 48 hours (contain the problem); do not close before D6 has evidence; never skip D7 — that is the step that stops it coming back. Open a card, work it step by step with the team, attach the paper report photo, and mark it closed only when it is truly solved." },
+    uz: { name: "8D hisobot", body: "Mijoz shikoyati yoki jiddiy ichki nosozlikka rasmiy sakkiz bosqichli javob. D0–D3 48 soat ichida (muammoni to'xtating); D6 dalilga ega bo'lmaguncha yopmang; D7 ni hech qachon o'tkazib yubormang — aynan shu bosqich uni qaytishdan to'xtatadi. Kartani oching, jamoa bilan bosqichma-bosqich ishlang, qog'oz hisobot rasmini biriktiring va faqat haqiqatan hal bo'lgandagina yopiq deb belgilang." },
+  },
+];
+function QcGuide({ ctx }: { ctx: AppContext }) {
+  const t = useT();
+  return (
+    <div className="space-y-4 max-w-4xl">
+      <div className="bg-gradient-to-br from-teal-600 to-emerald-600 text-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-2 font-semibold text-lg">
+          <FlaskConical size={20} /> {t("qc.guide.title")}
+        </div>
+        <p className="text-sm mt-2 leading-relaxed text-teal-50">{t("qc.guide.creditEn")}</p>
+        <p className="text-sm mt-2 leading-relaxed text-teal-50">{t("qc.guide.creditUz")}</p>
+      </div>
+
+      <p className="text-sm text-slate-500">{t("qc.guide.intro")}</p>
+
+      {QC_GUIDE.map((m, i) => {
+        const Icon = m.icon;
+        return (
+          <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 font-semibold text-slate-800 mb-3">
+              <span className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center"><Icon size={16} /></span>
+              <span>{i + 1}. {m.en.name} <span className="text-slate-400 font-normal">· {m.uz.name}</span></span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">English</div>
+                <p className="text-sm text-slate-600 leading-relaxed">{m.en.body}</p>
+              </div>
+              <div className="md:border-l md:border-slate-100 md:pl-4">
+                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">O'zbekcha</div>
+                <p className="text-sm text-slate-600 leading-relaxed">{m.uz.body}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="text-center text-xs text-slate-400 pt-2 pb-6">{t("qc.guide.footer")}</div>
+    </div>
+  );
+}
+
+
+
 
 function stationTabs(stationId, ctx, t) {
   switch (stationId) {
@@ -12327,6 +14098,49 @@ function stationTabs(stationId, ctx, t) {
               canEdit={canEdit}
             />
           ),
+        },
+      ];
+    case "quality":
+      return [
+        {
+          id: "codes",
+          label: t("qc.tab.codes"),
+          render: (canEdit) => <QcDefectCodes ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "log",
+          label: t("qc.tab.log"),
+          render: (canEdit) => <QcDefectLog ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "pareto",
+          label: t("qc.tab.pareto"),
+          render: () => <QcPareto ctx={ctx} />,
+        },
+        {
+          id: "fishbone",
+          label: t("qc.tab.fishbone"),
+          render: (canEdit) => <QcFishbone ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "fivewhys",
+          label: t("qc.tab.fivewhys"),
+          render: (canEdit) => <QcFiveWhys ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "pfmea",
+          label: t("qc.tab.pfmea"),
+          render: (canEdit) => <QcPfmea ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "eightd",
+          label: t("qc.tab.eightd"),
+          render: (canEdit) => <QcEightD ctx={ctx} canEdit={canEdit} />,
+        },
+        {
+          id: "guide",
+          label: t("qc.tab.guide"),
+          render: () => <QcGuide ctx={ctx} />,
         },
       ];
     case "folding":
@@ -26404,22 +28218,6 @@ function StoreStockView({ ctx }: CtxProps) {
               />
               <th className="text-left p-3 font-medium">{t("stock.col.rollsOnHand")}</th>
               <SortableTh
-                sortKey="inQty"
-                label={t("stock.col.in")}
-                sort={sort}
-                setSort={setSort}
-                numeric
-                className="text-right"
-              />
-              <SortableTh
-                sortKey="outQty"
-                label={t("stock.col.out")}
-                sort={sort}
-                setSort={setSort}
-                numeric
-                className="text-right"
-              />
-              <SortableTh
                 sortKey="onHand"
                 label={t("stock.col.onHand")}
                 sort={sort}
@@ -26543,8 +28341,6 @@ function StoreStockView({ ctx }: CtxProps) {
                       </div>
                     )}
                   </td>
-                  <td className="p-3 text-right">{fmtMoney(r.inQty)}</td>
-                  <td className="p-3 text-right">{fmtMoney(r.outQty)}</td>
                   <td
                     className={`p-3 text-right font-bold ${r.onHand <= 0 ? "text-red-600" : r.onHand < 50 ? "text-orange-600" : "text-slate-800"}`}
                   >
@@ -26625,7 +28421,7 @@ function StoreStockView({ ctx }: CtxProps) {
             })}
             {!sortedRows.length && (
               <tr>
-                <td colSpan={canEdit ? 12 : 11} className="p-8 text-center text-slate-400">
+                <td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">
                   {stockByDesign.length === 0
                     ? t("stock.empty")
                     : t("stock.searchEmpty")}
