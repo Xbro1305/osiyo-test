@@ -7028,11 +7028,176 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   );
 }
 
+// ============== CHANGE MY OWN PASSWORD (super-admin only) ==============
+// The users table deliberately refuses to edit your own row
+// (canManageThisUser returns false when currentUser.id === targetUser.id),
+// which left the super-admin with no way to change their own passcode
+// short of a second admin account. This modal fills that gap: confirm the
+// current passcode, then write a new one onto the SAME user record.
+function ChangeOwnPasswordModal({
+  ctx,
+  onClose,
+}: {
+  ctx: AppContext;
+  onClose: () => void;
+}) {
+  const { user: currentUser, users, saveUser, setUser } = ctx;
+  const [cur, setCur] = useState("");
+  const [next, setNext] = useState("");
+  const [again, setAgain] = useState("");
+  const [show, setShow] = useState(false);
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // How we prove the person at the keyboard knows the CURRENT passcode:
+  //  - API mode: /auth/me never returns the passcode (it is hashed server
+  //    side), so the only honest check is to ask the server to authenticate
+  //    it. That refreshes the JWT, which is harmless — same user.
+  //  - Artifact mode: passcodes live in plaintext on the user object.
+  async function verifyCurrent(pwd: string) {
+    if (storage.isApiMode) {
+      const res = await storage.loginApi(currentUser.login, pwd);
+      return !!(res && res.user);
+    }
+    return String(currentUser.passcode ?? "") === pwd;
+  }
+
+  async function submit() {
+    setErr("");
+    if (!cur || !next || !again) {
+      setErr("Fill in all three fields.");
+      return;
+    }
+    if (next.length < 4) {
+      setErr("The new passcode must be at least 4 characters.");
+      return;
+    }
+    if (next !== again) {
+      setErr("The two new passcodes don't match.");
+      return;
+    }
+    if (next === cur) {
+      setErr("The new passcode is the same as the current one.");
+      return;
+    }
+    setBusy(true);
+    try {
+      if (!(await verifyCurrent(cur))) {
+        setErr("Current passcode is wrong.");
+        return;
+      }
+      // Merge onto the FULL record from the users list. `currentUser` comes
+      // from /auth/me in API mode and can be missing fields that a full PUT
+      // would otherwise wipe (allowedPages, allowedDepartments, ...).
+      const full = users.find((u) => u.id === currentUser.id) || currentUser;
+      await saveUser({ ...full, passcode: next });
+      // Keep the in-memory session in step — artifact mode only, so we never
+      // put a plaintext passcode on the API-mode session object.
+      if (!storage.isApiMode) setUser({ ...currentUser, passcode: next });
+      setDone(true);
+      setTimeout(onClose, 1400);
+    } catch {
+      setErr("Couldn't save the new passcode. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const inputCls =
+    "flex-1 p-2.5 border border-slate-300 rounded-lg font-mono";
+
+  return (
+    <Modal
+      title="Change my passcode"
+      onClose={onClose}
+      dismissible={false}
+      closeOnEsc
+    >
+      {done ? (
+        <div className="p-4 text-center space-y-2">
+          <CheckCircle size={36} className="text-green-600 mx-auto" />
+          <div className="font-medium text-slate-800">Passcode changed</div>
+          <div className="text-sm text-slate-500">
+            Use the new one the next time you sign in.
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="text-sm text-slate-500">
+            Signed in as{" "}
+            <span className="font-mono text-slate-700">
+              {currentUser.login}
+            </span>
+            . This changes only your own passcode.
+          </div>
+          <Field label="Current passcode *">
+            <div className="flex gap-2">
+              <input
+                type={show ? "text" : "password"}
+                value={cur}
+                onChange={(e) => setCur(e.target.value)}
+                className={inputCls}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShow(!show)}
+                className="px-3 border border-slate-300 rounded-lg"
+              >
+                {show ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </Field>
+          <Field label="New passcode *">
+            <input
+              type={show ? "text" : "password"}
+              value={next}
+              onChange={(e) => setNext(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
+            />
+          </Field>
+          <Field label="Repeat new passcode *">
+            <input
+              type={show ? "text" : "password"}
+              value={again}
+              onChange={(e) => setAgain(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !busy && submit()}
+              className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
+            />
+          </Field>
+          {err && (
+            <div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">
+              {err}
+            </div>
+          )}
+          <div className="flex gap-2 justify-end pt-1">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={submit}
+              disabled={busy}
+              className={`px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium flex items-center gap-2 ${busy ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              <Lock size={16} /> {busy ? "…" : "Save passcode"}
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 // ============== USERS ADMIN ==============
 function UsersAdmin({ ctx }: CtxProps) {
   const { users, user: currentUser, saveUser, deleteUser, askConfirm } = ctx;
   const [editing, setEditing] = useState(null);
   const [filterRole, setFilterRole] = useState("");
+  const [changingOwnPwd, setChangingOwnPwd] = useState(false);
 
   const isSuperAdmin = currentUser.role === "admin";
   const isDeptAdmin = currentUser.role === "dept_admin";
@@ -7140,13 +7305,32 @@ function UsersAdmin({ ctx }: CtxProps) {
               : `${DEPARTMENTS.find((d) => d.id === currentUser.departmentId)?.name || "Department"} — manage operators and guests in your department`}
           </p>
         </div>
-        <button
-          onClick={newUser}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
-        >
-          <Plus size={16} /> Add User
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Super-admin can't edit their own row in the table below, so the
+              only way to rotate their own passcode is this button. */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => setChangingOwnPwd(true)}
+              className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+            >
+              <Lock size={16} /> Change my passcode
+            </button>
+          )}
+          <button
+            onClick={newUser}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+          >
+            <Plus size={16} /> Add User
+          </button>
+        </div>
       </div>
+
+      {changingOwnPwd && (
+        <ChangeOwnPasswordModal
+          ctx={ctx}
+          onClose={() => setChangingOwnPwd(false)}
+        />
+      )}
 
       {/* Role hierarchy explainer card (super-admin only) */}
       {isSuperAdmin && (
