@@ -293,6 +293,10 @@ const TRANSLATIONS = {
     "qc.log.to": "to",
     "qc.log.none": "No defects logged.",
     "qc.log.editTitle": "Edit log entry",
+    "qc.log.importedN": "Imported {n} defect row(s). Skipped: {s}.",
+    "qc.log.importFail": "Import failed:",
+    "qc.log.importUnknownCodes":
+      "Unknown defect codes (imported anyway): {list}",
     "qc.log.newTitle": "Log a defect",
     "qc.log.fDate": "Date *",
     "qc.log.fBatch": "Program No.",
@@ -315,12 +319,26 @@ const TRANSLATIONS = {
     "qc.pareto.noData": "No data for this period.",
     "qc.pareto.cumShort": "cum",
     "qc.pareto.vital": "Teal bars are the vital ~80% — tackle those first.",
+    "qc.pareto.ofTotal": "of total",
+    "qc.pareto.cutLine":
+      "↑ These {n} defect(s) cause {pct}% of all {by}. Fix these first — the rest below add little.",
+    "qc.pareto.cutLineAll":
+      "No single group dominates — every defect below is a similar size.",
+    "qc.pareto.cumExplain":
+      "Share % = this one defect's slice. Running total % = this defect plus every defect above it, so the last row is always 100%. Where the running total passes 80% is your cut-off line.",
     "qc.pareto.occurrences": "Occurrences",
     "qc.pareto.perTime": "Metres / time",
     "qc.pareto.share": "Share %",
-    "qc.pareto.cumulative": "Cumulative %",
+    "qc.pareto.shareHint": "this defect alone",
+    "qc.pareto.cumulative": "Running total %",
+    "qc.pareto.cumHint": "this + everything above",
+    "qc.pareto.shareTip":
+      "This defect's own slice of the total. All rows add up to 100%.",
+    "qc.pareto.cumTip":
+      "This defect plus every defect above it. Always rises, always ends at 100%. Where it passes 80% is your cut-off.",
     "qc.pareto.rank": "Rank",
-    "qc.pareto.tableNote": "\"Metres / time\" separates a rare-but-huge defect from a frequent-but-tiny one. Switch \"Rank by\" to see each ordering.",
+    "qc.pareto.tableNote":
+      '"Metres / time" separates a rare-but-huge defect from a frequent-but-tiny one. Switch "Rank by" to see each ordering.',
     "qc.fb.new": "New fishbone",
     "qc.fb.none": "No fishbone worksheets yet.",
     "qc.fb.editTitle": "Fishbone worksheet",
@@ -372,7 +390,8 @@ const TRANSLATIONS = {
     "qc.pfmea.fD": "Detection (D)",
     "qc.pfmea.rpnHint": "(Detection: 1 = always caught, 10 = never)",
     "qc.pfmea.history": "Change history",
-    "qc.pfmea.histNote": "Each update saves the previous state here, so you can see how this row evolved.",
+    "qc.pfmea.histNote":
+      "Each update saves the previous state here, so you can see how this row evolved.",
     "qc.pfmea.histUpdates": "updates",
     "qc.pfmea.prevention": "Prevention control",
     "qc.pfmea.detection": "Detection control",
@@ -407,10 +426,14 @@ const TRANSLATIONS = {
     "qc.8d.d7": "D7 — Prevent recurrence",
     "qc.8d.d8": "D8 — Recognise the team & close",
     "qc.guide.title": "Quality & R&D — Method Guide",
-    "qc.guide.creditEn": "This quality system was assembled by T.J (1.08.2026) — bringing these root-cause methods into one place to steadily reduce the printing department's rejection rate.",
-    "qc.guide.creditUz": "Whoever continues this work: log defects honestly, follow the Pareto, and close every loop with 8D.",
-    "qc.guide.intro": "A short reference for each method used in this station — in English and Uzbek.",
-    "qc.guide.footer": "Quality is not an accident — it is logged, analysed and improved every shift.",
+    "qc.guide.creditEn":
+      "This quality system was assembled by T.J (1.08.2026) — bringing these root-cause methods into one place to steadily reduce the printing department's rejection rate.",
+    "qc.guide.creditUz":
+      "Whoever continues this work: log defects honestly, follow the Pareto, and close every loop with 8D.",
+    "qc.guide.intro":
+      "A short reference for each method used in this station — in English and Uzbek.",
+    "qc.guide.footer":
+      "Quality is not an accident — it is logged, analysed and improved every shift.",
     "stage.ombor": "Ombor",
     "stations.title": "Stations",
     // ===== Topbar =====
@@ -582,7 +605,8 @@ const TRANSLATIONS = {
     "stockin.design": "Design",
     "stockin.design.mix": "Mix (multiple designs)",
     "stockin.design.remainder": "Mixed Remainder",
-    "stockin.design.remainder.help": "Leftover small pieces from many designs, pooled together.",
+    "stockin.design.remainder.help":
+      "Leftover small pieces from many designs, pooled together.",
     "stockin.design.pick": "Pick a design…",
     "stockin.color": "Color",
     "stockin.stockFabricType": "Stock Fabric Type",
@@ -598,7 +622,8 @@ const TRANSLATIONS = {
     "stockin.rollLines.qty": "Rolls",
     "stockin.rollLines.subtotal": "Subtotal",
     "stockin.extraMeters": "Extra meters (bulk piece)",
-    "stockin.extraMeters.help": "Optional — e.g. a 76m remnant alongside the rolls.",
+    "stockin.extraMeters.help":
+      "Optional — e.g. a 76m remnant alongside the rolls.",
     "stockin.total": "Total meters",
     "stockin.costPerMeter": "Cost / meter",
     "stockin.totalCost": "Total cost",
@@ -667,9 +692,11 @@ const TRANSLATIONS = {
     "sales.pickCustomer": "Pick customer",
     "sales.customerRequired": "Pick a customer first",
     "sales.pickRolls": "Pick rolls to sell",
-    "sales.pickRolls.help": "Pick whole rolls from this customer's available stock.",
+    "sales.pickRolls.help":
+      "Pick whole rolls from this customer's available stock.",
     "sales.discount": "Discount per meter",
-    "sales.discount.help": "Optional. Subtracted from the base unit price for this sale only.",
+    "sales.discount.help":
+      "Optional. Subtracted from the base unit price for this sale only.",
     "sales.basePrice": "Base price / meter",
     "sales.finalPrice": "Final price / meter",
     "sales.totalRolls": "Rolls",
@@ -736,12 +763,15 @@ const TRANSLATIONS = {
     "sales.selected": "Selected rolls",
     "sales.line": "line",
     "sales.lines": "lines",
-    "stockin.rollLines.empty": "No roll lines yet — click “+” to add e.g. 34 rolls × 30m.",
+    "stockin.rollLines.empty":
+      "No roll lines yet — click “+” to add e.g. 34 rolls × 30m.",
     // ===== Stock-in save modes =====
     "stockin.save.another": "Save & add another",
-    "stockin.save.another.hint": "Save this and open a fresh entry (keeps fabric type)",
+    "stockin.save.another.hint":
+      "Save this and open a fresh entry (keeps fabric type)",
     "stockin.save.sell": "Save & sell",
-    "stockin.save.sell.hint": "Save this, then jump to a sale pre-filled with this design",
+    "stockin.save.sell.hint":
+      "Save this, then jump to a sale pre-filled with this design",
     // ===== On-hand correction modal =====
     "stock.col.actions": "Edit",
     "stock.correct.title": "Correct on-hand",
@@ -750,12 +780,15 @@ const TRANSLATIONS = {
     "stock.correct.currentOnHand": "Current on-hand",
     "stock.correct.newOnHand": "New on-hand (m)",
     "stock.correct.reason": "Reason (optional)",
-    "stock.correct.reason.placeholder": "e.g. inventory audit, damaged rolls, count adjustment",
+    "stock.correct.reason.placeholder":
+      "e.g. inventory audit, damaged rolls, count adjustment",
     "stock.correct.apply": "Apply correction",
     "stock.correct.hint.invalid": "Enter a valid number",
     "stock.correct.hint.noChange": "No change — same as current on-hand.",
-    "stock.correct.hint.stockIn": "will be added as a correction stock-in dated today.",
-    "stock.correct.hint.stockOut": "will be removed as a correction stock-out dated today.",
+    "stock.correct.hint.stockIn":
+      "will be added as a correction stock-in dated today.",
+    "stock.correct.hint.stockOut":
+      "will be removed as a correction stock-out dated today.",
     "stock.correct.source": "Correction (on-hand edit)",
     "stock.correct.recordNote": "On-hand correction",
     "stock.correct.rollsPerLength": "Rolls per length",
@@ -774,7 +807,8 @@ const TRANSLATIONS = {
     "common.allShifts": "All shifts",
     "common.allFabrics": "All fabric types",
     "common.clickToSort": "Click to sort",
-    "common.archiveHint": "They'll stay in the database but render faded and out of the way.",
+    "common.archiveHint":
+      "They'll stay in the database but render faded and out of the way.",
     "tab.stock": "Stock",
     "tab.input": "Input",
     "tab.dispatch": "Dispatch",
@@ -816,9 +850,11 @@ const TRANSLATIONS = {
     "home.reject": "Reject",
     "home.noInspected": "No inspected fabric this month yet",
     "home.sections": "sections",
-    "hub.desc.sing_des_hub": "Gray fabric store + SING&DES input — one operator",
+    "hub.desc.sing_des_hub":
+      "Gray fabric store + SING&DES input — one operator",
     "hub.desc.stenter_hub": "Batching + finishing (stenter) — one operator",
-    "hub.desc.folding_hub": "Folding & inspection + dispatch warehouse — one operator",
+    "hub.desc.folding_hub":
+      "Folding & inspection + dispatch warehouse — one operator",
     "access.noPermission": "You don't have permission to view this department.",
     "common.backTo": "Back to",
     "placeholder.notBuilt": "This department isn't built yet.",
@@ -862,13 +898,16 @@ const TRANSLATIONS = {
     "ombor.sentBy": "Sent By",
     "ombor.weight": "Weight (kg)",
     "ombor.nameCompany": "name / company",
-    "ombor.byDesignHelp": "Total meters dispatched per design (within the date range). Tap a row to see which transport letters it went out on.",
-    "ombor.lettersHelp": "Every transport letter ever issued. Search by design, receiver, or letter №. Tap Print letter to reprint any of them.",
+    "ombor.byDesignHelp":
+      "Total meters dispatched per design (within the date range). Tap a row to see which transport letters it went out on.",
+    "ombor.lettersHelp":
+      "Every transport letter ever issued. Search by design, receiver, or letter №. Tap Print letter to reprint any of them.",
     "common.saving": "Saving…",
     "ombor.moveToOmbor": "Move to Ombor",
     "ombor.totalPicked": "Total picked",
     "ombor.noFreeStock": "No free stock to add.",
-    "ombor.noTrucks": "No trucks yet. Create one, then tick designs from the stock table below to load it.",
+    "ombor.noTrucks":
+      "No trucks yet. Create one, then tick designs from the stock table below to load it.",
     "ombor.noLettersFound": "No transport letters found.",
     "ombor.noDispatches": "No dispatches in this period.",
     "ombor.toContainer": "To container",
@@ -882,13 +921,16 @@ const TRANSLATIONS = {
     "bleach.closed": "closed",
     "bleach.manage": "Manage",
     "bleach.manageTitle": "Manage batcher",
-    "bleach.manageNote": "See what's still available vs already printed. You can erase the remaining balance below without touching any bleach, batching or printing record.",
+    "bleach.manageNote":
+      "See what's still available vs already printed. You can erase the remaining balance below without touching any bleach, batching or printing record.",
     "bleach.inputIn": "Bleach input (in)",
     "bleach.printedOut": "Printed / used (out)",
     "bleach.availableRemaining": "Remaining",
-    "bleach.eraseNote": "Fabric was used but never recorded, so this balance is a phantom. Erasing removes the batcher from bleached stock — no upstream record is deleted, and you can reopen it later.",
+    "bleach.eraseNote":
+      "Fabric was used but never recorded, so this balance is a phantom. Erasing removes the batcher from bleached stock — no upstream record is deleted, and you can reopen it later.",
     "bleach.eraseBalance": "Erase remaining balance",
-    "bleach.reopenNote": "This batcher is closed and hidden from bleached stock. Reopen it to bring its balance back.",
+    "bleach.reopenNote":
+      "This batcher is closed and hidden from bleached stock. Reopen it to bring its balance back.",
     "bleach.reopen": "Reopen batcher",
     "bleach.noStock": "No bleached fabric in stock",
     "bleach.noClosed": "No closed batchers.",
@@ -1035,6 +1077,11 @@ const TRANSLATIONS = {
     "qc.log.to": "gacha",
     "qc.log.none": "Hali nuqson qayd etilmagan.",
     "qc.log.editTitle": "Yozuvni tahrirlash",
+    "qc.log.importedN":
+      "{n} ta nuqson qatori import qilindi. O'tkazib yuborildi: {s}.",
+    "qc.log.importFail": "Import xatosi:",
+    "qc.log.importUnknownCodes":
+      "Notanish nuqson kodlari (baribir import qilindi): {list}",
     "qc.log.newTitle": "Nuqsonni qayd etish",
     "qc.log.fDate": "Sana *",
     "qc.log.fBatch": "Programma raqami",
@@ -1056,13 +1103,28 @@ const TRANSLATIONS = {
     "qc.pareto.rankedByLabel": "Pareto — {by} bo'yicha saralangan",
     "qc.pareto.noData": "Bu davr uchun ma'lumot yo'q.",
     "qc.pareto.cumShort": "jami",
-    "qc.pareto.vital": "Yashil ustunlar asosiy ~80% — avval shularni hal qiling.",
+    "qc.pareto.vital":
+      "Yashil ustunlar asosiy ~80% — avval shularni hal qiling.",
+    "qc.pareto.ofTotal": "umumiydan",
+    "qc.pareto.cutLine":
+      "↑ Shu {n} ta nuqson barcha {by}ning {pct}% ini keltirib chiqargan. Avval shularni hal qiling — quyidagilari kam ta'sir qiladi.",
+    "qc.pareto.cutLineAll":
+      "Bitta guruh ustun emas — quyidagi nuqsonlar hajmi bir-biriga yaqin.",
+    "qc.pareto.cumExplain":
+      "Ulush % = faqat shu nuqsonning ulushi. O'sib boruvchi % = shu nuqson va undan yuqoridagilar qo'shilgani, shuning uchun oxirgi qator doim 100%. O'sib boruvchi % 80% dan oshgan joy — chegara chizig'i.",
     "qc.pareto.occurrences": "Takrorlanish",
     "qc.pareto.perTime": "Metr / marta",
     "qc.pareto.share": "Ulush %",
-    "qc.pareto.cumulative": "Yig'indi %",
+    "qc.pareto.shareHint": "faqat shu nuqson",
+    "qc.pareto.cumulative": "O'sib boruvchi %",
+    "qc.pareto.cumHint": "shu + yuqoridagilar",
+    "qc.pareto.shareTip":
+      "Shu nuqsonning umumiydagi ulushi. Barcha qatorlar yig'indisi 100%.",
+    "qc.pareto.cumTip":
+      "Shu nuqson va undan yuqoridagilar qo'shilgani. Doim o'sadi va doim 100% bilan tugaydi. 80% dan oshgan joy — chegara.",
     "qc.pareto.rank": "O'rin",
-    "qc.pareto.tableNote": "\"Metr / marta\" kam uchrab katta nuqsonni tez-tez uchrab kichik nuqsondan ajratadi. Har xil tartibni ko'rish uchun \"Saralash\"ni almashtiring.",
+    "qc.pareto.tableNote":
+      '"Metr / marta" kam uchrab katta nuqsonni tez-tez uchrab kichik nuqsondan ajratadi. Har xil tartibni ko\'rish uchun "Saralash"ni almashtiring.',
     "qc.fb.new": "Yangi fishbone",
     "qc.fb.none": "Hali fishbone varaqlari yo'q.",
     "qc.fb.editTitle": "Fishbone varaqasi",
@@ -1086,7 +1148,7 @@ const TRANSLATIONS = {
     "qc.w.whyPh": "Nega…?",
     "qc.w.answerPh": "Javob",
     "qc.w.evidencePh": "Buni tasdiqlovchi dalil",
-    "qc.w.addWhy": "Yana \"nega\" qo'shish",
+    "qc.w.addWhy": 'Yana "nega" qo\'shish',
     "qc.w.rootCause": "Asosiy sabab (tizim/jarayon kamchiligi)",
     "qc.w.escapeCause": "O'tkazib yuborish sababi (nega aniqlamadik)",
     "qc.w.rootLabel": "Asosiy sabab:",
@@ -1114,7 +1176,8 @@ const TRANSLATIONS = {
     "qc.pfmea.fD": "Aniqlash (D)",
     "qc.pfmea.rpnHint": "(Aniqlash: 1 = doim aniqlanadi, 10 = hech qachon)",
     "qc.pfmea.history": "O'zgarishlar tarixi",
-    "qc.pfmea.histNote": "Har bir yangilanishda oldingi holat shu yerga saqlanadi — qator qanday o'zgarganini ko'rasiz.",
+    "qc.pfmea.histNote":
+      "Har bir yangilanishda oldingi holat shu yerga saqlanadi — qator qanday o'zgarganini ko'rasiz.",
     "qc.pfmea.histUpdates": "yangilanishlar",
     "qc.pfmea.prevention": "Oldini olish nazorati",
     "qc.pfmea.detection": "Aniqlash nazorati",
@@ -1149,10 +1212,14 @@ const TRANSLATIONS = {
     "qc.8d.d7": "D7 — Qaytalanishning oldini olish",
     "qc.8d.d8": "D8 — Jamoani taqdirlash va yopish",
     "qc.guide.title": "Sifat va R&D — Uslublar qo'llanmasi",
-    "qc.guide.creditEn": "Ushbu sifat tizimi T.J tomonidan yig'ildi (1.08.2026) — bu tub sabab tahlili uslublarini bir joyga jamlab, bosma bo'limi brakini bosqichma-bosqich kamaytirish maqsadida.",
-    "qc.guide.creditUz": "Kim bu ishni davom ettirsa: nuqsonlarni halol qayd eting, Pareto'ga amal qiling va har bir muammoni 8D bilan yakuniga yetkazing.",
-    "qc.guide.intro": "Ushbu stansiyada ishlatiladigan har bir uslub uchun qisqa qo'llanma — ingliz va o'zbek tillarida.",
-    "qc.guide.footer": "Sifat tasodif emas — u har smenada qayd etiladi, tahlil qilinadi va yaxshilanadi.",
+    "qc.guide.creditEn":
+      "Ushbu sifat tizimi T.J tomonidan yig'ildi (1.08.2026) — bu tub sabab tahlili uslublarini bir joyga jamlab, bosma bo'limi brakini bosqichma-bosqich kamaytirish maqsadida.",
+    "qc.guide.creditUz":
+      "Kim bu ishni davom ettirsa: nuqsonlarni halol qayd eting, Pareto'ga amal qiling va har bir muammoni 8D bilan yakuniga yetkazing.",
+    "qc.guide.intro":
+      "Ushbu stansiyada ishlatiladigan har bir uslub uchun qisqa qo'llanma — ingliz va o'zbek tillarida.",
+    "qc.guide.footer":
+      "Sifat tasodif emas — u har smenada qayd etiladi, tahlil qilinadi va yaxshilanadi.",
     "stage.ombor": "Ombor",
     "stations.title": "Stansiyalar",
     "top.users": "Foydalanuvchilar",
@@ -1319,7 +1386,8 @@ const TRANSLATIONS = {
     "stockin.design": "Dizayn",
     "stockin.design.mix": "Aralash (bir nechta dizayn)",
     "stockin.design.remainder": "Aralash qoldiq",
-    "stockin.design.remainder.help": "Turli dizaynlardan qolgan kichik boʻlaklar yigʻindisi.",
+    "stockin.design.remainder.help":
+      "Turli dizaynlardan qolgan kichik boʻlaklar yigʻindisi.",
     "stockin.design.pick": "Dizayn tanlang…",
     "stockin.color": "Rang",
     "stockin.stockFabricType": "Doʻkon mato turi",
@@ -1335,7 +1403,8 @@ const TRANSLATIONS = {
     "stockin.rollLines.qty": "Rulon soni",
     "stockin.rollLines.subtotal": "Oraliq jami",
     "stockin.extraMeters": "Qoʻshimcha metr (yirik boʻlak)",
-    "stockin.extraMeters.help": "Ixtiyoriy — masalan, rulonlar bilan birga 76m qoldiq boʻlak.",
+    "stockin.extraMeters.help":
+      "Ixtiyoriy — masalan, rulonlar bilan birga 76m qoldiq boʻlak.",
     "stockin.total": "Jami metr",
     "stockin.costPerMeter": "1 metr narxi",
     "stockin.totalCost": "Umumiy narx",
@@ -1406,7 +1475,8 @@ const TRANSLATIONS = {
     "sales.pickRolls": "Sotiladigan rulonlarni tanlang",
     "sales.pickRolls.help": "Mavjud zaxiradan butun rulonlarni tanlang.",
     "sales.discount": "1 metr uchun chegirma",
-    "sales.discount.help": "Ixtiyoriy. Asosiy narxdan ushbu savdo uchungina ayriladi.",
+    "sales.discount.help":
+      "Ixtiyoriy. Asosiy narxdan ushbu savdo uchungina ayriladi.",
     "sales.basePrice": "Asosiy narx / metr",
     "sales.finalPrice": "Yakuniy narx / metr",
     "sales.totalRolls": "Rulonlar",
@@ -1424,7 +1494,8 @@ const TRANSLATIONS = {
     "sales.col.paid": "Toʻlangan",
     "sales.col.debt": "Qarz",
     "sales.empty": "Hali savdo yoʻq.",
-    "sales.noRollsPicked": "Hali rulon tanlanmagan. Yuqoridagi qatorlarni bosing.",
+    "sales.noRollsPicked":
+      "Hali rulon tanlanmagan. Yuqoridagi qatorlarni bosing.",
     "sales.outOfStock": "Hozircha mijoz uchun mavjud zaxira yoʻq.",
     "sales.row.length": "Uzunlik",
     "sales.row.available": "Mavjud",
@@ -1473,12 +1544,15 @@ const TRANSLATIONS = {
     "sales.selected": "Tanlangan rulonlar",
     "sales.line": "qator",
     "sales.lines": "qatorlar",
-    "stockin.rollLines.empty": "Hali rulon qatorlari yoʻq — “+” bosib qoʻshing, masalan 34 rulon × 30m.",
+    "stockin.rollLines.empty":
+      "Hali rulon qatorlari yoʻq — “+” bosib qoʻshing, masalan 34 rulon × 30m.",
     // ===== Stock-in save modes =====
     "stockin.save.another": "Saqlash va yana qoʻshish",
-    "stockin.save.another.hint": "Saqlash va yangi kirim ochish (mato turi saqlanadi)",
+    "stockin.save.another.hint":
+      "Saqlash va yangi kirim ochish (mato turi saqlanadi)",
     "stockin.save.sell": "Saqlash va sotish",
-    "stockin.save.sell.hint": "Saqlash va shu dizayn bilan sotuv oynasiga oʻtish",
+    "stockin.save.sell.hint":
+      "Saqlash va shu dizayn bilan sotuv oynasiga oʻtish",
     // ===== On-hand correction modal =====
     "stock.col.actions": "Tahrir",
     "stock.correct.title": "Ombor qoldigʻini tuzatish",
@@ -1487,12 +1561,16 @@ const TRANSLATIONS = {
     "stock.correct.currentOnHand": "Joriy qoldiq",
     "stock.correct.newOnHand": "Yangi qoldiq (m)",
     "stock.correct.reason": "Sabab (ixtiyoriy)",
-    "stock.correct.reason.placeholder": "masalan: inventarizatsiya, buzilgan rulonlar",
+    "stock.correct.reason.placeholder":
+      "masalan: inventarizatsiya, buzilgan rulonlar",
     "stock.correct.apply": "Tuzatishni qoʻllash",
     "stock.correct.hint.invalid": "Toʻgʻri raqam kiriting",
-    "stock.correct.hint.noChange": "Oʻzgarish yoʻq — joriy qoldiq bilan bir xil.",
-    "stock.correct.hint.stockIn": "bugungi sana bilan kirim tuzatish sifatida qoʻshiladi.",
-    "stock.correct.hint.stockOut": "bugungi sana bilan chiqim tuzatish sifatida olib tashlanadi.",
+    "stock.correct.hint.noChange":
+      "Oʻzgarish yoʻq — joriy qoldiq bilan bir xil.",
+    "stock.correct.hint.stockIn":
+      "bugungi sana bilan kirim tuzatish sifatida qoʻshiladi.",
+    "stock.correct.hint.stockOut":
+      "bugungi sana bilan chiqim tuzatish sifatida olib tashlanadi.",
     "stock.correct.source": "Tuzatish (ombor qoldigʻi)",
     "stock.correct.recordNote": "Ombor qoldigʻi tuzatishi",
     "stock.correct.rollsPerLength": "Har uzunlik uchun rulonlar",
@@ -1511,7 +1589,8 @@ const TRANSLATIONS = {
     "common.allShifts": "Barcha smenalar",
     "common.allFabrics": "Barcha mato turlari",
     "common.clickToSort": "Saralash uchun bosing",
-    "common.archiveHint": "Ular bazada saqlanadi, lekin xira koʻrinib, koʻzdan chetda turadi.",
+    "common.archiveHint":
+      "Ular bazada saqlanadi, lekin xira koʻrinib, koʻzdan chetda turadi.",
     "tab.stock": "Zaxira",
     "tab.input": "Kirim",
     "tab.dispatch": "Joʻnatma",
@@ -1553,8 +1632,10 @@ const TRANSLATIONS = {
     "home.reject": "Brak",
     "home.noInspected": "Bu oy hali tekshirilgan mato yoʻq",
     "home.sections": "boʻlim",
-    "hub.desc.sing_des_hub": "Gray mato ombori + SING&DES kirimi — bitta operator",
-    "hub.desc.stenter_hub": "Batchlash + yakuniy ishlov (stenter) — bitta operator",
+    "hub.desc.sing_des_hub":
+      "Gray mato ombori + SING&DES kirimi — bitta operator",
+    "hub.desc.stenter_hub":
+      "Batchlash + yakuniy ishlov (stenter) — bitta operator",
     "hub.desc.folding_hub": "Saralash + joʻnatma ombori — bitta operator",
     "access.noPermission": "Bu boʻlimni koʻrish uchun sizda ruxsat yoʻq.",
     "common.backTo": "Qaytish:",
@@ -1599,13 +1680,16 @@ const TRANSLATIONS = {
     "ombor.sentBy": "Kim yubordi",
     "ombor.weight": "Ogʻirlik (kg)",
     "ombor.nameCompany": "ism / kompaniya",
-    "ombor.byDesignHelp": "Har bir dizayn boʻyicha joʻnatilgan umumiy metr (sana oraligʻida). Qaysi yuk xatlariga chiqqanini koʻrish uchun qatordan bosing.",
-    "ombor.lettersHelp": "Berilgan barcha yuk xatlari. Dizayn, qabul qiluvchi yoki xat № boʻyicha qidiring. Qayta chop etish uchun Xatni chop etish tugmasini bosing.",
+    "ombor.byDesignHelp":
+      "Har bir dizayn boʻyicha joʻnatilgan umumiy metr (sana oraligʻida). Qaysi yuk xatlariga chiqqanini koʻrish uchun qatordan bosing.",
+    "ombor.lettersHelp":
+      "Berilgan barcha yuk xatlari. Dizayn, qabul qiluvchi yoki xat № boʻyicha qidiring. Qayta chop etish uchun Xatni chop etish tugmasini bosing.",
     "common.saving": "Saqlanmoqda…",
     "ombor.moveToOmbor": "Omborga koʻchirish",
     "ombor.totalPicked": "Jami olindi",
     "ombor.noFreeStock": "Qoʻshish uchun boʻsh zaxira yoʻq.",
-    "ombor.noTrucks": "Hali mashina yoʻq. Bittasini yarating, soʻng quyidagi zaxira jadvalidan dizaynlarni belgilang.",
+    "ombor.noTrucks":
+      "Hali mashina yoʻq. Bittasini yarating, soʻng quyidagi zaxira jadvalidan dizaynlarni belgilang.",
     "ombor.noLettersFound": "Yuk xatlari topilmadi.",
     "ombor.noDispatches": "Bu davrda joʻnatmalar yoʻq.",
     "ombor.toContainer": "Konteynerga",
@@ -1619,13 +1703,16 @@ const TRANSLATIONS = {
     "bleach.closed": "yopilgan",
     "bleach.manage": "Boshqarish",
     "bleach.manageTitle": "Batcherni boshqarish",
-    "bleach.manageNote": "Nima hali mavjud va nima allaqachon bosilganini koʻring. Quyida qolgan qoldiqni hech qanday oqartirish, batchlash yoki bosma yozuviga tegmasdan oʻchirishingiz mumkin.",
+    "bleach.manageNote":
+      "Nima hali mavjud va nima allaqachon bosilganini koʻring. Quyida qolgan qoldiqni hech qanday oqartirish, batchlash yoki bosma yozuviga tegmasdan oʻchirishingiz mumkin.",
     "bleach.inputIn": "Oqartirish kirimi (kirim)",
     "bleach.printedOut": "Bosilgan / ishlatilgan (chiqim)",
     "bleach.availableRemaining": "Qolgan",
-    "bleach.eraseNote": "Mato ishlatilgan, lekin yozib qoʻyilmagan, shuning uchun bu qoldiq soxta. Oʻchirish batcherni oqartirilgan zaxiradan olib tashlaydi — hech qanday oldingi yozuv oʻchirilmaydi va uni keyinroq qayta ochishingiz mumkin.",
+    "bleach.eraseNote":
+      "Mato ishlatilgan, lekin yozib qoʻyilmagan, shuning uchun bu qoldiq soxta. Oʻchirish batcherni oqartirilgan zaxiradan olib tashlaydi — hech qanday oldingi yozuv oʻchirilmaydi va uni keyinroq qayta ochishingiz mumkin.",
     "bleach.eraseBalance": "Qolgan qoldiqni oʻchirish",
-    "bleach.reopenNote": "Bu batcher yopilgan va oqartirilgan zaxiradan yashirilgan. Qoldigʻini qaytarish uchun uni qayta oching.",
+    "bleach.reopenNote":
+      "Bu batcher yopilgan va oqartirilgan zaxiradan yashirilgan. Qoldigʻini qaytarish uchun uni qayta oching.",
     "bleach.reopen": "Batcherni qayta ochish",
     "bleach.noStock": "Zaxirada oqartirilgan mato yoʻq",
     "bleach.noClosed": "Yopilgan batcherlar yoʻq.",
@@ -1839,6 +1926,20 @@ const DEFAULT_LISTS = {
     "Linen Blend",
   ],
   shift: ["Shift A (Morning)", "Shift B (Afternoon)", "Shift C (Night)"],
+  // Process stages a defect can be blamed on. Editable here (Settings →
+  // Lists) instead of hard-coded, because the route changes when a machine
+  // is added or a step is dropped.
+  qcStage: [
+    "Grey fabric",
+    "Singeing",
+    "Desizing",
+    "Bleaching",
+    "Printing",
+    "Curing",
+    "Finishing",
+    "Calendering",
+    "Folding / Inspection",
+  ],
   gas: ["GAS", "NO GAS"],
   bleachType: ["Hydrogen Peroxide", "Optical Brightener", "Standard Bleach"],
   bleachMachine: ["Bleach Machine 1", "Bleach Machine 2"],
@@ -2383,8 +2484,7 @@ async function apiFetch(
     const qs = Object.entries(query)
       .filter(([, v]) => v !== null && v !== undefined && v !== "")
       .map(
-        ([k, v]) =>
-          `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+        ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
       )
       .join("&");
     if (qs) fullPath += (path.includes("?") ? "&" : "?") + qs;
@@ -2483,9 +2583,7 @@ const storage = {
     if (prefix.startsWith("rec_")) {
       // No per-id GET endpoint by design — pull the whole list and filter.
       const station = prefix.slice("rec_".length, -1);
-      const all = unwrapList(
-        await apiFetch(recPath(station)).catch(() => []),
-      );
+      const all = unwrapList(await apiFetch(recPath(station)).catch(() => []));
       return all.find((r: any) => r.id === id) || null;
     }
     const path = PREFIX_TO_PATH[prefix];
@@ -2640,8 +2738,8 @@ const storage = {
       return {
         items: resp?.items || [],
         total: resp?.total ?? (resp?.items?.length || 0),
-        limit: resp?.limit ?? (opts?.limit ?? 0),
-        offset: resp?.offset ?? (opts?.offset ?? 0),
+        limit: resp?.limit ?? opts?.limit ?? 0,
+        offset: resp?.offset ?? opts?.offset ?? 0,
       };
     } catch {
       return {
@@ -2775,8 +2873,7 @@ const storage = {
       // Artifact mode: read as data URL and pretend it's a path.
       return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = () =>
-          resolve({ imageUrl: reader.result as string });
+        reader.onload = () => resolve({ imageUrl: reader.result as string });
         reader.onerror = () => resolve(null);
         reader.readAsDataURL(file);
       });
@@ -2811,9 +2908,7 @@ const storage = {
     }
     if (!path) return [];
     try {
-      return unwrapList(
-        await apiFetch(path, {}, { fields: fields.join(",") }),
-      );
+      return unwrapList(await apiFetch(path, {}, { fields: fields.join(",") }));
     } catch {
       return [];
     }
@@ -2936,8 +3031,7 @@ function useUrlState<T extends Record<string, any>>(
 // Use this in place of `useEffect(fn, [])` for any component that fetches
 // authenticated data on mount.
 function useAuthReadyEffect(fn: () => void | (() => void), deps: any[] = []) {
-  const token =
-    typeof window !== "undefined" ? getToken() : null;
+  const token = typeof window !== "undefined" ? getToken() : null;
   // We don't have a direct hook to the user state from this scope. The proxy
   // is: token is set after login, and fetchMe runs synchronously enough that
   // by the time the token is in localStorage, any subsequent API call has
@@ -3004,11 +3098,14 @@ function useStationData(opts: {
   // Controlled vs uncontrolled pagination. If the caller passes
   // externalOffset/externalLimit we use them directly; otherwise the hook
   // keeps its own state (legacy behaviour for any unmigrated caller).
-  const controlled = externalOffset !== undefined && externalLimit !== undefined;
+  const controlled =
+    externalOffset !== undefined && externalLimit !== undefined;
   const [items, setItems] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [internalOffset, setInternalOffset] = useState(0);
-  const [internalLimit, setInternalLimit] = useState(() => loadPageSize(pageKey, defaultLimit));
+  const [internalLimit, setInternalLimit] = useState(() =>
+    loadPageSize(pageKey, defaultLimit),
+  );
   const offset = controlled ? (externalOffset as number) : internalOffset;
   const limit = controlled ? (externalLimit as number) : internalLimit;
   const [relatedData, setRelatedData] = useState<Record<string, any[]>>({});
@@ -3058,7 +3155,9 @@ function useStationData(opts: {
       });
       const relatedPromise = Promise.all(
         related.map((r) =>
-          storage.fetchCompact(r.prefix, r.fields).then((data) => [r.as, data] as const),
+          storage
+            .fetchCompact(r.prefix, r.fields)
+            .then((data) => [r.as, data] as const),
         ),
       );
       const compactPromise = compactMain
@@ -3229,7 +3328,9 @@ function getUserDepartments(user: User | null) {
       : [];
   if (user.role === "operator") {
     // operators currently belong to printing stations only
-    return (user.stationId || operatorStationPages(user).length) ? ["printing"] : [];
+    return user.stationId || operatorStationPages(user).length
+      ? ["printing"]
+      : [];
   }
   return [];
 }
@@ -3402,8 +3503,7 @@ function useSortableRows<T>(
 ): T[] {
   return useMemo(() => {
     if (!sort) return rows;
-    const get =
-      accessors[sort.key] ?? ((r: T) => (r as any)[sort.key]);
+    const get = accessors[sort.key] ?? ((r: T) => (r as any)[sort.key]);
     // We sort a copy so the caller's array isn't mutated.
     const copy = [...rows];
     const dir = sort.dir === "asc" ? 1 : -1;
@@ -3441,7 +3541,11 @@ function SortableTh({
   className?: string;
 }) {
   const active = sort?.key === sortKey;
-  const Arrow = !active ? ArrowUpDown : sort!.dir === "asc" ? ArrowUp : ArrowDown;
+  const Arrow = !active
+    ? ArrowUpDown
+    : sort!.dir === "asc"
+      ? ArrowUp
+      : ArrowDown;
   return (
     <th
       onClick={() => setSort(cycleSort(sort, sortKey))}
@@ -3594,7 +3698,9 @@ async function exportStationXlsx({
     const IMG_W = 100;
     const IMG_H = 60;
 
-    async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+    async function bufferToCovered(
+      buf: ArrayBuffer,
+    ): Promise<ArrayBuffer | null> {
       try {
         const blob = new Blob([buf]);
         const url = URL.createObjectURL(blob);
@@ -3907,8 +4013,7 @@ function pathToView(pathname: string): any {
     if (b === "progress") return { type: "programs_progress" };
     return { type: "programs" };
   }
-  if (a === "store" && b === "customers")
-    return { type: "store_customers" };
+  if (a === "store" && b === "customers") return { type: "store_customers" };
   if (a === "dept" && b) {
     return { type: "department", departmentId: decodeURIComponent(b) };
   }
@@ -4478,9 +4583,7 @@ function AppInner() {
         // Cheap: input/printing/folding tables aren't huge and with the
         // 90-day default filter they're tighter still.
         if (view.departmentId === "printing") {
-          tasks.push(
-            loadStationRecordsMany(["input", "printing", "folding"]),
-          );
+          tasks.push(loadStationRecordsMany(["input", "printing", "folding"]));
         }
         break;
 
@@ -4745,13 +4848,10 @@ function AppInner() {
       return;
     }
     // API mode — single batch request.
-    await apiFetch(
-      `/records/${encodeURIComponent(stationKey)}/archive-batch`,
-      {
-        method: "POST",
-        body: JSON.stringify({ ids, archived: !unarchive }),
-      },
-    );
+    await apiFetch(`/records/${encodeURIComponent(stationKey)}/archive-batch`, {
+      method: "POST",
+      body: JSON.stringify({ ids, archived: !unarchive }),
+    });
     // Reflect in local state so the UI updates without a refetch.
     setRecords((prev) => {
       const list = prev[stationKey] || [];
@@ -5408,9 +5508,15 @@ function Shell({ ctx }: CtxProps) {
     // Multi-station operators: may view the printing department picker and any
     // station in their explicit set. No hub coverage.
     if (isMultiStationOperator(user)) {
-      if (currentView?.type === "department" && currentView.departmentId === "printing")
+      if (
+        currentView?.type === "department" &&
+        currentView.departmentId === "printing"
+      )
         return currentView;
-      if (currentView?.type === "station" && userCoversStation(user, currentView.stationId))
+      if (
+        currentView?.type === "station" &&
+        userCoversStation(user, currentView.stationId)
+      )
         return currentView;
       const ids = operatorStationIds(user);
       return ids.length === 1
@@ -5450,13 +5556,17 @@ function Shell({ ctx }: CtxProps) {
   // The `coversStation` helper centralises the rule.
   if (isOperator) {
     const allowed = isMultiStationOperator(user)
-      ? (safeView.type === "department" && safeView.departmentId === "printing") ||
-        (safeView.type === "station" && userCoversStation(user, safeView.stationId))
+      ? (safeView.type === "department" &&
+          safeView.departmentId === "printing") ||
+        (safeView.type === "station" &&
+          userCoversStation(user, safeView.stationId))
       : (safeView.type === "station" &&
           coversStation(user.stationId, safeView.stationId)) ||
         (safeView.type === "station_hub" &&
           (() => {
-            const hub = MERGED_STATION_GROUPS.find((g) => g.id === safeView.hubId);
+            const hub = MERGED_STATION_GROUPS.find(
+              (g) => g.id === safeView.hubId,
+            );
             if (!hub) return false;
             return (
               HUB_STATION_IDS[user.stationId] === hub.id ||
@@ -5716,8 +5826,8 @@ function TopBar({
                 {t("login.title")}
               </div>
               <div className="text-xs text-slate-500 truncate">
-                {t("role.operator.full")} •{" "}
-                {stationDisplayName(user.stationId)} • {user.name}
+                {t("role.operator.full")} • {stationDisplayName(user.stationId)}{" "}
+                • {user.name}
               </div>
             </div>
           </div>
@@ -5922,18 +6032,14 @@ function HomeView({ ctx }: CtxProps) {
   const deptCounts = useMemo(() => {
     const c = stats.counts || {};
     const printingTotal = STAGES.reduce(
-      (sum, s) =>
-        sum + (c[s.id === "dispatch" ? "dispatch_out" : s.id] || 0),
+      (sum, s) => sum + (c[s.id === "dispatch" ? "dispatch_out" : s.id] || 0),
       0,
     );
     return {
       weaving: 0,
       printing: printingTotal,
       stitching: 0,
-      store:
-        (stats.customers || 0) +
-        (stats.sales || 0) +
-        (stats.stockIn || 0),
+      store: (stats.customers || 0) + (stats.sales || 0) + (stats.stockIn || 0),
     } as Record<string, number>;
   }, [stats]);
 
@@ -6128,12 +6234,12 @@ function DepartmentHeader({
 // This way a single login covers the adjacent stations the same physical
 // operator handles, with no logout/login churn at shift change.
 const MERGED_STATION_GROUPS: {
-  id: string;             // hub identifier ("sing_des_hub" | "stenter_hub")
-  label: string;          // display label for the hub tile
-  members: string[];      // station ids unified under this hub
-  icon: any;              // lucide icon for the tile
-  color: string;          // tailwind bg class for the tile
-  description: string;    // small subtitle in the hub
+  id: string; // hub identifier ("sing_des_hub" | "stenter_hub")
+  label: string; // display label for the hub tile
+  members: string[]; // station ids unified under this hub
+  icon: any; // lucide icon for the tile
+  color: string; // tailwind bg class for the tile
+  description: string; // small subtitle in the hub
   // Where the hub tile sits in the dept-home station grid. Null = put it
   // at the front. Otherwise: render this hub directly AFTER the visible
   // station whose id matches insertAfter. Used to keep hub tiles in the
@@ -6223,7 +6329,10 @@ function landingStationFor(s: string | undefined | null): string {
   if (isHubStationId(s)) return membersOfHubId(s)[0] || "";
   return s;
 }
-function coversStation(operatorStationId: string, targetStationId: string): boolean {
+function coversStation(
+  operatorStationId: string,
+  targetStationId: string,
+): boolean {
   if (!operatorStationId || !targetStationId) return false;
   if (operatorStationId === targetStationId) return true;
   // Hub operator can access any member station.
@@ -6249,8 +6358,19 @@ function stationDisplayName(s: string | undefined | null): string {
 // back to the legacy single/hub `stationId` rule so existing users are
 // unaffected.
 const ASSIGNABLE_STATIONS = [
-  "gray_store", "input", "bleach", "batching", "printing", "curing",
-  "finishing", "calendering", "folding", "quality", "rnd", "dispatch", "ombor",
+  "gray_store",
+  "input",
+  "bleach",
+  "batching",
+  "printing",
+  "curing",
+  "finishing",
+  "calendering",
+  "folding",
+  "quality",
+  "rnd",
+  "dispatch",
+  "ombor",
 ];
 function operatorStationPages(user: any): string[] {
   return (user?.allowedPages || []).filter((p: string) =>
@@ -6258,7 +6378,9 @@ function operatorStationPages(user: any): string[] {
   );
 }
 function operatorStationIds(user: any): string[] {
-  return operatorStationPages(user).map((p) => p.slice("printing.station.".length));
+  return operatorStationPages(user).map((p) =>
+    p.slice("printing.station.".length),
+  );
 }
 function isMultiStationOperator(user: any): boolean {
   return user?.role === "operator" && operatorStationPages(user).length > 0;
@@ -6273,13 +6395,7 @@ function userCoversStation(user: any, target: string): boolean {
 // Hub view: small page with one card per member station. Each card links
 // to the regular StationView for that station, so the existing data
 // entry UI is unchanged.
-function StationHubView({
-  ctx,
-  hubId,
-}: {
-  ctx: AppContext;
-  hubId: string;
-}) {
+function StationHubView({ ctx, hubId }: { ctx: AppContext; hubId: string }) {
   const { setCurrentView } = ctx;
   const t = useT();
   const hub = MERGED_STATION_GROUPS.find((g) => g.id === hubId);
@@ -6288,7 +6404,9 @@ function StationHubView({
       <div className="text-center py-16 text-slate-500">
         {t("common.hubNotFound")}
         <button
-          onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
+          onClick={() =>
+            setCurrentView({ type: "department", departmentId: "printing" })
+          }
           className="ml-2 text-purple-600 hover:underline"
         >
           {t("dept.printing")}
@@ -6306,7 +6424,9 @@ function StationHubView({
     <div className="space-y-6">
       <div>
         <button
-          onClick={() => setCurrentView({ type: "department", departmentId: "printing" })}
+          onClick={() =>
+            setCurrentView({ type: "department", departmentId: "printing" })
+          }
           className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-2"
         >
           ← {t("dept.printing")}
@@ -6323,7 +6443,9 @@ function StationHubView({
           return (
             <button
               key={s.id}
-              onClick={() => setCurrentView({ type: "station", stationId: s.id })}
+              onClick={() =>
+                setCurrentView({ type: "station", stationId: s.id })
+              }
               className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-2xl p-6 text-left shadow-sm border border-slate-100"
             >
               <div
@@ -6402,8 +6524,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
 
     // SING&DES card: meters input THIS MONTH. Client-side first.
     const inputMetersClient = sumFieldMTD("input", "meters");
-    const inputMetersMTD =
-      inputMetersClient || monthSums.input?.meters || 0;
+    const inputMetersMTD = inputMetersClient || monthSums.input?.meters || 0;
 
     // Printing: meters printed this month.
     const printedQtyClient = sumFieldMTD("printing", "printedQty");
@@ -6441,19 +6562,16 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
     for (const g of MERGED_STATION_GROUPS) for (const m of g.members) s.add(m);
     return s;
   }, []);
-  const visibleStations = useMemo(
-    () => {
-      const multi = isMultiStationOperator(user);
-      return STAGES.filter(
-        (s) =>
-          canViewPage(user, `printing.station.${s.id}`) &&
-          // Multi-station operators see each assigned station as its own tile;
-          // everyone else sees hub members folded into their hub tile.
-          (multi || !mergedMemberSet.has(s.id)),
-      );
-    },
-    [user, mergedMemberSet],
-  );
+  const visibleStations = useMemo(() => {
+    const multi = isMultiStationOperator(user);
+    return STAGES.filter(
+      (s) =>
+        canViewPage(user, `printing.station.${s.id}`) &&
+        // Multi-station operators see each assigned station as its own tile;
+        // everyone else sees hub members folded into their hub tile.
+        (multi || !mergedMemberSet.has(s.id)),
+    );
+  }, [user, mergedMemberSet]);
 
   // Which hubs the current user can see. A hub is visible if the user
   // could see ANY of its member stations under the legacy rules. This
@@ -6591,7 +6709,9 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
               // This replaces the prior render of (all hubs) then (all
               // stations) — that put STENTER second visually, even though
               // it should sit between Jiggers (bleach) and Printing.
-              type Tile = { kind: "hub"; hub: any } | { kind: "station"; s: any };
+              type Tile =
+                | { kind: "hub"; hub: any }
+                | { kind: "station"; s: any };
               const out: Tile[] = [];
               // Front-loaded hubs (insertAfter === null) go first.
               for (const hub of visibleHubs) {
@@ -6648,7 +6768,8 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                         {hub.members.length} {t("home.sections")}
                       </div>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        {count} {count !== 1 ? t("rec.records") : t("rec.record")}
+                        {count}{" "}
+                        {count !== 1 ? t("rec.records") : t("rec.record")}
                       </div>
                     </button>
                   );
@@ -6766,7 +6887,6 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
               </div>
               <ChevronRight size={24} />
             </button>
-
           </div>
         </div>
       )}
@@ -6820,7 +6940,9 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                 <Archive className="text-white" size={20} />
               </div>
               <div className="flex-1">
-                <div className="font-bold text-slate-800">Archive old records</div>
+                <div className="font-bold text-slate-800">
+                  Archive old records
+                </div>
                 <div className="text-xs text-slate-500">
                   Batch soft-hide records (reversible)
                 </div>
@@ -6892,7 +7014,10 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
   const t = useT();
 
   // ===== Dept-home stats from /stats =====
-  const [statsResp, setStatsResp] = useState<any>({ counts: {}, storeTotals: {} });
+  const [statsResp, setStatsResp] = useState<any>({
+    counts: {},
+    storeTotals: {},
+  });
   const [statsLoading, setStatsLoading] = useState(true);
   useEffect(() => {
     let cancelled = false;
@@ -7048,9 +7173,7 @@ function StoreDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                     {tl.isQty
                       ? " " + t("storeHome.tile.onHandSuffix")
                       : " " +
-                        (tl.count === 1
-                          ? t("rec.record")
-                          : t("rec.records"))}
+                        (tl.count === 1 ? t("rec.record") : t("rec.records"))}
                   </div>
                 </button>
               );
@@ -7132,8 +7255,7 @@ function ChangeOwnPasswordModal({
     }
   }
 
-  const inputCls =
-    "flex-1 p-2.5 border border-slate-300 rounded-lg font-mono";
+  const inputCls = "flex-1 p-2.5 border border-slate-300 rounded-lg font-mono";
 
   return (
     <Modal
@@ -7602,7 +7724,9 @@ function UserForm({
     // multi-select reflects reality instead of appearing empty.
     if (
       user?.role === "operator" &&
-      !(user.allowedPages || []).some((p) => p.startsWith("printing.station.")) &&
+      !(user.allowedPages || []).some((p) =>
+        p.startsWith("printing.station."),
+      ) &&
       user.stationId
     ) {
       const ids = isHubStationId(user.stationId)
@@ -7611,7 +7735,9 @@ function UserForm({
       return {
         ...user,
         allowedPages: [
-          ...((user.allowedPages || []).filter((p) => !p.startsWith("printing.station."))),
+          ...(user.allowedPages || []).filter(
+            (p) => !p.startsWith("printing.station."),
+          ),
           ...ids.map((id) => `printing.station.${id}`),
         ],
       };
@@ -7705,7 +7831,9 @@ function UserForm({
       return;
     }
     if (f.role === "operator") {
-      const st = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
+      const st = (f.allowedPages || []).filter((p) =>
+        p.startsWith("printing.station."),
+      );
       if (!st.length) {
         alert("Pick at least one station for the operator");
         return;
@@ -7893,35 +8021,47 @@ function UserForm({
           </Field>
           <Field label="Assigned stations *">
             <div className="text-xs text-slate-400 mb-2">
-              Tick every station this operator should see. They'll see only these — nothing else.
+              Tick every station this operator should see. They'll see only
+              these — nothing else.
             </div>
             <div className="grid grid-cols-2 gap-1.5">
-              {STAGES.filter((s) => ASSIGNABLE_STATIONS.includes(s.id)).map((s) => {
-                const pageKey = `printing.station.${s.id}`;
-                const pages = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
-                const checked = pages.includes(pageKey);
-                return (
-                  <label key={s.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer text-sm ${checked ? "bg-teal-50 border-teal-300 text-teal-800" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => {
-                        const cur = (f.allowedPages || []).filter((p) => p.startsWith("printing.station."));
-                        const next = e.target.checked
-                          ? [...cur, pageKey]
-                          : cur.filter((p) => p !== pageKey);
-                        setF((prev) => ({
-                          ...prev,
-                          allowedPages: next,
-                          // Keep stationId = first pick for landing / back-compat.
-                          stationId: next.length ? next[0].slice("printing.station.".length) : "",
-                        }));
-                      }}
-                    />
-                    {s.name}
-                  </label>
-                );
-              })}
+              {STAGES.filter((s) => ASSIGNABLE_STATIONS.includes(s.id)).map(
+                (s) => {
+                  const pageKey = `printing.station.${s.id}`;
+                  const pages = (f.allowedPages || []).filter((p) =>
+                    p.startsWith("printing.station."),
+                  );
+                  const checked = pages.includes(pageKey);
+                  return (
+                    <label
+                      key={s.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer text-sm ${checked ? "bg-teal-50 border-teal-300 text-teal-800" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          const cur = (f.allowedPages || []).filter((p) =>
+                            p.startsWith("printing.station."),
+                          );
+                          const next = e.target.checked
+                            ? [...cur, pageKey]
+                            : cur.filter((p) => p !== pageKey);
+                          setF((prev) => ({
+                            ...prev,
+                            allowedPages: next,
+                            // Keep stationId = first pick for landing / back-compat.
+                            stationId: next.length
+                              ? next[0].slice("printing.station.".length)
+                              : "",
+                          }));
+                        }}
+                      />
+                      {s.name}
+                    </label>
+                  );
+                },
+              )}
             </div>
           </Field>
         </>
@@ -8085,6 +8225,7 @@ function ListsAdmin({ ctx }: CtxProps) {
     fabricSource: "Fabric Source (Input)",
     fabricType: "Fabric Types",
     shift: "Shifts",
+    qcStage: "Quality — Defect Stages",
     gas: "Gas Options",
     bleachType: "Bleach Types",
     bleachMachine: "Bleach Machines",
@@ -8317,7 +8458,9 @@ function StockFabricTypeEditor({
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
+          onKeyDown={(e) =>
+            e.key === "Enter" && (e.preventDefault(), addItem())
+          }
           placeholder="New fabric type"
           className="col-span-6 p-2 border border-slate-300 rounded text-sm"
         />
@@ -8327,7 +8470,9 @@ function StockFabricTypeEditor({
           min="0"
           value={newCost}
           onChange={(e) => setNewCost(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
+          onKeyDown={(e) =>
+            e.key === "Enter" && (e.preventDefault(), addItem())
+          }
           placeholder="Cost"
           className="col-span-4 p-2 border border-slate-300 rounded text-sm text-right"
         />
@@ -9038,8 +9183,8 @@ function ArchivePage({ ctx }: CtxProps) {
             Archive old records
           </h2>
           <p className="text-xs text-slate-500">
-            Soft-hide records to keep the lists fast. Archived records stay
-            in the database — re-run with the toggle to bring them back.
+            Soft-hide records to keep the lists fast. Archived records stay in
+            the database — re-run with the toggle to bring them back.
           </p>
         </div>
       </div>
@@ -9084,13 +9229,13 @@ function ArchivePage({ ctx }: CtxProps) {
               <span className="font-semibold text-slate-800">
                 {preview.count}
               </span>{" "}
-              record(s) currently loaded match this filter. The actual
-              server count may be higher if records aren't all loaded.
+              record(s) currently loaded match this filter. The actual server
+              count may be higher if records aren't all loaded.
             </>
           ) : (
             <>
-              Records not loaded in memory — open the station page first to
-              get a preview count.
+              Records not loaded in memory — open the station page first to get
+              a preview count.
             </>
           )}
         </div>
@@ -9121,9 +9266,9 @@ function ArchivePage({ ctx }: CtxProps) {
       {lastResult && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-900">
           ✓ {lastResult.direction === "archive" ? "Archived" : "Unarchived"}{" "}
-          <span className="font-bold">{lastResult.modified}</span> record(s)
-          at <span className="font-mono">{lastResult.stationKey}</span> with
-          date ≤ <span className="font-mono">{lastResult.cutoff}</span>.
+          <span className="font-bold">{lastResult.modified}</span> record(s) at{" "}
+          <span className="font-mono">{lastResult.stationKey}</span> with date ≤{" "}
+          <span className="font-mono">{lastResult.cutoff}</span>.
         </div>
       )}
 
@@ -9142,7 +9287,9 @@ function ArchivePage({ ctx }: CtxProps) {
         onAfterChange={() => {
           // Pull a fresh load after any mutation.
           setLastResult((prev) =>
-            prev ? { ...prev } : { modified: 0, stationKey, cutoff, direction: "unarchive" },
+            prev
+              ? { ...prev }
+              : { modified: 0, stationKey, cutoff, direction: "unarchive" },
           );
         }}
       />
@@ -9150,17 +9297,14 @@ function ArchivePage({ ctx }: CtxProps) {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 space-y-1">
         <div className="font-semibold">How this works:</div>
         <div>
-          • Archived records are <strong>hidden</strong> from station lists
-          — they don't appear there at all. The data is still in the
-          database.
+          • Archived records are <strong>hidden</strong> from station lists —
+          they don't appear there at all. The data is still in the database.
         </div>
         <div>
-          • This page is the only place archived records are visible. Use
-          the table below to browse, search, export, and unarchive.
+          • This page is the only place archived records are visible. Use the
+          table below to browse, search, export, and unarchive.
         </div>
-        <div>
-          • Use the batch tool above for bulk operations by date.
-        </div>
+        <div>• Use the batch tool above for bulk operations by date.</div>
       </div>
     </div>
   );
@@ -9181,18 +9325,78 @@ const STATION_VIEW_CONFIG: Record<
   string,
   { keyField: string; keyLabel: string; qtyField: string; qtyLabel: string }
 > = {
-  gray_store:   { keyField: "grayStoreNo", keyLabel: "Gray #",  qtyField: "meters",      qtyLabel: "Meters" },
-  gray_out:     { keyField: "grayStoreNo", keyLabel: "Gray #",  qtyField: "meters",      qtyLabel: "Meters" },
-  input:        { keyField: "batchNo",     keyLabel: "Batch #", qtyField: "meters",      qtyLabel: "Meters" },
-  bleach:       { keyField: "batchNo",     keyLabel: "Batch #", qtyField: "qty",         qtyLabel: "Qty (m)" },
-  dyeing:       { keyField: "dyeingNo",    keyLabel: "Dye #",   qtyField: "dyedQty",     qtyLabel: "Dyed (m)" },
-  batching:     { keyField: "batchingId",  keyLabel: "Batch #", qtyField: "qtyAfter",    qtyLabel: "Qty (m)" },
-  printing:     { keyField: "printNo",     keyLabel: "Print #", qtyField: "printedQty",  qtyLabel: "Printed (m)" },
-  curing:       { keyField: "printNo",     keyLabel: "Print #", qtyField: "qty",         qtyLabel: "Qty (m)" },
-  finishing:    { keyField: "printNo",     keyLabel: "Card #",  qtyField: "finishedQty", qtyLabel: "Finished (m)" },
-  calendering:  { keyField: "printNo",     keyLabel: "Card #",  qtyField: "qty",         qtyLabel: "Qty (m)" },
-  folding:      { keyField: "printNo",     keyLabel: "Card #",  qtyField: "totalMeters", qtyLabel: "Total (m)" },
-  dispatch_out: { keyField: "designNumber",keyLabel: "Design #",qtyField: "qty",         qtyLabel: "Qty (m)" },
+  gray_store: {
+    keyField: "grayStoreNo",
+    keyLabel: "Gray #",
+    qtyField: "meters",
+    qtyLabel: "Meters",
+  },
+  gray_out: {
+    keyField: "grayStoreNo",
+    keyLabel: "Gray #",
+    qtyField: "meters",
+    qtyLabel: "Meters",
+  },
+  input: {
+    keyField: "batchNo",
+    keyLabel: "Batch #",
+    qtyField: "meters",
+    qtyLabel: "Meters",
+  },
+  bleach: {
+    keyField: "batchNo",
+    keyLabel: "Batch #",
+    qtyField: "qty",
+    qtyLabel: "Qty (m)",
+  },
+  dyeing: {
+    keyField: "dyeingNo",
+    keyLabel: "Dye #",
+    qtyField: "dyedQty",
+    qtyLabel: "Dyed (m)",
+  },
+  batching: {
+    keyField: "batchingId",
+    keyLabel: "Batch #",
+    qtyField: "qtyAfter",
+    qtyLabel: "Qty (m)",
+  },
+  printing: {
+    keyField: "printNo",
+    keyLabel: "Print #",
+    qtyField: "printedQty",
+    qtyLabel: "Printed (m)",
+  },
+  curing: {
+    keyField: "printNo",
+    keyLabel: "Print #",
+    qtyField: "qty",
+    qtyLabel: "Qty (m)",
+  },
+  finishing: {
+    keyField: "printNo",
+    keyLabel: "Card #",
+    qtyField: "finishedQty",
+    qtyLabel: "Finished (m)",
+  },
+  calendering: {
+    keyField: "printNo",
+    keyLabel: "Card #",
+    qtyField: "qty",
+    qtyLabel: "Qty (m)",
+  },
+  folding: {
+    keyField: "printNo",
+    keyLabel: "Card #",
+    qtyField: "totalMeters",
+    qtyLabel: "Total (m)",
+  },
+  dispatch_out: {
+    keyField: "designNumber",
+    keyLabel: "Design #",
+    qtyField: "qty",
+    qtyLabel: "Qty (m)",
+  },
 };
 
 function ArchivedRecordsViewer({
@@ -9235,12 +9439,7 @@ function ArchivedRecordsViewer({
       if (dateFrom && (!r.date || r.date < dateFrom)) return false;
       if (dateTo && (!r.date || r.date > dateTo)) return false;
       if (term) {
-        const hay = [
-          r[config.keyField],
-          r.fabricType,
-          r.notes,
-          r.operator,
-        ]
+        const hay = [r[config.keyField], r.fabricType, r.notes, r.operator]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -9313,8 +9512,9 @@ function ArchivedRecordsViewer({
     );
   }
   function unarchiveOne(id: string) {
-    askConfirm("Unarchive this record? It'll reappear on the station list.", () =>
-      unarchiveIds([id]),
+    askConfirm(
+      "Unarchive this record? It'll reappear on the station list.",
+      () => unarchiveIds([id]),
     );
   }
 
@@ -12701,8 +12901,7 @@ function StationView({
   const canEdit =
     ctx.user.role === "admin" ||
     (ctx.user.role === "dept_admin" && ctx.user.departmentId === "printing") ||
-    (ctx.user.role === "operator" &&
-      userCoversStation(ctx.user, stationId));
+    (ctx.user.role === "operator" && userCoversStation(ctx.user, stationId));
   return (
     <div className="space-y-4">
       {/* Operators are locked to their station — no back button. Exception:
@@ -12755,7 +12954,8 @@ function qcCellText(v: any): any {
   if (typeof v === "object") {
     if (v.text != null) return v.text;
     if (v.result != null) return v.result;
-    if (Array.isArray(v.richText)) return v.richText.map((t: any) => t.text).join("");
+    if (Array.isArray(v.richText))
+      return v.richText.map((t: any) => t.text).join("");
     if (v.hyperlink) return v.hyperlink;
     return String(v);
   }
@@ -12772,7 +12972,10 @@ async function exportRowsToXlsx(
     const M: any = await import("exceljs");
     const ExcelJS = M.default || M;
     const wb = new ExcelJS.Workbook();
-    const safe = String(sheetName).replace(/[:\\/?*\[\]]/g, " ").slice(0, 31) || "Sheet1";
+    const safe =
+      String(sheetName)
+        .replace(/[:\\/?*\[\]]/g, " ")
+        .slice(0, 31) || "Sheet1";
     const ws = wb.addWorksheet(safe);
     ws.columns = columns.map((c) => ({
       header: c.header,
@@ -12781,7 +12984,11 @@ async function exportRowsToXlsx(
     }));
     const hdr = ws.getRow(1);
     hdr.font = { bold: true };
-    hdr.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE2F1EE" } };
+    hdr.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE2F1EE" },
+    };
     rows.forEach((r) => {
       const o: any = {};
       columns.forEach((c) => (o[c.key] = r[c.key] ?? ""));
@@ -12823,12 +13030,17 @@ async function readXlsxRows(file: File): Promise<any[]> {
       const h = headers[col];
       if (h) o[h] = qcCellText(cell.value);
     });
-    if (Object.values(o).some((v) => String(v ?? "").trim() !== "")) out.push(o);
+    if (Object.values(o).some((v) => String(v ?? "").trim() !== ""))
+      out.push(o);
   });
   return out;
 }
 
-function compressImageToDataUrl(file: File, maxDim = 1600, quality = 0.7): Promise<string> {
+function compressImageToDataUrl(
+  file: File,
+  maxDim = 1600,
+  quality = 0.7,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -12906,40 +13118,128 @@ const QC_POSITIONS = [
   { key: "MIDDLE", tkey: "qc.log.posMiddle" },
 ];
 const QC_STAGES = [
-  "Grey fabric", "Singeing", "Desizing", "Bleaching", "Printing",
-  "Curing", "Finishing", "Calendering", "Folding / Inspection",
+  "Grey fabric",
+  "Singeing",
+  "Desizing",
+  "Bleaching",
+  "Printing",
+  "Curing",
+  "Finishing",
+  "Calendering",
+  "Folding / Inspection",
 ];
 
 const QC_STARTER_CODES = [
-  ["W1", "Weaving fault carried through (broken/double pick)", "Grey fabric", "Loom setting, weft feeder"],
+  [
+    "W1",
+    "Weaving fault carried through (broken/double pick)",
+    "Grey fabric",
+    "Loom setting, weft feeder",
+  ],
   ["W2", "Loom oil stain", "Grey fabric", "Loom lubrication, over-oiling"],
-  ["W3", "Contamination / foreign fibre", "Grey fabric", "Housekeeping, yarn source"],
-  ["P01", "Unsinged strip / uneven singeing", "Singeing", "Blocked burner nozzle"],
-  ["P02", "Residual size (poor desizing)", "Desizing", "Enzyme dose, pH, temp, dwell time"],
-  ["P03", "Scorch mark", "Singeing", "Flame too close, line stopped with flame on"],
-  ["B01", "Listing (side-centre-side variation)", "Bleaching", "Uneven tension/heating across jigger"],
-  ["B02", "Ending (start-to-end variation)", "Bleaching", "Turn count, liquor exhaustion"],
-  ["B03", "Uneven whiteness / grey patch", "Bleaching", "Peroxide, stabiliser, water hardness"],
-  ["B04", "Pinhole / small hole", "Bleaching", "Iron contamination catalysing peroxide"],
+  [
+    "W3",
+    "Contamination / foreign fibre",
+    "Grey fabric",
+    "Housekeeping, yarn source",
+  ],
+  [
+    "P01",
+    "Unsinged strip / uneven singeing",
+    "Singeing",
+    "Blocked burner nozzle",
+  ],
+  [
+    "P02",
+    "Residual size (poor desizing)",
+    "Desizing",
+    "Enzyme dose, pH, temp, dwell time",
+  ],
+  [
+    "P03",
+    "Scorch mark",
+    "Singeing",
+    "Flame too close, line stopped with flame on",
+  ],
+  [
+    "B01",
+    "Listing (side-centre-side variation)",
+    "Bleaching",
+    "Uneven tension/heating across jigger",
+  ],
+  [
+    "B02",
+    "Ending (start-to-end variation)",
+    "Bleaching",
+    "Turn count, liquor exhaustion",
+  ],
+  [
+    "B03",
+    "Uneven whiteness / grey patch",
+    "Bleaching",
+    "Peroxide, stabiliser, water hardness",
+  ],
+  [
+    "B04",
+    "Pinhole / small hole",
+    "Bleaching",
+    "Iron contamination catalysing peroxide",
+  ],
   ["B05", "Poor absorbency", "Bleaching", "Incomplete scouring, wax residue"],
   ["B06", "Jigger crease mark", "Bleaching", "Roll build-up, tension"],
-  ["R01", "Shade variation vs approved standard", "Printing", "Recipe, weighing, dosing"],
+  [
+    "R01",
+    "Shade variation vs approved standard",
+    "Printing",
+    "Recipe, weighing, dosing",
+  ],
   ["R02", "Poor rubbing fastness", "Curing", "Under-cure, temperature, binder"],
-  ["R03", "Misprint / out of register", "Printing", "Screen alignment, fabric feed"],
-  ["R04", "Print smudge / doctor blade streak", "Printing", "Blade wear, paste viscosity"],
+  [
+    "R03",
+    "Misprint / out of register",
+    "Printing",
+    "Screen alignment, fabric feed",
+  ],
+  [
+    "R04",
+    "Print smudge / doctor blade streak",
+    "Printing",
+    "Blade wear, paste viscosity",
+  ],
 ];
 
 // ---------------------------------------------------------------------------
 //  1. Defect codes
 // ---------------------------------------------------------------------------
-function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
+function QcDefectCodes({
+  ctx,
+  canEdit,
+}: {
+  ctx: AppContext;
+  canEdit: boolean;
+}) {
   const t = useT();
-  const { askConfirm } = ctx;
+  const { askConfirm, lists } = ctx;
   const { rows, loading, save, remove } = useQcCollection("qc_defcode:");
   const [editing, setEditing] = useState<any>(null);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState("");
   const fileRef = useRef<any>(null);
+  // Stages come from the editable list (Settings → Lists → Quality — Defect
+  // Stages) so a stage can be added or removed without a code change.
+  // QC_STAGES stays only as the fallback for a config saved before the list
+  // existed. Any stage already sitting on a saved code is appended so an old
+  // row never silently loses its value when the list is trimmed.
+  const stageOptions = useMemo(() => {
+    const base =
+      Array.isArray(lists?.qcStage) && lists.qcStage.length
+        ? lists.qcStage
+        : QC_STAGES;
+    const extra = rows
+      .map((r) => r.stage)
+      .filter((v) => v && !base.includes(v));
+    return [...base, ...Array.from(new Set(extra))];
+  }, [lists?.qcStage, rows]);
 
   const DEFCODE_COLS = [
     { key: "code", header: t("qc.dc.code") },
@@ -12950,25 +13250,46 @@ function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) 
   ];
 
   const filtered = rows
-    .filter((r) => `${r.code} ${r.name} ${r.stage} ${r.causeArea}`.toLowerCase().includes(q.toLowerCase()))
+    .filter((r) =>
+      `${r.code} ${r.name} ${r.stage} ${r.causeArea}`
+        .toLowerCase()
+        .includes(q.toLowerCase()),
+    )
     .sort((a, b) => (a.code || "").localeCompare(b.code || ""));
 
   async function loadStarter() {
     setBusy("starter");
-    for (const [code, name, stage, causeArea] of QC_STARTER_CODES) await save({ code, name, stage, causeArea, active: true });
+    for (const [code, name, stage, causeArea] of QC_STARTER_CODES)
+      await save({ code, name, stage, causeArea, active: true });
     setBusy("");
   }
   function downloadTemplate() {
     exportRowsToXlsx(
       [
-        { code: "R01", name: "Shade variation vs approved standard", stage: "Printing", causeArea: "Recipe, weighing, dosing", active: "Yes" },
+        {
+          code: "R01",
+          name: "Shade variation vs approved standard",
+          stage: "Printing",
+          causeArea: "Recipe, weighing, dosing",
+          active: "Yes",
+        },
         { code: "", name: "", stage: "", causeArea: "", active: "" },
       ],
-      DEFCODE_COLS, "defect_codes_template", t("qc.tab.codes"),
+      DEFCODE_COLS,
+      "defect_codes_template",
+      t("qc.tab.codes"),
     );
   }
   function exportCodes() {
-    exportRowsToXlsx(filtered.map((r) => ({ ...r, active: r.active === false ? "No" : "Yes" })), DEFCODE_COLS, "defect_codes", t("qc.tab.codes"));
+    exportRowsToXlsx(
+      filtered.map((r) => ({
+        ...r,
+        active: r.active === false ? "No" : "Yes",
+      })),
+      DEFCODE_COLS,
+      "defect_codes",
+      t("qc.tab.codes"),
+    );
   }
   async function onImport(e: any) {
     const file = e.target.files?.[0];
@@ -12980,16 +13301,36 @@ function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) 
       let n = 0;
       for (const row of raw) {
         const code = String(row[t("qc.dc.code")] ?? row["Code"] ?? "").trim();
-        const name = String(row[t("qc.dc.name")] ?? row["Defect name"] ?? "").trim();
+        const name = String(
+          row[t("qc.dc.name")] ?? row["Defect name"] ?? "",
+        ).trim();
         if (!code || !name) continue;
-        const activeStr = String(row[t("qc.dc.active")] ?? row["Active"] ?? "").trim().toLowerCase();
-        const active = !["no", "false", "0", "inactive", "—", "yo'q", "нет", "yoq"].includes(activeStr);
-        const existing = rows.find((r) => (r.code || "").toLowerCase() === code.toLowerCase());
+        const activeStr = String(row[t("qc.dc.active")] ?? row["Active"] ?? "")
+          .trim()
+          .toLowerCase();
+        const active = ![
+          "no",
+          "false",
+          "0",
+          "inactive",
+          "—",
+          "yo'q",
+          "нет",
+          "yoq",
+        ].includes(activeStr);
+        const existing = rows.find(
+          (r) => (r.code || "").toLowerCase() === code.toLowerCase(),
+        );
         await save({
           ...(existing || {}),
-          code, name,
-          stage: String(row[t("qc.dc.stageCreated")] ?? row["Stage created"] ?? "").trim(),
-          causeArea: String(row[t("qc.dc.causeArea")] ?? row["Typical cause area"] ?? "").trim(),
+          code,
+          name,
+          stage: String(
+            row[t("qc.dc.stageCreated")] ?? row["Stage created"] ?? "",
+          ).trim(),
+          causeArea: String(
+            row[t("qc.dc.causeArea")] ?? row["Typical cause area"] ?? "",
+          ).trim(),
           active,
         });
         n++;
@@ -13005,29 +13346,68 @@ function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) 
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit && (
-          <button onClick={() => setEditing({ code: "", name: "", stage: "", causeArea: "", active: true })} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <button
+            onClick={() =>
+              setEditing({
+                code: "",
+                name: "",
+                stage: "",
+                causeArea: "",
+                active: true,
+              })
+            }
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
             <Plus size={15} /> {t("qc.dc.newCode")}
           </button>
         )}
-        <button onClick={downloadTemplate} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={downloadTemplate}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <FileSpreadsheet size={14} /> {t("qc.template")}
         </button>
         {canEdit && (
-          <button onClick={() => fileRef.current?.click()} disabled={busy === "import"} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60">
-            <Upload size={14} /> {busy === "import" ? t("qc.importing") : t("qc.import")}
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy === "import"}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60"
+          >
+            <Upload size={14} />{" "}
+            {busy === "import" ? t("qc.importing") : t("qc.import")}
           </button>
         )}
-        <button onClick={exportCodes} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={exportCodes}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
-        <input ref={fileRef} type="file" accept=".xlsx" className="hidden" onChange={onImport} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx"
+          className="hidden"
+          onChange={onImport}
+        />
         {canEdit && rows.length === 0 && !loading && (
-          <button onClick={loadStarter} disabled={busy === "starter"} className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-60">
+          <button
+            onClick={loadStarter}
+            disabled={busy === "starter"}
+            className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-60"
+          >
             {busy === "starter" ? t("qc.loading") : t("qc.dc.loadStarter")}
           </button>
         )}
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("qc.dc.searchCodes")} className="border border-slate-200 rounded-lg p-1.5 text-sm flex-1 min-w-[150px]" />
-        <span className="text-xs text-slate-400">{t("qc.dc.countN").replace("{n}", String(filtered.length))}</span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("qc.dc.searchCodes")}
+          className="border border-slate-200 rounded-lg p-1.5 text-sm flex-1 min-w-[150px]"
+        />
+        <span className="text-xs text-slate-400">
+          {t("qc.dc.countN").replace("{n}", String(filtered.length))}
+        </span>
       </div>
 
       <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
@@ -13036,55 +13416,142 @@ function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) 
             <tr>
               <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
               <th className="text-left p-3 font-medium">{t("qc.dc.name")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.dc.stageCreated")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.dc.causeArea")}</th>
-              <th className="text-center p-3 font-medium">{t("qc.dc.active")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.dc.stageCreated")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.dc.causeArea")}
+              </th>
+              <th className="text-center p-3 font-medium">
+                {t("qc.dc.active")}
+              </th>
               {canEdit && <th className="p-3 w-16"></th>}
             </tr>
           </thead>
           <tbody>
             {filtered.map((r) => (
-              <tr key={r.id} className={`border-t border-slate-100 ${r.active === false ? "opacity-50" : ""}`}>
-                <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
+              <tr
+                key={r.id}
+                className={`border-t border-slate-100 ${r.active === false ? "opacity-50" : ""}`}
+              >
+                <td className="p-3 font-mono font-bold text-teal-700">
+                  {r.code}
+                </td>
                 <td className="p-3 text-slate-700">{r.name}</td>
                 <td className="p-3 text-slate-500">{r.stage}</td>
                 <td className="p-3 text-slate-500">{r.causeArea}</td>
-                <td className="p-3 text-center">{r.active === false ? "—" : "✓"}</td>
+                <td className="p-3 text-center">
+                  {r.active === false ? "—" : "✓"}
+                </td>
                 {canEdit && (
                   <td className="p-3 text-right">
                     <div className="flex gap-1 justify-end">
-                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
-                      <button onClick={() => askConfirm(t("qc.dc.deleteConfirm"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                      <button
+                        onClick={() => setEditing(r)}
+                        className="text-slate-400 hover:text-teal-600 p-1"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          askConfirm(t("qc.dc.deleteConfirm"), () =>
+                            remove(r.id),
+                          )
+                        }
+                        className="text-slate-400 hover:text-red-600 p-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 )}
               </tr>
             ))}
             {!filtered.length && (
-              <tr><td colSpan={canEdit ? 6 : 5} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.dc.none")}</td></tr>
+              <tr>
+                <td
+                  colSpan={canEdit ? 6 : 5}
+                  className="p-8 text-center text-slate-400"
+                >
+                  {loading ? t("qc.loading") : t("qc.dc.none")}
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
 
       {editing && (
-        <Modal title={editing.id ? t("qc.dc.editTitle") : t("qc.dc.newTitle")} onClose={() => setEditing(null)}>
+        <Modal
+          title={editing.id ? t("qc.dc.editTitle") : t("qc.dc.newTitle")}
+          onClose={() => setEditing(null)}
+        >
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Field label={t("qc.dc.fCode")}><input value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} placeholder="R01" className="w-full p-2.5 border border-slate-300 rounded-lg font-mono" autoFocus /></Field>
+              <Field label={t("qc.dc.fCode")}>
+                <input
+                  value={editing.code}
+                  onChange={(e) =>
+                    setEditing({ ...editing, code: e.target.value })
+                  }
+                  placeholder="R01"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
+                  autoFocus
+                />
+              </Field>
               <Field label={t("qc.dc.stageCreated")}>
-                <select value={editing.stage} onChange={(e) => setEditing({ ...editing, stage: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg">
-                  <option value="">—</option>{QC_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                <select
+                  value={editing.stage}
+                  onChange={(e) =>
+                    setEditing({ ...editing, stage: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                >
+                  <option value="">—</option>
+                  {stageOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
               </Field>
             </div>
-            <Field label={t("qc.dc.fName")}><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-            <Field label={t("qc.dc.causeArea")}><input value={editing.causeArea} onChange={(e) => setEditing({ ...editing, causeArea: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.dc.fName")}>
+              <input
+                value={editing.name}
+                onChange={(e) =>
+                  setEditing({ ...editing, name: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={t("qc.dc.causeArea")}>
+              <input
+                value={editing.causeArea}
+                onChange={(e) =>
+                  setEditing({ ...editing, causeArea: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={editing.active !== false}
+                onChange={(e) =>
+                  setEditing({ ...editing, active: e.target.checked })
+                }
+              />
               {t("qc.dc.activeInUse")}
             </label>
-            <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.code || !editing.name) return; await save(editing); setEditing(null); }} />
+            <FormFooter
+              onCancel={() => setEditing(null)}
+              onSave={async () => {
+                if (!editing.code || !editing.name) return;
+                await save(editing);
+                setEditing(null);
+              }}
+            />
           </div>
         </Modal>
       )}
@@ -13097,14 +13564,43 @@ function QcDefectCodes({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) 
 // ---------------------------------------------------------------------------
 function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   const t = useT();
-  const { askConfirm, user, designs } = ctx;
+  const { askConfirm, user, designs, lists } = ctx;
   const { rows, loading, save, remove } = useQcCollection("qc_deflog:");
+  // Shifts come from Settings → Lists → Shifts, the same list every other
+  // station uses, so adding a D shift there is enough — no code change and
+  // no second place that can disagree about how many shifts exist. The list
+  // is shown EXACTLY as configured: bare legacy values ("A", "B", "C") saved
+  // by the old hardcoded dropdown are not appended as extra options, they're
+  // mapped onto the matching list entry instead (see matchShift).
+  const shiftOptions = useMemo(
+    () => (Array.isArray(lists?.shift) ? lists.shift : []),
+    [lists?.shift],
+  );
+
+  // Map a stored shift onto the configured list. Old rows hold a bare letter
+  // ("A"); the list holds "Shift A (Morning)". Without this, opening an old
+  // defect would show "—" and silently blank the shift on save.
+  function matchShift(v: string) {
+    if (!v) return "";
+    if (shiftOptions.includes(v)) return v;
+    const letter = String(v).trim().toUpperCase();
+    const hit = shiftOptions.find((o) => {
+      const up = String(o).toUpperCase();
+      return (
+        up === letter ||
+        up.startsWith(`SHIFT ${letter}`) ||
+        new RegExp(`(^|[^A-Z])${letter}([^A-Z]|$)`).test(up)
+      );
+    });
+    return hit || "";
+  }
   const codes = useQcCollection("qc_defcode:");
   const codeByCode: Record<string, any> = {};
   codes.rows.forEach((c) => (codeByCode[c.code] = c));
   const designById: Record<string, any> = {};
   (designs || []).forEach((d: any) => (designById[d.id] = d));
-  const dNum = (r: any) => designById[r.designId]?.designNumber || r.article || "";
+  const dNum = (r: any) =>
+    designById[r.designId]?.designNumber || r.article || "";
   const dName = (r: any) => designById[r.designId]?.name || "";
   const posLabel = (p: string) => {
     const opt = QC_POSITIONS.find((o) => o.key === p);
@@ -13112,7 +13608,7 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   };
   const posText = (r: any) => {
     const arr = Array.isArray(r.positions) ? r.positions : [];
-    const base = arr.length ? arr.map(posLabel).join(", ") : (r.position || "");
+    const base = arr.length ? arr.map(posLabel).join(", ") : r.position || "";
     return [base, r.posNote].filter(Boolean).join(" · ");
   };
   // Stage follows the chosen defect code (each code carries its stage); fall
@@ -13120,38 +13616,216 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   const codeStage = (r: any) => codeByCode[r.code]?.stage || r.stage || "";
   const [editing, setEditing] = useState<any>(null);
   const [filter, setFilter] = useState({ from: "", to: "", q: "" });
+  const [busy, setBusy] = useState("");
+  const fileRef = useRef<any>(null);
 
   const filtered = rows
     .filter((r) => {
       if (filter.from && (r.date || "") < filter.from) return false;
       if (filter.to && (r.date || "") > filter.to) return false;
-      if (filter.q && !`${r.batchNo} ${dNum(r)} ${dName(r)} ${r.code} ${codeByCode[r.code]?.name || ""}`.toLowerCase().includes(filter.q.toLowerCase())) return false;
+      if (
+        filter.q &&
+        !`${r.batchNo} ${dNum(r)} ${dName(r)} ${r.code} ${codeByCode[r.code]?.name || ""}`
+          .toLowerCase()
+          .includes(filter.q.toLowerCase())
+      )
+        return false;
       return true;
     })
     .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
+  // Columns the import understands. Deliberately the SAME headers the export
+  // writes, so an exported file can be edited and fed straight back in.
+  // Design NAME and the defect NAME are export-only — both are looked up from
+  // the design number and the defect code, so importing them would let the
+  // sheet disagree with the master data.
+  const LOG_IMPORT_COLS = [
+    { key: "date", header: t("qc.date") },
+    { key: "shift", header: t("qc.log.shift") },
+    { key: "programNo", header: t("qc.log.batch") },
+    { key: "designNumber", header: t("qc.log.design") },
+    { key: "code", header: t("qc.dc.code") },
+    { key: "position", header: t("qc.log.position") },
+    { key: "metres", header: t("qc.log.metresAffected") },
+  ];
+
+  function downloadLogTemplate() {
+    const sampleCode = codes.rows[0]?.code || "R01";
+    const sampleDesign = (designs || [])[0]?.designNumber || "ENG# 1140-2";
+    exportRowsToXlsx(
+      [
+        {
+          date: todayISO(),
+          shift: shiftOptions[0] || "Shift A",
+          programNo: "GALTEX J-Y32",
+          designNumber: sampleDesign,
+          code: sampleCode,
+          position: `${t("qc.log.posLeft")}, ${t("qc.log.posMiddle")}`,
+          metres: 12,
+        },
+        {
+          date: "",
+          shift: "",
+          programNo: "",
+          designNumber: "",
+          code: "",
+          position: "",
+          metres: "",
+        },
+      ],
+      LOG_IMPORT_COLS,
+      "defect_log_template",
+      t("qc.tab.log"),
+    );
+  }
+
+  // Accepts the ISO the exporter writes, plus the dd/mm/yyyy and dd.mm.yyyy
+  // people type by hand. Anything else is left alone rather than guessed at.
+  function parseImportDate(v: any): string {
+    const raw = String(v ?? "").trim();
+    if (!raw) return "";
+    if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+    const m = raw.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+    if (m) {
+      const [, d, mo, y] = m;
+      return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    }
+    return raw;
+  }
+
+  // "Left, Middle" (in any of the three languages, or the raw keys) back into
+  // ["LEFT","MIDDLE"]. Unrecognised words are dropped — they'd only show up
+  // as a position that no filter or Pareto can group.
+  function parsePositions(v: any): string[] {
+    const parts = String(v ?? "")
+      .split(/[,;·/]+/)
+      .map((x) => x.trim().toUpperCase())
+      .filter(Boolean);
+    const out: string[] = [];
+    for (const part of parts) {
+      const hit = QC_POSITIONS.find(
+        (o) =>
+          o.key === part ||
+          String(t(o.tkey)).toUpperCase() === part ||
+          String((TRANSLATIONS as any).en?.[o.tkey] || "").toUpperCase() ===
+            part,
+      );
+      if (hit && !out.includes(hit.key)) out.push(hit.key);
+    }
+    return out;
+  }
+
+  async function onImportLog(e: any) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy("import");
+    try {
+      const raw = await readXlsxRows(file);
+      const designByNumber: Record<string, any> = {};
+      (designs || []).forEach((d: any) => {
+        if (d.designNumber)
+          designByNumber[String(d.designNumber).toUpperCase()] = d;
+      });
+      let n = 0,
+        skipped = 0;
+      const unknownCodes = new Set<string>();
+      for (const row of raw) {
+        const date = parseImportDate(row[t("qc.date")] ?? row["Date"]);
+        const code = String(row[t("qc.dc.code")] ?? row["Code"] ?? "").trim();
+        // A row without a date or a code can't be analysed later, so it is
+        // rejected outright instead of landing as a half-empty entry.
+        if (!date || !code) {
+          skipped++;
+          continue;
+        }
+        if (!codeByCode[code]) unknownCodes.add(code);
+
+        const designNumber = String(
+          row[t("qc.log.design")] ?? row["Design"] ?? "",
+        ).trim();
+        const design = designByNumber[designNumber.toUpperCase()];
+
+        await save({
+          date,
+          shift: matchShift(
+            String(row[t("qc.log.shift")] ?? row["Shift"] ?? "").trim(),
+          ),
+          batchNo: String(
+            row[t("qc.log.batch")] ?? row["Program No."] ?? "",
+          ).trim(),
+          // Matched designs link by id; an unmatched number is kept as free
+          // text in `article` so the row still says what it was about.
+          designId: design?.id || "",
+          article: design ? "" : designNumber,
+          code,
+          positions: parsePositions(
+            row[t("qc.log.position")] ?? row["Position"],
+          ),
+          posNote: "",
+          metres:
+            Number(
+              row[t("qc.log.metresAffected")] ?? row["Metres affected"] ?? 0,
+            ) || 0,
+          note: "",
+          operator: user?.name || "",
+        });
+        n++;
+      }
+      let msg = t("qc.log.importedN")
+        .replace("{n}", String(n))
+        .replace("{s}", String(skipped));
+      if (unknownCodes.size)
+        msg +=
+          "\n" +
+          t("qc.log.importUnknownCodes").replace(
+            "{list}",
+            Array.from(unknownCodes).join(", "),
+          );
+      alert(msg);
+    } catch (err: any) {
+      alert(`${t("qc.log.importFail")} ${err?.message || err}`);
+    }
+    setBusy("");
+  }
+
   function exportLog() {
     exportStationXlsx({
       rows: filtered.map((r) => ({
-        date: r.date, shift: r.shift, programNo: r.batchNo,
-        designNumber: dNum(r), designName: dName(r), designId: r.designId,
-        stage: codeStage(r), code: r.code, defect: codeByCode[r.code]?.name || "",
-        position: posText(r), metres: Number(r.metres) || 0,
+        date: r.date,
+        shift: r.shift,
+        programNo: r.batchNo,
+        designNumber: dNum(r),
+        designName: dName(r),
+        designId: r.designId,
+        stage: codeStage(r),
+        code: r.code,
+        defect: codeByCode[r.code]?.name || "",
+        position: posText(r),
+        metres: Number(r.metres) || 0,
       })),
       columns: [
-        { header: t("qc.date"), key: "date" }, { header: t("qc.log.shift"), key: "shift" },
+        { header: t("qc.date"), key: "date" },
+        { header: t("qc.log.shift"), key: "shift" },
         { header: t("qc.log.batch"), key: "programNo" },
-        { header: t("qc.log.design"), key: "designNumber" }, { header: t("qc.log.designName"), key: "designName" },
-        { header: t("qc.stage"), key: "stage" }, { header: t("qc.dc.code"), key: "code" },
-        { header: t("qc.dc.name"), key: "defect" }, { header: t("qc.log.position"), key: "position" },
+        { header: t("qc.log.design"), key: "designNumber" },
+        { header: t("qc.log.designName"), key: "designName" },
+        { header: t("qc.stage"), key: "stage" },
+        { header: t("qc.dc.code"), key: "code" },
+        { header: t("qc.dc.name"), key: "defect" },
+        { header: t("qc.log.position"), key: "position" },
         { header: t("qc.log.metresAffected"), key: "metres" },
       ],
       imageColumn: {
-        header: t("qc.log.image"), position: 5, width: 16,
+        header: t("qc.log.image"),
+        position: 5,
+        width: 16,
         getDesignId: (row: any) => row.designId,
-        designById, resolveDesignImage,
+        designById,
+        resolveDesignImage,
       },
-      filename: "defect_log", sheetName: t("qc.tab.log"),
+      filename: "defect_log",
+      sheetName: t("qc.tab.log"),
     });
   }
 
@@ -13159,15 +13833,72 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit && (
-          <button onClick={() => setEditing({ date: todayISO(), shift: "A", batchNo: "", designId: "", code: "", positions: [], posNote: "", metres: "", note: "", operator: user?.name || "" })} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <button
+            onClick={() =>
+              setEditing({
+                date: todayISO(),
+                shift: (lists?.shift || [])[0] || "",
+                batchNo: "",
+                designId: "",
+                code: "",
+                positions: [],
+                posNote: "",
+                metres: "",
+                note: "",
+                operator: user?.name || "",
+              })
+            }
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
             <Plus size={15} /> {t("qc.log.logDefect")}
           </button>
         )}
-        <input type="date" value={filter.from} onChange={(e) => setFilter({ ...filter, from: e.target.value })} className="border border-slate-200 rounded p-1.5 text-sm" />
+        <input
+          type="date"
+          value={filter.from}
+          onChange={(e) => setFilter({ ...filter, from: e.target.value })}
+          className="border border-slate-200 rounded p-1.5 text-sm"
+        />
         <span className="text-slate-400 text-xs">{t("qc.log.to")}</span>
-        <input type="date" value={filter.to} onChange={(e) => setFilter({ ...filter, to: e.target.value })} className="border border-slate-200 rounded p-1.5 text-sm" />
-        <input value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} placeholder={t("qc.search")} className="border border-slate-200 rounded p-1.5 text-sm flex-1 min-w-[120px]" />
-        <button onClick={exportLog} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <input
+          type="date"
+          value={filter.to}
+          onChange={(e) => setFilter({ ...filter, to: e.target.value })}
+          className="border border-slate-200 rounded p-1.5 text-sm"
+        />
+        <input
+          value={filter.q}
+          onChange={(e) => setFilter({ ...filter, q: e.target.value })}
+          placeholder={t("qc.search")}
+          className="border border-slate-200 rounded p-1.5 text-sm flex-1 min-w-[120px]"
+        />
+        <button
+          onClick={downloadLogTemplate}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
+          <FileSpreadsheet size={14} /> {t("qc.template")}
+        </button>
+        {canEdit && (
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy === "import"}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60"
+          >
+            <Upload size={14} />{" "}
+            {busy === "import" ? t("qc.importing") : t("qc.import")}
+          </button>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx"
+          className="hidden"
+          onChange={onImportLog}
+        />
+        <button
+          onClick={exportLog}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
       </div>
@@ -13179,12 +13910,18 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
               <th className="text-left p-3 font-medium">{t("qc.date")}</th>
               <th className="text-left p-3 font-medium">{t("qc.log.shift")}</th>
               <th className="text-left p-3 font-medium">{t("qc.log.batch")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.log.design")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.log.design")}
+              </th>
               <th className="text-left p-3 font-medium">{t("qc.stage")}</th>
               <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
               <th className="text-left p-3 font-medium">{t("qc.defect")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.log.position")}</th>
-              <th className="text-right p-3 font-medium">{t("qc.log.metres")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.log.position")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("qc.log.metres")}
+              </th>
               {canEdit && <th className="p-3 w-16"></th>}
             </tr>
           </thead>
@@ -13193,58 +13930,153 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
               const d = designById[r.designId];
               const img = d ? resolveDesignImage(d) : "";
               return (
-              <tr key={r.id} className="border-t border-slate-100">
-                <td className="p-3 whitespace-nowrap text-slate-500">{r.date}</td>
-                <td className="p-3">{r.shift}</td>
-                <td className="p-3 font-mono text-xs">{r.batchNo}</td>
-                <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    {img && <img src={img} className="w-7 h-7 object-cover rounded" />}
-                    <span className="font-mono font-semibold text-slate-700">{dNum(r) || "—"}</span>
-                    {dName(r) && <span className="text-slate-400 text-xs truncate max-w-[120px]">{dName(r)}</span>}
-                  </div>
-                </td>
-                <td className="p-3 text-slate-500">{codeStage(r)}</td>
-                <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
-                <td className="p-3 text-slate-600">{codeByCode[r.code]?.name || "—"}</td>
-                <td className="p-3 text-slate-500">{posText(r)}</td>
-                <td className="p-3 text-right font-semibold tabular-nums">{Number(r.metres) || 0}</td>
-                {canEdit && (
-                  <td className="p-3 text-right">
-                    <div className="flex gap-1 justify-end">
-                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
-                      <button onClick={() => askConfirm(t("qc.log.deleteConfirm"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                <tr key={r.id} className="border-t border-slate-100">
+                  <td className="p-3 whitespace-nowrap text-slate-500">
+                    {r.date}
+                  </td>
+                  <td className="p-3">{r.shift}</td>
+                  <td className="p-3 font-mono text-xs">{r.batchNo}</td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      {img && (
+                        <img
+                          src={img}
+                          className="w-7 h-7 object-cover rounded"
+                        />
+                      )}
+                      <span className="font-mono font-semibold text-slate-700">
+                        {dNum(r) || "—"}
+                      </span>
+                      {dName(r) && (
+                        <span className="text-slate-400 text-xs truncate max-w-[120px]">
+                          {dName(r)}
+                        </span>
+                      )}
                     </div>
                   </td>
-                )}
-              </tr>
+                  <td className="p-3 text-slate-500">{codeStage(r)}</td>
+                  <td className="p-3 font-mono font-bold text-teal-700">
+                    {r.code}
+                  </td>
+                  <td className="p-3 text-slate-600">
+                    {codeByCode[r.code]?.name || "—"}
+                  </td>
+                  <td className="p-3 text-slate-500">{posText(r)}</td>
+                  <td className="p-3 text-right font-semibold tabular-nums">
+                    {Number(r.metres) || 0}
+                  </td>
+                  {canEdit && (
+                    <td className="p-3 text-right">
+                      <div className="flex gap-1 justify-end">
+                        <button
+                          onClick={() =>
+                            setEditing({ ...r, shift: matchShift(r.shift) })
+                          }
+                          className="text-slate-400 hover:text-teal-600 p-1"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            askConfirm(t("qc.log.deleteConfirm"), () =>
+                              remove(r.id),
+                            )
+                          }
+                          className="text-slate-400 hover:text-red-600 p-1"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
               );
             })}
             {!filtered.length && (
-              <tr><td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.log.none")}</td></tr>
+              <tr>
+                <td
+                  colSpan={canEdit ? 10 : 9}
+                  className="p-8 text-center text-slate-400"
+                >
+                  {loading ? t("qc.loading") : t("qc.log.none")}
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
 
       {editing && (
-        <Modal title={editing.id ? t("qc.log.editTitle") : t("qc.log.newTitle")} onClose={() => setEditing(null)} large>
+        <Modal
+          title={editing.id ? t("qc.log.editTitle") : t("qc.log.newTitle")}
+          onClose={() => setEditing(null)}
+          large
+        >
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <Field label={t("qc.log.fDate")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.log.shift")}>
-                <select value={editing.shift} onChange={(e) => setEditing({ ...editing, shift: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+              <Field label={t("qc.log.fDate")}>
+                <input
+                  type="date"
+                  value={editing.date}
+                  onChange={(e) =>
+                    setEditing({ ...editing, date: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
               </Field>
-              <Field label={t("qc.log.fBatch")}><input value={editing.batchNo} onChange={(e) => setEditing({ ...editing, batchNo: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.log.shift")}>
+                <select
+                  value={editing.shift}
+                  onChange={(e) =>
+                    setEditing({ ...editing, shift: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                >
+                  <option value="">—</option>
+                  {shiftOptions.map((sh) => (
+                    <option key={sh} value={sh}>
+                      {sh}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={t("qc.log.fBatch")}>
+                <input
+                  value={editing.batchNo}
+                  onChange={(e) =>
+                    setEditing({ ...editing, batchNo: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
               <div className="col-span-2 md:col-span-3">
                 <Field label={t("qc.log.design")}>
-                  <DesignPickerById value={editing.designId} onChange={(id) => setEditing({ ...editing, designId: id })} designs={designs || []} allowMix={false} placeholder={t("qc.log.designPh")} />
+                  <DesignPickerById
+                    value={editing.designId}
+                    onChange={(id) => setEditing({ ...editing, designId: id })}
+                    designs={designs || []}
+                    allowMix={false}
+                    placeholder={t("qc.log.designPh")}
+                  />
                 </Field>
               </div>
               <Field label={t("qc.log.fCode")}>
-                <select value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg">
+                <select
+                  value={editing.code}
+                  onChange={(e) =>
+                    setEditing({ ...editing, code: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                >
                   <option value="">—</option>
-                  {codes.rows.filter((c) => c.active !== false).sort((a, b) => (a.code || "").localeCompare(b.code || "")).map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
+                  {codes.rows
+                    .filter((c) => c.active !== false)
+                    .sort((a, b) => (a.code || "").localeCompare(b.code || ""))
+                    .map((c) => (
+                      <option key={c.id} value={c.code}>
+                        {c.code} — {c.name}
+                      </option>
+                    ))}
                 </select>
               </Field>
               <div className="col-span-2 md:col-span-3">
@@ -13258,7 +14090,12 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
                           type="button"
                           onClick={() => {
                             const cur = editing.positions || [];
-                            setEditing({ ...editing, positions: sel ? cur.filter((x: string) => x !== o.key) : [...cur, o.key] });
+                            setEditing({
+                              ...editing,
+                              positions: sel
+                                ? cur.filter((x: string) => x !== o.key)
+                                : [...cur, o.key],
+                            });
                           }}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium border ${sel ? "bg-teal-600 text-white border-teal-600" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}
                         >
@@ -13267,19 +14104,50 @@ function QcDefectLog({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
                       );
                     })}
                   </div>
-                  <input value={editing.posNote || ""} onChange={(e) => setEditing({ ...editing, posNote: e.target.value })} placeholder={t("qc.log.posNotePh")} className="w-full mt-2 p-2.5 border border-slate-300 rounded-lg text-sm" />
+                  <input
+                    value={editing.posNote || ""}
+                    onChange={(e) =>
+                      setEditing({ ...editing, posNote: e.target.value })
+                    }
+                    placeholder={t("qc.log.posNotePh")}
+                    className="w-full mt-2 p-2.5 border border-slate-300 rounded-lg text-sm"
+                  />
                 </Field>
               </div>
-              <Field label={t("qc.log.fMetres")}><input inputMode="numeric" value={editing.metres} onChange={(e) => setEditing({ ...editing, metres: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg text-right" /></Field>
+              <Field label={t("qc.log.fMetres")}>
+                <input
+                  inputMode="numeric"
+                  value={editing.metres}
+                  onChange={(e) =>
+                    setEditing({ ...editing, metres: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-right"
+                />
+              </Field>
             </div>
             {editing.code && codeByCode[editing.code] && (
               <div className="text-xs text-slate-500 bg-slate-50 rounded-lg p-2">
                 {codeByCode[editing.code].name}
-                {codeByCode[editing.code].stage ? ` · ${t("qc.stage")}: ${codeByCode[editing.code].stage}` : ""}
-                {codeByCode[editing.code].causeArea ? ` · ${codeByCode[editing.code].causeArea}` : ""}
+                {codeByCode[editing.code].stage
+                  ? ` · ${t("qc.stage")}: ${codeByCode[editing.code].stage}`
+                  : ""}
+                {codeByCode[editing.code].causeArea
+                  ? ` · ${codeByCode[editing.code].causeArea}`
+                  : ""}
               </div>
             )}
-            <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.date || !editing.code) return; await save({ ...editing, stage: codeByCode[editing.code]?.stage || editing.stage || "", metres: Number(editing.metres) || 0 }); setEditing(null); }} />
+            <FormFooter
+              onCancel={() => setEditing(null)}
+              onSave={async () => {
+                if (!editing.date || !editing.code) return;
+                await save({
+                  ...editing,
+                  stage: codeByCode[editing.code]?.stage || editing.stage || "",
+                  metres: Number(editing.metres) || 0,
+                });
+                setEditing(null);
+              }}
+            />
           </div>
         </Modal>
       )}
@@ -13300,22 +14168,43 @@ function QcPareto({ ctx }: { ctx: AppContext }) {
   const [rankBy, setRankBy] = useState<"metres" | "count">("metres");
   const [inspected, setInspected] = useState("");
 
-  const entries = log.rows.filter((r) => !month || (r.date || "").startsWith(month));
+  const entries = log.rows.filter(
+    (r) => !month || (r.date || "").startsWith(month),
+  );
   const ranked = useMemo(() => {
-    const m: Record<string, { code: string; name: string; metres: number; count: number }> = {};
+    const m: Record<
+      string,
+      { code: string; name: string; metres: number; count: number }
+    > = {};
     for (const r of entries) {
       const code = r.code || "(none)";
-      if (!m[code]) m[code] = { code, name: codeByCode[code]?.name || code, metres: 0, count: 0 };
+      if (!m[code])
+        m[code] = {
+          code,
+          name: codeByCode[code]?.name || code,
+          metres: 0,
+          count: 0,
+        };
       m[code].metres += Number(r.metres) || 0;
       m[code].count += 1;
     }
-    const arr = Object.values(m).sort((a, b) => (rankBy === "metres" ? b.metres - a.metres : b.count - a.count));
-    const total = arr.reduce((s, x) => s + (rankBy === "metres" ? x.metres : x.count), 0) || 1;
+    const arr = Object.values(m).sort((a, b) =>
+      rankBy === "metres" ? b.metres - a.metres : b.count - a.count,
+    );
+    const total =
+      arr.reduce((s, x) => s + (rankBy === "metres" ? x.metres : x.count), 0) ||
+      1;
     let cum = 0;
     return arr.map((x, i) => {
       const v = rankBy === "metres" ? x.metres : x.count;
       cum += v;
-      return { ...x, rank: i + 1, value: v, pct: (v / total) * 100, cumPct: (cum / total) * 100 };
+      return {
+        ...x,
+        rank: i + 1,
+        value: v,
+        pct: (v / total) * 100,
+        cumPct: (cum / total) * 100,
+      };
     });
   }, [entries, rankBy]);
 
@@ -13323,17 +14212,42 @@ function QcPareto({ ctx }: { ctx: AppContext }) {
   const insp = Number(inspected) || 0;
   const defectRate = insp > 0 ? (totalMetres / insp) * 100 : null;
   const maxVal = Math.max(1, ...ranked.map((r) => r.value));
-  const byLabel = rankBy === "metres" ? t("qc.pareto.byMetresShort") : t("qc.pareto.byCountShort");
+  // The Pareto cut-off: the first N defects whose running total reaches 80%.
+  // Everything after them is the "trivial many". Computed once here so the
+  // bars, the divider line and the greyed-out table rows all agree.
+  const vitalCount = useMemo(() => {
+    if (!ranked.length) return 0;
+    const i = ranked.findIndex((r) => r.cumPct >= 80);
+    return i < 0 ? ranked.length : i + 1;
+  }, [ranked]);
+  const vitalPct = vitalCount ? ranked[vitalCount - 1].cumPct : 0;
+  const byLabel =
+    rankBy === "metres"
+      ? t("qc.pareto.byMetresShort")
+      : t("qc.pareto.byCountShort");
 
   function exportPareto() {
     exportRowsToXlsx(
-      ranked.map((r) => ({ rank: r.rank, code: r.code, name: r.name, count: r.count, metres: r.metres, pct: `${r.pct.toFixed(1)}%`, cumPct: `${r.cumPct.toFixed(1)}%` })),
+      ranked.map((r) => ({
+        rank: r.rank,
+        code: r.code,
+        name: r.name,
+        count: r.count,
+        metres: r.metres,
+        pct: `${r.pct.toFixed(1)}%`,
+        cumPct: `${r.cumPct.toFixed(1)}%`,
+      })),
       [
-        { key: "rank", header: t("qc.pareto.rank") }, { key: "code", header: t("qc.dc.code") }, { key: "name", header: t("qc.defect") },
-        { key: "count", header: t("qc.pareto.occurrences") }, { key: "metres", header: t("qc.log.metresAffected") },
-        { key: "pct", header: t("qc.pareto.share") }, { key: "cumPct", header: t("qc.pareto.cumulative") },
+        { key: "rank", header: t("qc.pareto.rank") },
+        { key: "code", header: t("qc.dc.code") },
+        { key: "name", header: t("qc.defect") },
+        { key: "count", header: t("qc.pareto.occurrences") },
+        { key: "metres", header: t("qc.log.metresAffected") },
+        { key: "pct", header: t("qc.pareto.share") },
+        { key: "cumPct", header: t("qc.pareto.cumulative") },
       ],
-      "pareto", t("qc.tab.pareto"),
+      "pareto",
+      t("qc.tab.pareto"),
     );
   }
 
@@ -13341,51 +14255,125 @@ function QcPareto({ ctx }: { ctx: AppContext }) {
     <div className="space-y-4">
       <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-4">
         <div>
-          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.month")}</label>
-          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="border border-slate-300 rounded-lg p-2 text-sm" />
+          <label className="text-xs text-slate-500 block mb-1">
+            {t("qc.pareto.month")}
+          </label>
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="border border-slate-300 rounded-lg p-2 text-sm"
+          />
         </div>
         <div>
-          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.rankBy")}</label>
-          <select value={rankBy} onChange={(e) => setRankBy(e.target.value as any)} className="border border-slate-300 rounded-lg p-2 text-sm">
+          <label className="text-xs text-slate-500 block mb-1">
+            {t("qc.pareto.rankBy")}
+          </label>
+          <select
+            value={rankBy}
+            onChange={(e) => setRankBy(e.target.value as any)}
+            className="border border-slate-300 rounded-lg p-2 text-sm"
+          >
             <option value="metres">{t("qc.pareto.byMetres")}</option>
             <option value="count">{t("qc.pareto.byCount")}</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-500 block mb-1">{t("qc.pareto.inspected")}</label>
-          <input inputMode="numeric" value={inspected} onChange={(e) => setInspected(e.target.value)} placeholder="10000" className="border border-slate-300 rounded-lg p-2 text-sm w-32" />
+          <label className="text-xs text-slate-500 block mb-1">
+            {t("qc.pareto.inspected")}
+          </label>
+          <input
+            inputMode="numeric"
+            value={inspected}
+            onChange={(e) => setInspected(e.target.value)}
+            placeholder="10000"
+            className="border border-slate-300 rounded-lg p-2 text-sm w-32"
+          />
         </div>
         <div className="text-sm text-slate-600">
-          <div>{t("qc.pareto.metresAffected")}: <b>{totalMetres.toLocaleString()}</b></div>
-          <div>{t("qc.pareto.defectsLogged")}: <b>{entries.length}</b></div>
-          {defectRate != null && <div>{t("qc.pareto.defectRate")}: <b>{defectRate.toFixed(2)}%</b> {t("qc.pareto.ofInspected")}</div>}
+          <div>
+            {t("qc.pareto.metresAffected")}:{" "}
+            <b>{totalMetres.toLocaleString()}</b>
+          </div>
+          <div>
+            {t("qc.pareto.defectsLogged")}: <b>{entries.length}</b>
+          </div>
+          {defectRate != null && (
+            <div>
+              {t("qc.pareto.defectRate")}: <b>{defectRate.toFixed(2)}%</b>{" "}
+              {t("qc.pareto.ofInspected")}
+            </div>
+          )}
         </div>
         <div className="flex-1" />
-        <button onClick={exportPareto} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={exportPareto}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
       </div>
 
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="flex items-center gap-2 font-semibold text-slate-700 mb-3">
-          <BarChart3 size={16} /> {t("qc.pareto.rankedByLabel").replace("{by}", byLabel)}
+          <BarChart3 size={16} />{" "}
+          {t("qc.pareto.rankedByLabel").replace("{by}", byLabel)}
         </div>
         {ranked.length === 0 ? (
-          <div className="text-center text-slate-400 py-8">{t("qc.pareto.noData")}</div>
+          <div className="text-center text-slate-400 py-8">
+            {t("qc.pareto.noData")}
+          </div>
         ) : (
           <div className="space-y-2">
-            {ranked.map((r) => (
-              <div key={r.code}>
-                <div className="flex justify-between text-xs mb-0.5">
-                  <span className="font-medium text-slate-700"><span className="font-mono text-teal-700">{r.code}</span> {r.name}</span>
-                  <span className="text-slate-500 tabular-nums whitespace-nowrap ml-2">{rankBy === "metres" ? `${r.metres.toLocaleString()} m` : `${r.count}×`} · {t("qc.pareto.cumShort")} {r.cumPct.toFixed(0)}%</span>
+            {ranked.map((r, i) => (
+              <React.Fragment key={r.code}>
+                <div>
+                  <div className="flex justify-between text-xs mb-0.5">
+                    <span className="font-medium text-slate-700">
+                      <span className="font-mono text-teal-700">{r.code}</span>{" "}
+                      {r.name}
+                    </span>
+                    {/* This row's OWN share, not the running total. Showing the
+                        running total here was the confusing part: a bar drawn
+                        at 43% of the width sat next to the number 74%. */}
+                    <span className="text-slate-500 tabular-nums whitespace-nowrap ml-2">
+                      {rankBy === "metres"
+                        ? `${r.metres.toLocaleString()} m`
+                        : `${r.count}×`}{" "}
+                      · <b className="text-slate-700">{r.pct.toFixed(0)}%</b>{" "}
+                      {t("qc.pareto.ofTotal")}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${i < vitalCount ? "bg-teal-500" : "bg-slate-300"}`}
+                      style={{
+                        width: `${Math.max(2, (r.value / maxVal) * 100)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${r.cumPct <= 80 ? "bg-teal-500" : "bg-slate-300"}`} style={{ width: `${Math.max(2, (r.value / maxVal) * 100)}%` }} />
-                </div>
-              </div>
+                {/* The 80% line, drawn where it actually falls instead of left
+                    for the reader to work out from a column of percentages. */}
+                {i === vitalCount - 1 && vitalCount < ranked.length && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="flex-1 border-t border-dashed border-teal-300" />
+                    <div className="text-[11px] text-teal-700 font-medium text-center">
+                      {t("qc.pareto.cutLine")
+                        .replace("{n}", String(vitalCount))
+                        .replace("{pct}", vitalPct.toFixed(0))
+                        .replace("{by}", byLabel)}
+                    </div>
+                    <div className="flex-1 border-t border-dashed border-teal-300" />
+                  </div>
+                )}
+              </React.Fragment>
             ))}
-            <div className="text-[11px] text-slate-400 pt-1">{t("qc.pareto.vital")}</div>
+            {vitalCount >= ranked.length && ranked.length > 1 && (
+              <div className="text-[11px] text-slate-400 pt-1">
+                {t("qc.pareto.cutLineAll")}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -13398,29 +14386,79 @@ function QcPareto({ ctx }: { ctx: AppContext }) {
                 <th className="text-left p-3 font-medium">#</th>
                 <th className="text-left p-3 font-medium">{t("qc.dc.code")}</th>
                 <th className="text-left p-3 font-medium">{t("qc.defect")}</th>
-                <th className="text-right p-3 font-medium">{t("qc.pareto.occurrences")}</th>
-                <th className="text-right p-3 font-medium">{t("qc.log.metres")}</th>
-                <th className="text-right p-3 font-medium">{t("qc.pareto.perTime")}</th>
-                <th className="text-right p-3 font-medium">{t("qc.pareto.share")}</th>
-                <th className="text-right p-3 font-medium">{t("qc.pareto.cumulative")}</th>
+                <th className="text-right p-3 font-medium">
+                  {t("qc.pareto.occurrences")}
+                </th>
+                <th className="text-right p-3 font-medium">
+                  {t("qc.log.metres")}
+                </th>
+                <th className="text-right p-3 font-medium">
+                  {t("qc.pareto.perTime")}
+                </th>
+                {/* The hint under each header is what stops these two columns
+                    being mistaken for each other — the difference between
+                    "this row" and "this row plus the ones above" is the whole
+                    reason the second column keeps climbing. */}
+                <th
+                  className="text-right p-3 font-medium"
+                  title={t("qc.pareto.shareTip")}
+                >
+                  {t("qc.pareto.share")}
+                  <div className="text-[10px] font-normal text-slate-400">
+                    {t("qc.pareto.shareHint")}
+                  </div>
+                </th>
+                <th
+                  className="text-right p-3 font-medium"
+                  title={t("qc.pareto.cumTip")}
+                >
+                  {t("qc.pareto.cumulative")}
+                  <div className="text-[10px] font-normal text-slate-400">
+                    {t("qc.pareto.cumHint")}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {ranked.map((r) => (
-                <tr key={r.code} className={`border-t border-slate-100 ${r.cumPct <= 80 ? "" : "text-slate-400"}`}>
+              {ranked.map((r, i) => (
+                <tr
+                  key={r.code}
+                  className={`border-t border-slate-100 ${i < vitalCount ? "" : "text-slate-400"} ${i === vitalCount - 1 && vitalCount < ranked.length ? "border-b-2 border-b-dashed border-b-teal-300" : ""}`}
+                >
                   <td className="p-3">{r.rank}</td>
-                  <td className="p-3 font-mono font-bold text-teal-700">{r.code}</td>
+                  <td className="p-3 font-mono font-bold text-teal-700">
+                    {r.code}
+                  </td>
                   <td className="p-3 text-slate-600">{r.name}</td>
                   <td className="p-3 text-right tabular-nums">{r.count}</td>
-                  <td className="p-3 text-right tabular-nums">{r.metres.toLocaleString()}</td>
-                  <td className="p-3 text-right tabular-nums text-slate-500">{(r.metres / (r.count || 1)).toFixed(1)}</td>
-                  <td className="p-3 text-right tabular-nums">{r.pct.toFixed(1)}%</td>
-                  <td className="p-3 text-right tabular-nums">{r.cumPct.toFixed(1)}%</td>
+                  <td className="p-3 text-right tabular-nums">
+                    {r.metres.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-right tabular-nums text-slate-500">
+                    {(r.metres / (r.count || 1)).toFixed(1)}
+                  </td>
+                  <td className="p-3 text-right tabular-nums">
+                    {r.pct.toFixed(1)}%
+                  </td>
+                  {/* A filling bar makes the climb to 100% obvious at a glance;
+                      the number alone reads like an unrelated percentage. */}
+                  <td className="p-3 text-right tabular-nums">
+                    <div>{r.cumPct.toFixed(1)}%</div>
+                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-1 ml-auto w-16">
+                      <div
+                        className={`h-full rounded-full ${i < vitalCount ? "bg-teal-500" : "bg-slate-300"}`}
+                        style={{ width: `${r.cumPct}%` }}
+                      />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="text-[11px] text-slate-400 p-3 pt-1">{t("qc.pareto.tableNote")}</div>
+          <div className="text-[11px] text-slate-500 p-3 pt-1 space-y-1">
+            <div>{t("qc.pareto.cumExplain")}</div>
+            <div className="text-slate-400">{t("qc.pareto.tableNote")}</div>
+          </div>
         </div>
       )}
     </div>
@@ -13447,58 +14485,162 @@ function QcFishbone({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   function blank() {
     const causes: any = {};
     FISHBONE_CATS.forEach((c) => (causes[c.key] = ""));
-    return { defect: "", date: todayISO(), person: user?.name || "", status: "Open", causes };
+    return {
+      defect: "",
+      date: todayISO(),
+      person: user?.name || "",
+      status: "Open",
+      causes,
+    };
   }
-  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+  const statusLabel = (s: string) =>
+    s === "Closed" ? t("qc.closed") : t("qc.open");
 
   return (
     <div className="space-y-3">
       {canEdit && (
-        <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={() => setEditing(blank())}
+          className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Plus size={15} /> {t("qc.fb.new")}
         </button>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {rows.map((r) => {
-          const totalCauses = FISHBONE_CATS.reduce((s, c) => s + String(r.causes?.[c.key] || "").split("\n").filter((x) => x.trim()).length, 0);
+          const totalCauses = FISHBONE_CATS.reduce(
+            (s, c) =>
+              s +
+              String(r.causes?.[c.key] || "")
+                .split("\n")
+                .filter((x) => x.trim()).length,
+            0,
+          );
           return (
-            <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+            <button
+              key={r.id}
+              onClick={() => setEditing(r)}
+              className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100"
+            >
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2 font-semibold text-slate-800"><Fish size={16} className="text-teal-600" /> {r.defect || t("qc.fb.noDefect")}</div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+                <div className="flex items-center gap-2 font-semibold text-slate-800">
+                  <Fish size={16} className="text-teal-600" />{" "}
+                  {r.defect || t("qc.fb.noDefect")}
+                </div>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
+                >
+                  {statusLabel(r.status)}
+                </span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">{r.date} · {r.person || r.team || "—"}</div>
-              <div className="text-xs text-slate-400 mt-2">{t("qc.fb.causesCount").replace("{n}", String(totalCauses))}</div>
+              <div className="text-xs text-slate-500 mt-1">
+                {r.date} · {r.person || r.team || "—"}
+              </div>
+              <div className="text-xs text-slate-400 mt-2">
+                {t("qc.fb.causesCount").replace("{n}", String(totalCauses))}
+              </div>
             </button>
           );
         })}
-        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.fb.none")}</div>}
+        {!rows.length && (
+          <div className="text-slate-400 text-sm p-6">
+            {loading ? t("qc.loading") : t("qc.fb.none")}
+          </div>
+        )}
       </div>
 
       {editing && (
-        <Modal title={editing.id ? t("qc.fb.editTitle") : t("qc.fb.new")} onClose={() => setEditing(null)} large>
+        <Modal
+          title={editing.id ? t("qc.fb.editTitle") : t("qc.fb.new")}
+          onClose={() => setEditing(null)}
+          large
+        >
           <div className="space-y-3">
-            <Field label={t("qc.fb.fDefect")}><input value={editing.defect} onChange={(e) => setEditing({ ...editing, defect: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
+            <Field label={t("qc.fb.fDefect")}>
+              <input
+                value={editing.defect}
+                onChange={(e) =>
+                  setEditing({ ...editing, defect: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+                autoFocus
+              />
+            </Field>
             <div className="grid grid-cols-3 gap-3">
-              <Field label={t("qc.date")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.person")}><input value={editing.person ?? editing.team ?? ""} onChange={(e) => setEditing({ ...editing, person: e.target.value })} placeholder={t("qc.fb.personPh")} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.date")}>
+                <input
+                  type="date"
+                  value={editing.date}
+                  onChange={(e) =>
+                    setEditing({ ...editing, date: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.person")}>
+                <input
+                  value={editing.person ?? editing.team ?? ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, person: e.target.value })
+                  }
+                  placeholder={t("qc.fb.personPh")}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
               <Field label={t("qc.status")}>
-                <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="Open">{t("qc.open")}</option><option value="Closed">{t("qc.closed")}</option></select>
+                <select
+                  value={editing.status}
+                  onChange={(e) =>
+                    setEditing({ ...editing, status: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                >
+                  <option value="Open">{t("qc.open")}</option>
+                  <option value="Closed">{t("qc.closed")}</option>
+                </select>
               </Field>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {FISHBONE_CATS.map((c) => (
                 <Field key={c.key} label={t(c.tkey)}>
-                  <textarea value={editing.causes?.[c.key] || ""} onChange={(e) => setEditing({ ...editing, causes: { ...editing.causes, [c.key]: e.target.value } })} placeholder={t("qc.fb.causesLine")} rows={3} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" />
+                  <textarea
+                    value={editing.causes?.[c.key] || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        causes: { ...editing.causes, [c.key]: e.target.value },
+                      })
+                    }
+                    placeholder={t("qc.fb.causesLine")}
+                    rows={3}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm"
+                  />
                 </Field>
               ))}
             </div>
             <div className="flex gap-2">
               {editing.id && canEdit && (
-                <button onClick={() => askConfirm(t("qc.fb.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+                <button
+                  onClick={() =>
+                    askConfirm(t("qc.fb.deleteConfirm"), () => {
+                      remove(editing.id);
+                      setEditing(null);
+                    })
+                  }
+                  className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium"
+                >
+                  {t("qc.delete")}
+                </button>
               )}
               <div className="flex-1" />
-              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.defect) return; await save(editing); setEditing(null); }} />
+              <FormFooter
+                onCancel={() => setEditing(null)}
+                onSave={async () => {
+                  if (!editing.defect) return;
+                  await save(editing);
+                  setEditing(null);
+                }}
+              />
             </div>
           </div>
         </Modal>
@@ -13517,17 +14659,42 @@ function QcFiveWhys({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   const [editing, setEditing] = useState<any>(null);
 
   function blank() {
-    return { problem: "", date: todayISO(), whys: [0, 1, 2, 3, 4].map(() => ({ q: "", a: "", evidence: "" })), rootCause: "", escapeCause: "", status: "Open" };
+    return {
+      problem: "",
+      date: todayISO(),
+      whys: [0, 1, 2, 3, 4].map(() => ({ q: "", a: "", evidence: "" })),
+      rootCause: "",
+      escapeCause: "",
+      status: "Open",
+    };
   }
-  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+  const statusLabel = (s: string) =>
+    s === "Closed" ? t("qc.closed") : t("qc.open");
   function exportWhys() {
     exportRowsToXlsx(
-      rows.map((r) => ({ problem: r.problem, date: r.date, status: statusLabel(r.status), whys: (r.whys || []).map((w: any, i: number) => `${i + 1}) ${w.q} -> ${w.a}${w.evidence ? ` [${w.evidence}]` : ""}`).join("  |  "), rootCause: r.rootCause, escapeCause: r.escapeCause })),
+      rows.map((r) => ({
+        problem: r.problem,
+        date: r.date,
+        status: statusLabel(r.status),
+        whys: (r.whys || [])
+          .map(
+            (w: any, i: number) =>
+              `${i + 1}) ${w.q} -> ${w.a}${w.evidence ? ` [${w.evidence}]` : ""}`,
+          )
+          .join("  |  "),
+        rootCause: r.rootCause,
+        escapeCause: r.escapeCause,
+      })),
       [
-        { key: "problem", header: t("qc.w.problem") }, { key: "date", header: t("qc.date") }, { key: "status", header: t("qc.status") },
-        { key: "whys", header: t("qc.w.whys") }, { key: "rootCause", header: t("qc.w.rootCause") }, { key: "escapeCause", header: t("qc.w.escapeCause") },
+        { key: "problem", header: t("qc.w.problem") },
+        { key: "date", header: t("qc.date") },
+        { key: "status", header: t("qc.status") },
+        { key: "whys", header: t("qc.w.whys") },
+        { key: "rootCause", header: t("qc.w.rootCause") },
+        { key: "escapeCause", header: t("qc.w.escapeCause") },
       ],
-      "five_whys", t("qc.tab.fivewhys"),
+      "five_whys",
+      t("qc.tab.fivewhys"),
     );
   }
   function setWhy(i: number, patch: any) {
@@ -13540,64 +14707,199 @@ function QcFiveWhys({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit && (
-          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <button
+            onClick={() => setEditing(blank())}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
             <Plus size={15} /> {t("qc.w.new")}
           </button>
         )}
-        <button onClick={exportWhys} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={exportWhys}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {rows.map((r) => (
-          <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+          <button
+            key={r.id}
+            onClick={() => setEditing(r)}
+            className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100"
+          >
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 font-semibold text-slate-800"><GitBranch size={16} className="text-teal-600" /> {r.problem || t("qc.w.noProblem")}</div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+              <div className="flex items-center gap-2 font-semibold text-slate-800">
+                <GitBranch size={16} className="text-teal-600" />{" "}
+                {r.problem || t("qc.w.noProblem")}
+              </div>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
+              >
+                {statusLabel(r.status)}
+              </span>
             </div>
-            <div className="text-xs text-slate-500 mt-1">{r.date} · {t("qc.w.whysCount").replace("{n}", String((r.whys || []).length))}</div>
-            {r.rootCause && <div className="text-xs text-slate-600 mt-2"><b>{t("qc.w.rootLabel")}</b> {r.rootCause}</div>}
+            <div className="text-xs text-slate-500 mt-1">
+              {r.date} ·{" "}
+              {t("qc.w.whysCount").replace(
+                "{n}",
+                String((r.whys || []).length),
+              )}
+            </div>
+            {r.rootCause && (
+              <div className="text-xs text-slate-600 mt-2">
+                <b>{t("qc.w.rootLabel")}</b> {r.rootCause}
+              </div>
+            )}
           </button>
         ))}
-        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.w.none")}</div>}
+        {!rows.length && (
+          <div className="text-slate-400 text-sm p-6">
+            {loading ? t("qc.loading") : t("qc.w.none")}
+          </div>
+        )}
       </div>
 
       {editing && (
-        <Modal title={editing.id ? t("qc.w.editTitle") : t("qc.w.new")} onClose={() => setEditing(null)} large>
+        <Modal
+          title={editing.id ? t("qc.w.editTitle") : t("qc.w.new")}
+          onClose={() => setEditing(null)}
+          large
+        >
           <div className="space-y-3">
-            <Field label={t("qc.w.problem")}><input value={editing.problem} onChange={(e) => setEditing({ ...editing, problem: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
+            <Field label={t("qc.w.problem")}>
+              <input
+                value={editing.problem}
+                onChange={(e) =>
+                  setEditing({ ...editing, problem: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+                autoFocus
+              />
+            </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={t("qc.date")}><input type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.date")}>
+                <input
+                  type="date"
+                  value={editing.date}
+                  onChange={(e) =>
+                    setEditing({ ...editing, date: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
               <Field label={t("qc.status")}>
-                <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value="Open">{t("qc.open")}</option><option value="Closed">{t("qc.closed")}</option></select>
+                <select
+                  value={editing.status}
+                  onChange={(e) =>
+                    setEditing({ ...editing, status: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                >
+                  <option value="Open">{t("qc.open")}</option>
+                  <option value="Closed">{t("qc.closed")}</option>
+                </select>
               </Field>
             </div>
             <div className="space-y-2">
               {editing.whys.map((w: any, i: number) => (
-                <div key={i} className="border border-slate-200 rounded-lg p-2 space-y-1">
+                <div
+                  key={i}
+                  className="border border-slate-200 rounded-lg p-2 space-y-1"
+                >
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold text-teal-700">{t("qc.w.why")} {i + 1}</div>
+                    <div className="text-xs font-semibold text-teal-700">
+                      {t("qc.w.why")} {i + 1}
+                    </div>
                     {editing.whys.length > 1 && (
-                      <button onClick={() => setEditing({ ...editing, whys: editing.whys.filter((_: any, j: number) => j !== i) })} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                      <button
+                        onClick={() =>
+                          setEditing({
+                            ...editing,
+                            whys: editing.whys.filter(
+                              (_: any, j: number) => j !== i,
+                            ),
+                          })
+                        }
+                        className="text-slate-300 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
                     )}
                   </div>
-                  <input value={w.q} onChange={(e) => setWhy(i, { q: e.target.value })} placeholder={t("qc.w.whyPh")} className="w-full p-2 border border-slate-300 rounded text-sm" />
-                  <input value={w.a} onChange={(e) => setWhy(i, { a: e.target.value })} placeholder={t("qc.w.answerPh")} className="w-full p-2 border border-slate-300 rounded text-sm" />
-                  <input value={w.evidence} onChange={(e) => setWhy(i, { evidence: e.target.value })} placeholder={t("qc.w.evidencePh")} className="w-full p-2 border border-slate-200 rounded text-xs" />
+                  <input
+                    value={w.q}
+                    onChange={(e) => setWhy(i, { q: e.target.value })}
+                    placeholder={t("qc.w.whyPh")}
+                    className="w-full p-2 border border-slate-300 rounded text-sm"
+                  />
+                  <input
+                    value={w.a}
+                    onChange={(e) => setWhy(i, { a: e.target.value })}
+                    placeholder={t("qc.w.answerPh")}
+                    className="w-full p-2 border border-slate-300 rounded text-sm"
+                  />
+                  <input
+                    value={w.evidence}
+                    onChange={(e) => setWhy(i, { evidence: e.target.value })}
+                    placeholder={t("qc.w.evidencePh")}
+                    className="w-full p-2 border border-slate-200 rounded text-xs"
+                  />
                 </div>
               ))}
-              <button onClick={() => setEditing({ ...editing, whys: [...editing.whys, { q: "", a: "", evidence: "" }] })} className="text-teal-700 hover:bg-teal-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+              <button
+                onClick={() =>
+                  setEditing({
+                    ...editing,
+                    whys: [...editing.whys, { q: "", a: "", evidence: "" }],
+                  })
+                }
+                className="text-teal-700 hover:bg-teal-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1"
+              >
                 <Plus size={14} /> {t("qc.w.addWhy")}
               </button>
             </div>
-            <Field label={t("qc.w.rootCause")}><input value={editing.rootCause} onChange={(e) => setEditing({ ...editing, rootCause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-            <Field label={t("qc.w.escapeCause")}><input value={editing.escapeCause} onChange={(e) => setEditing({ ...editing, escapeCause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.w.rootCause")}>
+              <input
+                value={editing.rootCause}
+                onChange={(e) =>
+                  setEditing({ ...editing, rootCause: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={t("qc.w.escapeCause")}>
+              <input
+                value={editing.escapeCause}
+                onChange={(e) =>
+                  setEditing({ ...editing, escapeCause: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
             <div className="flex gap-2">
               {editing.id && canEdit && (
-                <button onClick={() => askConfirm(t("qc.w.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+                <button
+                  onClick={() =>
+                    askConfirm(t("qc.w.deleteConfirm"), () => {
+                      remove(editing.id);
+                      setEditing(null);
+                    })
+                  }
+                  className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium"
+                >
+                  {t("qc.delete")}
+                </button>
               )}
               <div className="flex-1" />
-              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.problem) return; await save(editing); setEditing(null); }} />
+              <FormFooter
+                onCancel={() => setEditing(null)}
+                onSave={async () => {
+                  if (!editing.problem) return;
+                  await save(editing);
+                  setEditing(null);
+                }}
+              />
             </div>
           </div>
         </Modal>
@@ -13621,13 +14923,28 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   const { rows, loading, save, remove } = useQcCollection("qc_pfmea:");
   const [editing, setEditing] = useState<any>(null);
   const withRpn = rows
-    .map((r) => ({ ...r, rpn: (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0) }))
+    .map((r) => ({
+      ...r,
+      rpn: (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0),
+    }))
     .sort((a, b) => b.rpn - a.rpn);
 
   function blank() {
-    return { step: "", func: "", failureMode: "", effect: "", s: "", cause: "", o: "", prevention: "", detection: "", d: "" };
+    return {
+      step: "",
+      func: "",
+      failureMode: "",
+      effect: "",
+      s: "",
+      cause: "",
+      o: "",
+      prevention: "",
+      detection: "",
+      d: "",
+    };
   }
-  const rpnOf = (r: any) => (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0);
+  const rpnOf = (r: any) =>
+    (Number(r.s) || 0) * (Number(r.o) || 0) * (Number(r.d) || 0);
 
   // Save, snapshotting the PREVIOUS stored state into history so the card keeps
   // a timeline of what it looked like before each update.
@@ -13640,10 +14957,16 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
         const snap = {
           at: new Date().toISOString(),
           by: user?.name || "",
-          step: prev.step, failureMode: prev.failureMode,
-          s: prev.s, o: prev.o, d: prev.d, rpn: rpnOf(prev),
-          effect: prev.effect, cause: prev.cause,
-          prevention: prev.prevention, detection: prev.detection,
+          step: prev.step,
+          failureMode: prev.failureMode,
+          s: prev.s,
+          o: prev.o,
+          d: prev.d,
+          rpn: rpnOf(prev),
+          effect: prev.effect,
+          cause: prev.cause,
+          prevention: prev.prevention,
+          detection: prev.detection,
         };
         history = [snap, ...history].slice(0, 30);
       }
@@ -13653,19 +14976,46 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   }
 
   const num = (label: string, key: string) => (
-    <Field label={label}><input inputMode="numeric" value={editing[key]} onChange={(e) => setEditing({ ...editing, [key]: e.target.value })} placeholder="1-10" className="w-full p-2.5 border border-slate-300 rounded-lg text-center" /></Field>
+    <Field label={label}>
+      <input
+        inputMode="numeric"
+        value={editing[key]}
+        onChange={(e) => setEditing({ ...editing, [key]: e.target.value })}
+        placeholder="1-10"
+        className="w-full p-2.5 border border-slate-300 rounded-lg text-center"
+      />
+    </Field>
   );
   function exportPfmea() {
     exportRowsToXlsx(
-      withRpn.map((r) => ({ step: r.step, func: r.func, failureMode: r.failureMode, effect: r.effect, s: r.s, cause: r.cause, o: r.o, prevention: r.prevention, detection: r.detection, d: r.d, rpn: r.rpn })),
+      withRpn.map((r) => ({
+        step: r.step,
+        func: r.func,
+        failureMode: r.failureMode,
+        effect: r.effect,
+        s: r.s,
+        cause: r.cause,
+        o: r.o,
+        prevention: r.prevention,
+        detection: r.detection,
+        d: r.d,
+        rpn: r.rpn,
+      })),
       [
-        { key: "step", header: t("qc.pfmea.step") }, { key: "func", header: t("qc.pfmea.func") },
-        { key: "failureMode", header: t("qc.pfmea.failure") }, { key: "effect", header: t("qc.pfmea.effect") },
-        { key: "s", header: "S" }, { key: "cause", header: t("qc.pfmea.cause") }, { key: "o", header: "O" },
-        { key: "prevention", header: t("qc.pfmea.prevention") }, { key: "detection", header: t("qc.pfmea.detection") },
-        { key: "d", header: "D" }, { key: "rpn", header: "RPN" },
+        { key: "step", header: t("qc.pfmea.step") },
+        { key: "func", header: t("qc.pfmea.func") },
+        { key: "failureMode", header: t("qc.pfmea.failure") },
+        { key: "effect", header: t("qc.pfmea.effect") },
+        { key: "s", header: "S" },
+        { key: "cause", header: t("qc.pfmea.cause") },
+        { key: "o", header: "O" },
+        { key: "prevention", header: t("qc.pfmea.prevention") },
+        { key: "detection", header: t("qc.pfmea.detection") },
+        { key: "d", header: "D" },
+        { key: "rpn", header: "RPN" },
       ],
-      "pfmea", t("qc.tab.pfmea"),
+      "pfmea",
+      t("qc.tab.pfmea"),
     );
   }
 
@@ -13673,25 +15023,41 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit && (
-          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <button
+            onClick={() => setEditing(blank())}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
             <Plus size={15} /> {t("qc.pfmea.new")}
           </button>
         )}
-        <button onClick={exportPfmea} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={exportPfmea}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
-        <span className="text-xs text-slate-400">{t("qc.pfmea.rankedNote")}</span>
+        <span className="text-xs text-slate-400">
+          {t("qc.pfmea.rankedNote")}
+        </span>
       </div>
       <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left p-3 font-medium">#</th>
-              <th className="text-left p-3 font-medium">{t("qc.pfmea.step")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.pfmea.failure")}</th>
-              <th className="text-left p-3 font-medium">{t("qc.pfmea.effect")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.pfmea.step")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.pfmea.failure")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.pfmea.effect")}
+              </th>
               <th className="text-center p-3 font-medium">S</th>
-              <th className="text-left p-3 font-medium">{t("qc.pfmea.cause")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("qc.pfmea.cause")}
+              </th>
               <th className="text-center p-3 font-medium">O</th>
               <th className="text-center p-3 font-medium">D</th>
               <th className="text-center p-3 font-medium">RPN</th>
@@ -13709,45 +15075,148 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
                 <td className="p-3 text-slate-500 text-xs">{r.cause}</td>
                 <td className="p-3 text-center">{r.o}</td>
                 <td className="p-3 text-center">{r.d}</td>
-                <td className="p-3 text-center"><span className={`px-2 py-1 rounded-full font-bold text-xs ${rpnColor(r.rpn)}`}>{r.rpn}</span></td>
+                <td className="p-3 text-center">
+                  <span
+                    className={`px-2 py-1 rounded-full font-bold text-xs ${rpnColor(r.rpn)}`}
+                  >
+                    {r.rpn}
+                  </span>
+                </td>
                 {canEdit && (
                   <td className="p-3 text-right">
                     <div className="flex gap-1 justify-end items-center">
                       {(r.history || []).length > 0 && (
-                        <span className="text-[10px] text-slate-400 flex items-center gap-0.5 mr-1" title={t("qc.pfmea.histUpdates")}>
+                        <span
+                          className="text-[10px] text-slate-400 flex items-center gap-0.5 mr-1"
+                          title={t("qc.pfmea.histUpdates")}
+                        >
                           <History size={12} /> {(r.history || []).length}
                         </span>
                       )}
-                      <button onClick={() => setEditing(r)} className="text-slate-400 hover:text-teal-600 p-1"><Edit2 size={14} /></button>
-                      <button onClick={() => askConfirm(t("qc.pfmea.deleteRow"), () => remove(r.id))} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                      <button
+                        onClick={() => setEditing(r)}
+                        className="text-slate-400 hover:text-teal-600 p-1"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          askConfirm(t("qc.pfmea.deleteRow"), () =>
+                            remove(r.id),
+                          )
+                        }
+                        className="text-slate-400 hover:text-red-600 p-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 )}
               </tr>
             ))}
             {!withRpn.length && (
-              <tr><td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">{loading ? t("qc.loading") : t("qc.pfmea.none")}</td></tr>
+              <tr>
+                <td
+                  colSpan={canEdit ? 10 : 9}
+                  className="p-8 text-center text-slate-400"
+                >
+                  {loading ? t("qc.loading") : t("qc.pfmea.none")}
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
 
       {editing && (
-        <Modal title={editing.id ? t("qc.pfmea.editTitle") : t("qc.pfmea.new")} onClose={() => setEditing(null)} large>
+        <Modal
+          title={editing.id ? t("qc.pfmea.editTitle") : t("qc.pfmea.new")}
+          onClose={() => setEditing(null)}
+          large
+        >
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Field label={t("qc.pfmea.fStep")}><input value={editing.step} onChange={(e) => setEditing({ ...editing, step: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" autoFocus /></Field>
-              <Field label={t("qc.pfmea.func")}><input value={editing.func} onChange={(e) => setEditing({ ...editing, func: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.pfmea.fStep")}>
+                <input
+                  value={editing.step}
+                  onChange={(e) =>
+                    setEditing({ ...editing, step: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                  autoFocus
+                />
+              </Field>
+              <Field label={t("qc.pfmea.func")}>
+                <input
+                  value={editing.func}
+                  onChange={(e) =>
+                    setEditing({ ...editing, func: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
             </div>
-            <Field label={t("qc.pfmea.fFailure")}><input value={editing.failureMode} onChange={(e) => setEditing({ ...editing, failureMode: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-            <Field label={t("qc.pfmea.fEffect")}><input value={editing.effect} onChange={(e) => setEditing({ ...editing, effect: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-            <Field label={t("qc.pfmea.fCause")}><input value={editing.cause} onChange={(e) => setEditing({ ...editing, cause: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+            <Field label={t("qc.pfmea.fFailure")}>
+              <input
+                value={editing.failureMode}
+                onChange={(e) =>
+                  setEditing({ ...editing, failureMode: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={t("qc.pfmea.fEffect")}>
+              <input
+                value={editing.effect}
+                onChange={(e) =>
+                  setEditing({ ...editing, effect: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
+            <Field label={t("qc.pfmea.fCause")}>
+              <input
+                value={editing.cause}
+                onChange={(e) =>
+                  setEditing({ ...editing, cause: e.target.value })
+                }
+                className="w-full p-2.5 border border-slate-300 rounded-lg"
+              />
+            </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={t("qc.pfmea.fPrevention")}><input value={editing.prevention} onChange={(e) => setEditing({ ...editing, prevention: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.pfmea.fDetection")}><input value={editing.detection} onChange={(e) => setEditing({ ...editing, detection: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.pfmea.fPrevention")}>
+                <input
+                  value={editing.prevention}
+                  onChange={(e) =>
+                    setEditing({ ...editing, prevention: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.pfmea.fDetection")}>
+                <input
+                  value={editing.detection}
+                  onChange={(e) =>
+                    setEditing({ ...editing, detection: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
             </div>
-            <div className="grid grid-cols-3 gap-3">{num(t("qc.pfmea.fS"), "s")}{num(t("qc.pfmea.fO"), "o")}{num(t("qc.pfmea.fD"), "d")}</div>
-            <div className="text-sm text-slate-500">RPN = S × O × D = <b className="text-slate-800">{(Number(editing.s) || 0) * (Number(editing.o) || 0) * (Number(editing.d) || 0)}</b> <span className="text-xs">{t("qc.pfmea.rpnHint")}</span></div>
+            <div className="grid grid-cols-3 gap-3">
+              {num(t("qc.pfmea.fS"), "s")}
+              {num(t("qc.pfmea.fO"), "o")}
+              {num(t("qc.pfmea.fD"), "d")}
+            </div>
+            <div className="text-sm text-slate-500">
+              RPN = S × O × D ={" "}
+              <b className="text-slate-800">
+                {(Number(editing.s) || 0) *
+                  (Number(editing.o) || 0) *
+                  (Number(editing.d) || 0)}
+              </b>{" "}
+              <span className="text-xs">{t("qc.pfmea.rpnHint")}</span>
+            </div>
 
             {(editing.history || []).length > 0 && (
               <div className="border-t border-slate-100 pt-3">
@@ -13759,23 +15228,36 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
                     <div key={i} className="text-xs bg-slate-50 rounded-lg p-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-slate-500">
-                          {h.at ? new Date(h.at).toLocaleString() : "—"}{h.by ? ` · ${h.by}` : ""}
+                          {h.at ? new Date(h.at).toLocaleString() : "—"}
+                          {h.by ? ` · ${h.by}` : ""}
                         </span>
-                        <span className={`px-1.5 py-0.5 rounded-full font-bold ${rpnColor(h.rpn || 0)}`}>RPN {h.rpn ?? "—"}</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full font-bold ${rpnColor(h.rpn || 0)}`}
+                        >
+                          RPN {h.rpn ?? "—"}
+                        </span>
                       </div>
                       <div className="text-slate-600 mt-1">
                         <span className="font-medium">{h.step}</span>
                         {h.failureMode ? ` — ${h.failureMode}` : ""}
-                        <span className="text-slate-400"> · S{h.s || 0} O{h.o || 0} D{h.d || 0}</span>
+                        <span className="text-slate-400">
+                          {" "}
+                          · S{h.s || 0} O{h.o || 0} D{h.d || 0}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">{t("qc.pfmea.histNote")}</div>
+                <div className="text-[10px] text-slate-400 mt-1">
+                  {t("qc.pfmea.histNote")}
+                </div>
               </div>
             )}
 
-            <FormFooter onCancel={() => setEditing(null)} onSave={saveWithHistory} />
+            <FormFooter
+              onCancel={() => setEditing(null)}
+              onSave={saveWithHistory}
+            />
           </div>
         </Modal>
       )}
@@ -13787,8 +15269,15 @@ function QcPfmea({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
 //  7. 8D reports
 // ---------------------------------------------------------------------------
 const EIGHTD_STEPS = [
-  ["d0", "qc.8d.d0"], ["d1", "qc.8d.d1"], ["d2", "qc.8d.d2"], ["d3", "qc.8d.d3"],
-  ["d4", "qc.8d.d4"], ["d5", "qc.8d.d5"], ["d6", "qc.8d.d6"], ["d7", "qc.8d.d7"], ["d8", "qc.8d.d8"],
+  ["d0", "qc.8d.d0"],
+  ["d1", "qc.8d.d1"],
+  ["d2", "qc.8d.d2"],
+  ["d3", "qc.8d.d3"],
+  ["d4", "qc.8d.d4"],
+  ["d5", "qc.8d.d5"],
+  ["d6", "qc.8d.d6"],
+  ["d7", "qc.8d.d7"],
+  ["d8", "qc.8d.d8"],
 ];
 function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   const t = useT();
@@ -13802,9 +15291,20 @@ function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
   function blank() {
     const d: any = {};
     EIGHTD_STEPS.forEach(([k]) => (d[k] = ""));
-    return { reportNo: `8D-${new Date().getFullYear()}-`, customer: "", article: "", dateOpened: todayISO(), champion: "", targetClose: "", status: "Open", d, photos: [] };
+    return {
+      reportNo: `8D-${new Date().getFullYear()}-`,
+      customer: "",
+      article: "",
+      dateOpened: todayISO(),
+      champion: "",
+      targetClose: "",
+      status: "Open",
+      d,
+      photos: [],
+    };
   }
-  const statusLabel = (s: string) => (s === "Closed" ? t("qc.closed") : t("qc.open"));
+  const statusLabel = (s: string) =>
+    s === "Closed" ? t("qc.closed") : t("qc.open");
 
   async function onPhoto(e: any) {
     const files = Array.from(e.target.files || []) as File[];
@@ -13814,7 +15314,10 @@ function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
     try {
       const added: string[] = [];
       for (const f of files) added.push(await compressImageToDataUrl(f));
-      setEditing((cur: any) => ({ ...cur, photos: [...(cur.photos || []), ...added] }));
+      setEditing((cur: any) => ({
+        ...cur,
+        photos: [...(cur.photos || []), ...added],
+      }));
     } catch (err: any) {
       alert(`Photo failed: ${err?.message || err}`);
     }
@@ -13823,21 +15326,34 @@ function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
 
   function exportEightD() {
     const cols = [
-      { key: "reportNo", header: t("qc.8d.reportNo") }, { key: "customer", header: t("qc.8d.customer") },
-      { key: "article", header: t("qc.log.article") }, { key: "dateOpened", header: t("qc.8d.dateOpened") },
-      { key: "champion", header: t("qc.8d.champion") }, { key: "targetClose", header: t("qc.8d.targetClose") },
+      { key: "reportNo", header: t("qc.8d.reportNo") },
+      { key: "customer", header: t("qc.8d.customer") },
+      { key: "article", header: t("qc.log.article") },
+      { key: "dateOpened", header: t("qc.8d.dateOpened") },
+      { key: "champion", header: t("qc.8d.champion") },
+      { key: "targetClose", header: t("qc.8d.targetClose") },
       { key: "status", header: t("qc.status") },
       ...EIGHTD_STEPS.map(([k, tk]) => ({ key: k, header: t(tk) })),
       { key: "photos", header: t("qc.8d.photos") },
     ];
     exportRowsToXlsx(
       rows.map((r) => {
-        const o: any = { reportNo: r.reportNo, customer: r.customer, article: r.article, dateOpened: r.dateOpened, champion: r.champion, targetClose: r.targetClose, status: statusLabel(r.status) };
+        const o: any = {
+          reportNo: r.reportNo,
+          customer: r.customer,
+          article: r.article,
+          dateOpened: r.dateOpened,
+          champion: r.champion,
+          targetClose: r.targetClose,
+          status: statusLabel(r.status),
+        };
         EIGHTD_STEPS.forEach(([k]) => (o[k] = r.d?.[k] || ""));
         o.photos = (r.photos || []).length;
         return o;
       }),
-      cols, "eightd_reports", t("qc.tab.eightd"),
+      cols,
+      "eightd_reports",
+      t("qc.tab.eightd"),
     );
   }
 
@@ -13845,101 +15361,278 @@ function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit && (
-          <button onClick={() => setEditing(blank())} className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <button
+            onClick={() => setEditing(blank())}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+          >
             <Plus size={15} /> {t("qc.8d.new")}
           </button>
         )}
-        <button onClick={exportEightD} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5">
+        <button
+          onClick={exportEightD}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+        >
           <Download size={14} /> {t("qc.export")}
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {rows.map((r) => {
-          const done = EIGHTD_STEPS.filter(([k]) => String(r.d?.[k] || "").trim()).length;
+          const done = EIGHTD_STEPS.filter(([k]) =>
+            String(r.d?.[k] || "").trim(),
+          ).length;
           return (
-            <button key={r.id} onClick={() => setEditing(r)} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100">
+            <button
+              key={r.id}
+              onClick={() => setEditing(r)}
+              className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md transition border border-slate-100"
+            >
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2 font-semibold text-slate-800"><AlertTriangle size={16} className="text-teal-600" /> {r.reportNo}</div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{statusLabel(r.status)}</span>
+                <div className="flex items-center gap-2 font-semibold text-slate-800">
+                  <AlertTriangle size={16} className="text-teal-600" />{" "}
+                  {r.reportNo}
+                </div>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full ${r.status === "Closed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
+                >
+                  {statusLabel(r.status)}
+                </span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">{r.customer} · {r.article}</div>
-              <div className="text-xs text-slate-400 mt-2">{t("qc.8d.opened")} {r.dateOpened} · {t("qc.8d.champLabel")} {r.champion || "—"}{(r.photos || []).length ? ` · ${r.photos.length}📷` : ""}</div>
-              <div className="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden"><div className="h-full bg-teal-500 rounded-full" style={{ width: `${(done / 9) * 100}%` }} /></div>
-              <div className="text-[10px] text-slate-400 mt-1">{t("qc.8d.disciplines").replace("{n}", String(done))}</div>
+              <div className="text-xs text-slate-500 mt-1">
+                {r.customer} · {r.article}
+              </div>
+              <div className="text-xs text-slate-400 mt-2">
+                {t("qc.8d.opened")} {r.dateOpened} · {t("qc.8d.champLabel")}{" "}
+                {r.champion || "—"}
+                {(r.photos || []).length ? ` · ${r.photos.length}📷` : ""}
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                <div
+                  className="h-full bg-teal-500 rounded-full"
+                  style={{ width: `${(done / 9) * 100}%` }}
+                />
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1">
+                {t("qc.8d.disciplines").replace("{n}", String(done))}
+              </div>
             </button>
           );
         })}
-        {!rows.length && <div className="text-slate-400 text-sm p-6">{loading ? t("qc.loading") : t("qc.8d.none")}</div>}
+        {!rows.length && (
+          <div className="text-slate-400 text-sm p-6">
+            {loading ? t("qc.loading") : t("qc.8d.none")}
+          </div>
+        )}
       </div>
 
       {editing && (
-        <Modal title={editing.id ? `${t("qc.tab.eightd")} ${editing.reportNo}` : t("qc.8d.new")} onClose={() => setEditing(null)} large>
+        <Modal
+          title={
+            editing.id
+              ? `${t("qc.tab.eightd")} ${editing.reportNo}`
+              : t("qc.8d.new")
+          }
+          onClose={() => setEditing(null)}
+          large
+        >
           <div className="space-y-3">
-            <div className={`flex items-center justify-between gap-2 rounded-lg p-2.5 ${editing.status === "Closed" ? "bg-green-50" : "bg-amber-50"}`}>
-              <span className={`text-sm font-medium ${editing.status === "Closed" ? "text-green-700" : "text-amber-700"}`}>
-                {editing.status === "Closed" ? `✓ ${t("qc.8d.closedMsg")}` : `● ${t("qc.8d.openMsg")}`}
+            <div
+              className={`flex items-center justify-between gap-2 rounded-lg p-2.5 ${editing.status === "Closed" ? "bg-green-50" : "bg-amber-50"}`}
+            >
+              <span
+                className={`text-sm font-medium ${editing.status === "Closed" ? "text-green-700" : "text-amber-700"}`}
+              >
+                {editing.status === "Closed"
+                  ? `✓ ${t("qc.8d.closedMsg")}`
+                  : `● ${t("qc.8d.openMsg")}`}
               </span>
               {canEdit && (
-                <button onClick={() => setEditing({ ...editing, status: editing.status === "Closed" ? "Open" : "Closed" })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${editing.status === "Closed" ? "bg-white text-amber-700 border border-amber-200" : "bg-green-600 text-white"}`}>
-                  {editing.status === "Closed" ? t("qc.8d.reopen") : t("qc.8d.markClosed")}
+                <button
+                  onClick={() =>
+                    setEditing({
+                      ...editing,
+                      status: editing.status === "Closed" ? "Open" : "Closed",
+                    })
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${editing.status === "Closed" ? "bg-white text-amber-700 border border-amber-200" : "bg-green-600 text-white"}`}
+                >
+                  {editing.status === "Closed"
+                    ? t("qc.8d.reopen")
+                    : t("qc.8d.markClosed")}
                 </button>
               )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <Field label={t("qc.8d.fReportNo")}><input value={editing.reportNo} onChange={(e) => setEditing({ ...editing, reportNo: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg font-mono" /></Field>
-              <Field label={t("qc.8d.customer")}><input value={editing.customer} onChange={(e) => setEditing({ ...editing, customer: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.log.article")}><input value={editing.article} onChange={(e) => setEditing({ ...editing, article: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.8d.dateOpened")}><input type="date" value={editing.dateOpened} onChange={(e) => setEditing({ ...editing, dateOpened: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.8d.champion")}><input value={editing.champion} onChange={(e) => setEditing({ ...editing, champion: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
-              <Field label={t("qc.8d.targetClose")}><input type="date" value={editing.targetClose} onChange={(e) => setEditing({ ...editing, targetClose: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg" /></Field>
+              <Field label={t("qc.8d.fReportNo")}>
+                <input
+                  value={editing.reportNo}
+                  onChange={(e) =>
+                    setEditing({ ...editing, reportNo: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg font-mono"
+                />
+              </Field>
+              <Field label={t("qc.8d.customer")}>
+                <input
+                  value={editing.customer}
+                  onChange={(e) =>
+                    setEditing({ ...editing, customer: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.log.article")}>
+                <input
+                  value={editing.article}
+                  onChange={(e) =>
+                    setEditing({ ...editing, article: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.8d.dateOpened")}>
+                <input
+                  type="date"
+                  value={editing.dateOpened}
+                  onChange={(e) =>
+                    setEditing({ ...editing, dateOpened: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.8d.champion")}>
+                <input
+                  value={editing.champion}
+                  onChange={(e) =>
+                    setEditing({ ...editing, champion: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
+              <Field label={t("qc.8d.targetClose")}>
+                <input
+                  type="date"
+                  value={editing.targetClose}
+                  onChange={(e) =>
+                    setEditing({ ...editing, targetClose: e.target.value })
+                  }
+                  className="w-full p-2.5 border border-slate-300 rounded-lg"
+                />
+              </Field>
             </div>
 
             <div className="space-y-2">
               {EIGHTD_STEPS.map(([k, tk]) => (
                 <Field key={k} label={t(tk)}>
-                  <textarea value={editing.d?.[k] || ""} onChange={(e) => setEditing({ ...editing, d: { ...editing.d, [k]: e.target.value } })} rows={2} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" />
+                  <textarea
+                    value={editing.d?.[k] || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        d: { ...editing.d, [k]: e.target.value },
+                      })
+                    }
+                    rows={2}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm"
+                  />
                 </Field>
               ))}
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-slate-600">{t("qc.8d.photos")}</span>
+                <span className="text-sm font-medium text-slate-600">
+                  {t("qc.8d.photos")}
+                </span>
                 {canEdit && (
-                  <button onClick={() => photoRef.current?.click()} disabled={uploading} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60">
-                    <Camera size={14} /> {uploading ? t("qc.8d.adding") : t("qc.8d.uploadJpg")}
+                  <button
+                    onClick={() => photoRef.current?.click()}
+                    disabled={uploading}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-60"
+                  >
+                    <Camera size={14} />{" "}
+                    {uploading ? t("qc.8d.adding") : t("qc.8d.uploadJpg")}
                   </button>
                 )}
-                <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={onPhoto} />
+                <input
+                  ref={photoRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={onPhoto}
+                />
               </div>
               <div className="flex flex-wrap gap-2">
                 {(editing.photos || []).map((src: string, i: number) => (
                   <div key={i} className="relative group">
-                    <img src={src} onClick={() => setZoom(src)} className="w-24 h-24 object-cover rounded-lg border border-slate-200 cursor-pointer" />
+                    <img
+                      src={src}
+                      onClick={() => setZoom(src)}
+                      className="w-24 h-24 object-cover rounded-lg border border-slate-200 cursor-pointer"
+                    />
                     {canEdit && (
-                      <button onClick={() => setEditing({ ...editing, photos: editing.photos.filter((_: any, j: number) => j !== i) })} className="absolute -top-1.5 -right-1.5 bg-white border border-slate-200 rounded-full p-0.5 shadow text-slate-500 hover:text-red-600"><X size={12} /></button>
+                      <button
+                        onClick={() =>
+                          setEditing({
+                            ...editing,
+                            photos: editing.photos.filter(
+                              (_: any, j: number) => j !== i,
+                            ),
+                          })
+                        }
+                        className="absolute -top-1.5 -right-1.5 bg-white border border-slate-200 rounded-full p-0.5 shadow text-slate-500 hover:text-red-600"
+                      >
+                        <X size={12} />
+                      </button>
                     )}
                   </div>
                 ))}
-                {!(editing.photos || []).length && <span className="text-xs text-slate-400">{t("qc.8d.noPhotos")}</span>}
+                {!(editing.photos || []).length && (
+                  <span className="text-xs text-slate-400">
+                    {t("qc.8d.noPhotos")}
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="flex gap-2">
               {editing.id && canEdit && (
-                <button onClick={() => askConfirm(t("qc.8d.deleteConfirm"), () => { remove(editing.id); setEditing(null); })} className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium">{t("qc.delete")}</button>
+                <button
+                  onClick={() =>
+                    askConfirm(t("qc.8d.deleteConfirm"), () => {
+                      remove(editing.id);
+                      setEditing(null);
+                    })
+                  }
+                  className="text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-lg text-sm font-medium"
+                >
+                  {t("qc.delete")}
+                </button>
               )}
               <div className="flex-1" />
-              <FormFooter onCancel={() => setEditing(null)} onSave={async () => { if (!editing.reportNo) return; await save(editing); setEditing(null); }} />
+              <FormFooter
+                onCancel={() => setEditing(null)}
+                onSave={async () => {
+                  if (!editing.reportNo) return;
+                  await save(editing);
+                  setEditing(null);
+                }}
+              />
             </div>
           </div>
         </Modal>
       )}
 
       {zoom && (
-        <div onClick={() => setZoom("")} className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-6 cursor-zoom-out">
-          <img src={zoom} className="max-w-full max-h-full rounded-lg shadow-2xl" />
+        <div
+          onClick={() => setZoom("")}
+          className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <img
+            src={zoom}
+            className="max-w-full max-h-full rounded-lg shadow-2xl"
+          />
         </div>
       )}
     </div>
@@ -13952,38 +15645,80 @@ function QcEightD({ ctx, canEdit }: { ctx: AppContext; canEdit: boolean }) {
 const QC_GUIDE = [
   {
     icon: ListChecks,
-    en: { name: "Defect codes", body: "The master list of defect names and their short codes. Everything else depends on it — the log, Pareto and PFMEA all reference these codes. Set it up once with your inspectors, keep 15–25 live codes, and review quarterly. Use the Excel template to fill many at once and import them." },
-    uz: { name: "Nuqson kodlari", body: "Nuqson nomlari va ularning qisqa kodlari ro'yxati. Qolgan hamma narsa shunga bog'liq — jurnal, Pareto va PFMEA shu kodlarga tayanadi. Buni nazoratchilar bilan bir marta sozlang, 15–25 ta faol kodni saqlang va choraklik ko'rib chiqing. Ko'p kodni birdan to'ldirish uchun Excel shablonidan foydalaning va import qiling." },
+    en: {
+      name: "Defect codes",
+      body: "The master list of defect names and their short codes. Everything else depends on it — the log, Pareto and PFMEA all reference these codes. Set it up once with your inspectors, keep 15–25 live codes, and review quarterly. Use the Excel template to fill many at once and import them.",
+    },
+    uz: {
+      name: "Nuqson kodlari",
+      body: "Nuqson nomlari va ularning qisqa kodlari ro'yxati. Qolgan hamma narsa shunga bog'liq — jurnal, Pareto va PFMEA shu kodlarga tayanadi. Buni nazoratchilar bilan bir marta sozlang, 15–25 ta faol kodni saqlang va choraklik ko'rib chiqing. Ko'p kodni birdan to'ldirish uchun Excel shablonidan foydalaning va import qiling.",
+    },
   },
   {
     icon: Bug,
-    en: { name: "Defect log", body: "One row per defect found at inspection — not one row per roll. Record the date, shift, batch, stage, machine, defect code and, most importantly, the metres affected. Fill it in every shift. This honest daily record is the fuel for every analysis that follows." },
-    uz: { name: "Nuqsonlar jurnali", body: "Tekshiruvda topilgan har bir nuqson uchun bitta qator — har bir rulon uchun emas. Sana, smena, partiya, bosqich, dastgoh, nuqson kodi va eng muhimi — zararlangan metrni yozing. Har smenada to'ldiring. Bu halol kunlik yozuv keyingi barcha tahlillar uchun asosdir." },
+    en: {
+      name: "Defect log",
+      body: "One row per defect found at inspection — not one row per roll. Record the date, shift, batch, stage, machine, defect code and, most importantly, the metres affected. Fill it in every shift. This honest daily record is the fuel for every analysis that follows.",
+    },
+    uz: {
+      name: "Nuqsonlar jurnali",
+      body: "Tekshiruvda topilgan har bir nuqson uchun bitta qator — har bir rulon uchun emas. Sana, smena, partiya, bosqich, dastgoh, nuqson kodi va eng muhimi — zararlangan metrni yozing. Har smenada to'ldiring. Bu halol kunlik yozuv keyingi barcha tahlillar uchun asosdir.",
+    },
   },
   {
     icon: BarChart3,
-    en: { name: "Pareto", body: "Reads the defect log and ranks defects so you know what to fix first. The 80/20 rule: usually a few defects cause most of the loss. Rank by metres affected to chase the biggest fabric loss, or by occurrences to chase the most frequent problem — a defect can be rare but huge, or frequent but small. Fix the vital few, not the trivial many." },
-    uz: { name: "Pareto tahlili", body: "Nuqsonlar jurnalini o'qiydi va nuqsonlarni saralaydi — nimadan boshlashni bilib olasiz. 80/20 qoidasi: odatda bir nechta nuqson eng katta yo'qotishni keltiradi. Eng katta mato yo'qotishini quvish uchun zararlangan metr bo'yicha, eng tez-tez uchraydigan muammoni quvish uchun takrorlanish bo'yicha saralang — nuqson kam uchrab katta, yoki tez-tez uchrab kichik bo'lishi mumkin. Kam sonli muhimlarini hal qiling." },
+    en: {
+      name: "Pareto",
+      body: "Reads the defect log and ranks defects so you know what to fix first. The 80/20 rule: usually a few defects cause most of the loss. Rank by metres affected to chase the biggest fabric loss, or by occurrences to chase the most frequent problem — a defect can be rare but huge, or frequent but small. Fix the vital few, not the trivial many.",
+    },
+    uz: {
+      name: "Pareto tahlili",
+      body: "Nuqsonlar jurnalini o'qiydi va nuqsonlarni saralaydi — nimadan boshlashni bilib olasiz. 80/20 qoidasi: odatda bir nechta nuqson eng katta yo'qotishni keltiradi. Eng katta mato yo'qotishini quvish uchun zararlangan metr bo'yicha, eng tez-tez uchraydigan muammoni quvish uchun takrorlanish bo'yicha saralang — nuqson kam uchrab katta, yoki tez-tez uchrab kichik bo'lishi mumkin. Kam sonli muhimlarini hal qiling.",
+    },
   },
   {
     icon: Fish,
-    en: { name: "Fishbone (Ishikawa)", body: "A 6M brainstorm for one defect: Machine, Method, Material, Man, Measurement, Environment. Write the defect in the head, then list possible causes on each bone. This produces suspects, not proof — the next step is to test them. Use it after Pareto names your top defect." },
-    uz: { name: "Fishbone (Ishikava)", body: "Bitta nuqson uchun 6M miya hujumi: Mashina, Usul, Material, Inson, O'lchov, Muhit. Nuqsonni boshiga yozing, so'ng har bir suyakka ehtimoliy sabablarni sanang. Bu isbot emas, gumondorlarni beradi — keyingi qadam ularni sinab ko'rish. Pareto asosiy nuqsonni aniqlagach ishlating." },
+    en: {
+      name: "Fishbone (Ishikawa)",
+      body: "A 6M brainstorm for one defect: Machine, Method, Material, Man, Measurement, Environment. Write the defect in the head, then list possible causes on each bone. This produces suspects, not proof — the next step is to test them. Use it after Pareto names your top defect.",
+    },
+    uz: {
+      name: "Fishbone (Ishikava)",
+      body: "Bitta nuqson uchun 6M miya hujumi: Mashina, Usul, Material, Inson, O'lchov, Muhit. Nuqsonni boshiga yozing, so'ng har bir suyakka ehtimoliy sabablarni sanang. Bu isbot emas, gumondorlarni beradi — keyingi qadam ularni sinab ko'rish. Pareto asosiy nuqsonni aniqlagach ishlating.",
+    },
   },
   {
     icon: GitBranch,
-    en: { name: "5 Whys", body: "Take one suspected cause and ask 'why?' until you reach a system or process gap — never stop at 'the operator made a mistake', that is one or two levels too early. Record the evidence at each step. You can add more than five whys when needed. Ends with a root cause and an escape cause (why we didn't catch it)." },
-    uz: { name: "5 Nega", body: "Bitta gumon qilingan sababni oling va tizim yoki jarayon kamchiligiga yetguncha 'nega?' deb so'rang — hech qachon 'ishchi xato qildi'da to'xtamang, bu bir-ikki bosqich erta. Har qadamda dalilni yozing. Kerak bo'lsa beshtadan ortiq 'nega' qo'shishingiz mumkin. Asosiy sabab va o'tkazib yuborish sababi bilan yakunlanadi." },
+    en: {
+      name: "5 Whys",
+      body: "Take one suspected cause and ask 'why?' until you reach a system or process gap — never stop at 'the operator made a mistake', that is one or two levels too early. Record the evidence at each step. You can add more than five whys when needed. Ends with a root cause and an escape cause (why we didn't catch it).",
+    },
+    uz: {
+      name: "5 Nega",
+      body: "Bitta gumon qilingan sababni oling va tizim yoki jarayon kamchiligiga yetguncha 'nega?' deb so'rang — hech qachon 'ishchi xato qildi'da to'xtamang, bu bir-ikki bosqich erta. Har qadamda dalilni yozing. Kerak bo'lsa beshtadan ortiq 'nega' qo'shishingiz mumkin. Asosiy sabab va o'tkazib yuborish sababi bilan yakunlanadi.",
+    },
   },
   {
     icon: Gauge,
-    en: { name: "PFMEA", body: "Process Failure Mode & Effects Analysis. For each process step, rate Severity, Occurrence and Detection from 1–10; RPN = S × O × D. Higher RPN = higher risk, shown at the top. Detection 1 means you always catch it, 10 means you never do. Start with your top three Pareto defects, not all stages at once." },
-    uz: { name: "PFMEA", body: "Jarayon nosozliklari va ularning ta'sirini tahlil qilish. Har bir jarayon bosqichi uchun Jiddiylik, Yuzaga kelish va Aniqlashni 1–10 oralig'ida baholang; RPN = S × O × D. RPN qanchalik yuqori bo'lsa, xavf shuncha katta — yuqorida ko'rsatiladi. Aniqlash 1 — doim aniqlaysiz, 10 — hech qachon. Barcha bosqichni emas, avval Pareto'dagi eng yuqori uchta nuqsonni oling." },
+    en: {
+      name: "PFMEA",
+      body: "Process Failure Mode & Effects Analysis. For each process step, rate Severity, Occurrence and Detection from 1–10; RPN = S × O × D. Higher RPN = higher risk, shown at the top. Detection 1 means you always catch it, 10 means you never do. Start with your top three Pareto defects, not all stages at once.",
+    },
+    uz: {
+      name: "PFMEA",
+      body: "Jarayon nosozliklari va ularning ta'sirini tahlil qilish. Har bir jarayon bosqichi uchun Jiddiylik, Yuzaga kelish va Aniqlashni 1–10 oralig'ida baholang; RPN = S × O × D. RPN qanchalik yuqori bo'lsa, xavf shuncha katta — yuqorida ko'rsatiladi. Aniqlash 1 — doim aniqlaysiz, 10 — hech qachon. Barcha bosqichni emas, avval Pareto'dagi eng yuqori uchta nuqsonni oling.",
+    },
   },
   {
     icon: AlertTriangle,
-    en: { name: "8D report", body: "The formal eight-discipline response to a customer complaint or a major internal failure. D0–D3 within 48 hours (contain the problem); do not close before D6 has evidence; never skip D7 — that is the step that stops it coming back. Open a card, work it step by step with the team, attach the paper report photo, and mark it closed only when it is truly solved." },
-    uz: { name: "8D hisobot", body: "Mijoz shikoyati yoki jiddiy ichki nosozlikka rasmiy sakkiz bosqichli javob. D0–D3 48 soat ichida (muammoni to'xtating); D6 dalilga ega bo'lmaguncha yopmang; D7 ni hech qachon o'tkazib yubormang — aynan shu bosqich uni qaytishdan to'xtatadi. Kartani oching, jamoa bilan bosqichma-bosqich ishlang, qog'oz hisobot rasmini biriktiring va faqat haqiqatan hal bo'lgandagina yopiq deb belgilang." },
+    en: {
+      name: "8D report",
+      body: "The formal eight-discipline response to a customer complaint or a major internal failure. D0–D3 within 48 hours (contain the problem); do not close before D6 has evidence; never skip D7 — that is the step that stops it coming back. Open a card, work it step by step with the team, attach the paper report photo, and mark it closed only when it is truly solved.",
+    },
+    uz: {
+      name: "8D hisobot",
+      body: "Mijoz shikoyati yoki jiddiy ichki nosozlikka rasmiy sakkiz bosqichli javob. D0–D3 48 soat ichida (muammoni to'xtating); D6 dalilga ega bo'lmaguncha yopmang; D7 ni hech qachon o'tkazib yubormang — aynan shu bosqich uni qaytishdan to'xtatadi. Kartani oching, jamoa bilan bosqichma-bosqich ishlang, qog'oz hisobot rasmini biriktiring va faqat haqiqatan hal bo'lgandagina yopiq deb belgilang.",
+    },
   },
 ];
 function QcGuide({ ctx }: { ctx: AppContext }) {
@@ -13994,8 +15729,12 @@ function QcGuide({ ctx }: { ctx: AppContext }) {
         <div className="flex items-center gap-2 font-semibold text-lg">
           <FlaskConical size={20} /> {t("qc.guide.title")}
         </div>
-        <p className="text-sm mt-2 leading-relaxed text-teal-50">{t("qc.guide.creditEn")}</p>
-        <p className="text-sm mt-2 leading-relaxed text-teal-50">{t("qc.guide.creditUz")}</p>
+        <p className="text-sm mt-2 leading-relaxed text-teal-50">
+          {t("qc.guide.creditEn")}
+        </p>
+        <p className="text-sm mt-2 leading-relaxed text-teal-50">
+          {t("qc.guide.creditUz")}
+        </p>
       </div>
 
       <p className="text-sm text-slate-500">{t("qc.guide.intro")}</p>
@@ -14003,32 +15742,49 @@ function QcGuide({ ctx }: { ctx: AppContext }) {
       {QC_GUIDE.map((m, i) => {
         const Icon = m.icon;
         return (
-          <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div
+            key={i}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+          >
             <div className="flex items-center gap-2 font-semibold text-slate-800 mb-3">
-              <span className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center"><Icon size={16} /></span>
-              <span>{i + 1}. {m.en.name} <span className="text-slate-400 font-normal">· {m.uz.name}</span></span>
+              <span className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                <Icon size={16} />
+              </span>
+              <span>
+                {i + 1}. {m.en.name}{" "}
+                <span className="text-slate-400 font-normal">
+                  · {m.uz.name}
+                </span>
+              </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">English</div>
-                <p className="text-sm text-slate-600 leading-relaxed">{m.en.body}</p>
+                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">
+                  English
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {m.en.body}
+                </p>
               </div>
               <div className="md:border-l md:border-slate-100 md:pl-4">
-                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">O'zbekcha</div>
-                <p className="text-sm text-slate-600 leading-relaxed">{m.uz.body}</p>
+                <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">
+                  O'zbekcha
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {m.uz.body}
+                </p>
               </div>
             </div>
           </div>
         );
       })}
 
-      <div className="text-center text-xs text-slate-400 pt-2 pb-6">{t("qc.guide.footer")}</div>
+      <div className="text-center text-xs text-slate-400 pt-2 pb-6">
+        {t("qc.guide.footer")}
+      </div>
     </div>
   );
 }
-
-
-
 
 function stationTabs(stationId, ctx, t) {
   switch (stationId) {
@@ -14418,7 +16174,9 @@ function stationTabs(stationId, ctx, t) {
         {
           id: "stock",
           label: t("tab.stock"),
-          render: (canEdit) => <DispatchStockPage ctx={ctx} canEdit={canEdit} />,
+          render: (canEdit) => (
+            <DispatchStockPage ctx={ctx} canEdit={canEdit} />
+          ),
         },
         // Outgoing tab removed — outbound shipments moved to the new
         // Ombor station (see below). Dispatch (Warehouse) is now a
@@ -14440,16 +16198,12 @@ function stationTabs(stationId, ctx, t) {
         {
           id: "out",
           label: t("tab.dispatch"),
-          render: (canEdit) => (
-            <OmborOutputPage ctx={ctx} canEdit={canEdit} />
-          ),
+          render: (canEdit) => <OmborOutputPage ctx={ctx} canEdit={canEdit} />,
         },
         {
           id: "reject",
           label: t("tab.rejection"),
-          render: (canEdit) => (
-            <OmborRejectPage ctx={ctx} canEdit={canEdit} />
-          ),
+          render: (canEdit) => <OmborRejectPage ctx={ctx} canEdit={canEdit} />,
         },
       ];
     default:
@@ -15460,7 +17214,9 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
     [searchInput, url.dateFrom, url.dateTo, url.shift, url.fabricType],
   );
 
-  const setFilter = (next: typeof filter | ((prev: typeof filter) => typeof filter)) => {
+  const setFilter = (
+    next: typeof filter | ((prev: typeof filter) => typeof filter),
+  ) => {
     const nextVal = typeof next === "function" ? next(filter) : next;
     setSearchInput(nextVal.search);
     setUrl({
@@ -15538,9 +17294,7 @@ function InputDataPage({ ctx, canEdit }: CtxEditableProps) {
   // not just the visible page.
   const nextBatchNo = useMemo(() => {
     const cfg = numbering?.inputBatch || DEFAULT_NUMBERING.inputBatch;
-    const used = new Set(
-      page.allCompact.map((r) => r.batchNo).filter(Boolean),
-    );
+    const used = new Set(page.allCompact.map((r) => r.batchNo).filter(Boolean));
     return generateNumber(cfg, used).number;
   }, [page.allCompact, numbering]);
 
@@ -17103,7 +18857,10 @@ function DesignTag({
         style={{ width: size, height: size }}
       >
         {resolveDesignImage(d) ? (
-          <img src={resolveDesignImage(d)} className="w-full h-full object-cover" />
+          <img
+            src={resolveDesignImage(d)}
+            className="w-full h-full object-cover"
+          />
         ) : (
           <ImageIcon
             size={size * 0.5}
@@ -17831,7 +19588,10 @@ function BleachedInventoryPage({ ctx, canEdit }: CtxEditableProps) {
       const [bleach, batching, printing, input] = await Promise.all([
         storage.fetchCompact("rec_bleach:", ["id", "batchNo", "qty", "date"]),
         storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
-        storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+        storage.fetchCompact("rec_printing:", [
+          "batcherUsage",
+          "endedBatchers",
+        ]),
         storage.fetchCompact("rec_input:", ["batchNo", "fabricType"]),
       ]);
       if (cancelled) return;
@@ -17890,49 +19650,51 @@ function BleachedInventoryPage({ ctx, canEdit }: CtxEditableProps) {
     }
 
     // Build rows.
-    return batchingRecs
-      .map((br) => {
-        const sources: string[] = Array.isArray(br.sourceBatches)
-          ? br.sourceBatches
-          : [];
-        if (!sources.length) return null;
-        const inputQty = sources.reduce(
-          (s, batchNo) => s + (bleachQtyByBatch[batchNo] || 0),
-          0,
-        );
-        const printed = printedById[br.id] || 0;
-        const ended = !!endedById[br.id];
-        const available = inputQty - printed;
-        // Fabric types across sources, deduplicated. Single fabric → one label;
-        // mixed batcher (rare in practice) → "TypeA / TypeB".
-        const fabricSet = new Set<string>();
-        for (const batchNo of sources) {
-          const f = fabricByBatch[batchNo];
-          if (f) fabricSet.add(f);
-        }
-        const fabricType = fabricSet.size ? [...fabricSet].join(" / ") : "—";
-        return {
-          id: br.id,
-          label: sources.join("+"),
-          date: br.date,
-          fabricType,
-          inputQty,
-          printed,
-          available,
-          ended,
-          closed: closedSet.has(br.id),
-          sourceDetail: sources.map((batchNo) => ({
-            batchNo,
-            qty: bleachQtyByBatch[batchNo] || 0,
-          })),
-        };
-      })
-      .filter((r): r is NonNullable<typeof r> => !!r)
-      // Hide ended batchers (they're done — see Extension Audit instead).
-      .filter((r) => !r.ended)
-      // Keep closed batchers in the base set (so we can show them under the
-      // "Show closed" toggle and reopen them); otherwise hide fully-consumed.
-      .filter((r) => r.closed || r.available > 0.01);
+    return (
+      batchingRecs
+        .map((br) => {
+          const sources: string[] = Array.isArray(br.sourceBatches)
+            ? br.sourceBatches
+            : [];
+          if (!sources.length) return null;
+          const inputQty = sources.reduce(
+            (s, batchNo) => s + (bleachQtyByBatch[batchNo] || 0),
+            0,
+          );
+          const printed = printedById[br.id] || 0;
+          const ended = !!endedById[br.id];
+          const available = inputQty - printed;
+          // Fabric types across sources, deduplicated. Single fabric → one label;
+          // mixed batcher (rare in practice) → "TypeA / TypeB".
+          const fabricSet = new Set<string>();
+          for (const batchNo of sources) {
+            const f = fabricByBatch[batchNo];
+            if (f) fabricSet.add(f);
+          }
+          const fabricType = fabricSet.size ? [...fabricSet].join(" / ") : "—";
+          return {
+            id: br.id,
+            label: sources.join("+"),
+            date: br.date,
+            fabricType,
+            inputQty,
+            printed,
+            available,
+            ended,
+            closed: closedSet.has(br.id),
+            sourceDetail: sources.map((batchNo) => ({
+              batchNo,
+              qty: bleachQtyByBatch[batchNo] || 0,
+            })),
+          };
+        })
+        .filter((r): r is NonNullable<typeof r> => !!r)
+        // Hide ended batchers (they're done — see Extension Audit instead).
+        .filter((r) => !r.ended)
+        // Keep closed batchers in the base set (so we can show them under the
+        // "Show closed" toggle and reopen them); otherwise hide fully-consumed.
+        .filter((r) => r.closed || r.available > 0.01)
+    );
     // Note: no default sort here — column header clicks drive ordering.
     // First render shows rows in insertion order from batchingRecs.
   }, [bleachRecs, batchingRecs, printRecs, inputRecs, closedSet]);
@@ -18094,9 +19856,7 @@ function BleachedInventoryPage({ ctx, canEdit }: CtxEditableProps) {
                     colSpan={canEdit ? 7 : 6}
                     className="p-8 text-center text-slate-400"
                   >
-                    {showClosed
-                      ? t("bleach.noClosed")
-                      : t("bleach.noStock")}
+                    {showClosed ? t("bleach.noClosed") : t("bleach.noStock")}
                   </td>
                 </tr>
               )}
@@ -18173,7 +19933,8 @@ function BleachedRecordManager({
             )}
           </div>
           <div className="text-right text-xs text-slate-500 mt-1">
-            {t("common.total")}: <b>{Number(row.inputQty).toLocaleString()} m</b>
+            {t("common.total")}:{" "}
+            <b>{Number(row.inputQty).toLocaleString()} m</b>
           </div>
         </div>
 
@@ -18257,7 +20018,10 @@ function ExtensionAuditPage({ ctx }: CtxProps) {
       const [bleach, batching, printing, input] = await Promise.all([
         storage.fetchCompact("rec_bleach:", ["batchNo", "qty"]),
         storage.fetchCompact("rec_batching:", ["id", "sourceBatches", "date"]),
-        storage.fetchCompact("rec_printing:", ["batcherUsage", "endedBatchers"]),
+        storage.fetchCompact("rec_printing:", [
+          "batcherUsage",
+          "endedBatchers",
+        ]),
         storage.fetchCompact("rec_input:", ["batchNo", "fabricType"]),
       ]);
       if (cancelled) return;
@@ -18883,8 +20647,9 @@ function FinishingDataPage({ ctx, canEdit }: CtxEditableProps) {
               const d = dyeingRecs.find((x) => x.dyeingNo === r.printNo);
               const designNumber =
                 p?.designNumber ||
-                (d && programs.find((pg) => pg.id === d.programId)?.lines?.[0]
-                  ?.designNumber) ||
+                (d &&
+                  programs.find((pg) => pg.id === d.programId)?.lines?.[0]
+                    ?.designNumber) ||
                 "";
               return { ...r, designNumber };
             });
@@ -19792,6 +21557,189 @@ function FoldingDataPage({ ctx, canEdit }: CtxEditableProps) {
   );
 }
 
+// ---------------------------------------------------------------------------
+//  Searchable rout-card picker with design thumbnails.
+//
+//  A native <select> was forcing the operator to scroll dozens of visually
+//  identical card numbers with no way to search and no picture of what they
+//  were choosing — the easiest possible way to book folding output against
+//  the wrong card. This shows the design image on every row, and filters on
+//  card number, design number and label as you type.
+// ---------------------------------------------------------------------------
+function RoutCardPicker({
+  value,
+  options,
+  designs,
+  onChange,
+  placeholder = "Select…",
+}: {
+  value: string;
+  options: any[];
+  designs: Design[];
+  onChange: (printNo: string, card: any) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const boxRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocDown(e: any) {
+      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+    }
+    function onEsc(e: any) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocDown);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocDown);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  const imgFor = (c: any) =>
+    resolveDesignImage(designs.find((d) => d.designNumber === c?.designNumber));
+
+  const selected = options.find((c) => c.printNo === value);
+
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return options;
+    // Every whitespace-separated token must match somewhere, so typing
+    // "1007 gray" finds "pr-JUL041 — ENG# 1007-5 gray" even though the two
+    // words aren't adjacent in the label.
+    const parts = term.split(/\s+/);
+    return options.filter((c) => {
+      const hay =
+        `${c.printNo} ${c.designNumber || ""} ${c.label || ""}`.toLowerCase();
+      return parts.every((part) => hay.includes(part));
+    });
+  }, [options, q]);
+
+  return (
+    <div className="relative" ref={boxRef}>
+      <button
+        type="button"
+        onClick={() => {
+          setQ("");
+          setOpen((o) => !o);
+        }}
+        className="w-full p-2 border border-slate-300 rounded-lg flex items-center gap-2 text-left bg-white min-h-[46px]"
+      >
+        {selected ? (
+          <>
+            {imgFor(selected) ? (
+              <img
+                src={imgFor(selected)}
+                className="w-9 h-9 object-cover rounded shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                <ImageIcon size={14} className="text-slate-400" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="font-mono text-sm font-bold truncate">
+                {selected.printNo}
+              </div>
+              <div className="text-xs text-slate-500 truncate">
+                {selected.cardSource === "dyeing" ? "🎨 " : "🖨 "}
+                {selected.designNumber || selected.label}
+              </div>
+            </div>
+          </>
+        ) : (
+          <span className="text-slate-400 px-1">{placeholder}</span>
+        )}
+        <ChevronDown size={16} className="ml-auto text-slate-400 shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl">
+          <div className="p-2 border-b border-slate-100 flex items-center gap-2">
+            <Search size={15} className="text-slate-400 shrink-0" />
+            <input
+              autoFocus
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search card or design…"
+              className="w-full p-1.5 text-sm outline-none"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQ("")}
+                className="text-slate-400 hover:text-slate-600 shrink-0"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {value && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("", null);
+                  setOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 border-b border-slate-100"
+              >
+                — clear selection —
+              </button>
+            )}
+            {filtered.map((c) => {
+              const img = imgFor(c);
+              const isSel = c.printNo === value;
+              return (
+                <button
+                  type="button"
+                  key={`${c.cardSource}:${c.printNo}`}
+                  onClick={() => {
+                    onChange(c.printNo, c);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-teal-50 border-b border-slate-50 ${isSel ? "bg-teal-50" : ""}`}
+                >
+                  {img ? (
+                    <img
+                      src={img}
+                      className="w-12 h-12 object-cover rounded shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                      <ImageIcon size={16} className="text-slate-300" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-mono text-sm font-bold text-slate-800 truncate">
+                      {c.cardSource === "dyeing" ? "🎨 " : "🖨 "}
+                      {c.printNo}
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">
+                      {c.label}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {!filtered.length && (
+              <div className="p-6 text-center text-sm text-slate-400">
+                No cards match “{q}”.
+              </div>
+            )}
+          </div>
+          <div className="px-3 py-1.5 text-[11px] text-slate-400 border-t border-slate-100">
+            {filtered.length} of {options.length} cards
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FoldingForm({
   rec,
   lists,
@@ -19847,26 +21795,18 @@ function FoldingForm({
         />
       </Field>
       <Field label="Rout Card * (from Calendering)">
-        <select
+        <RoutCardPicker
           value={f.printNo}
-          onChange={(e) => {
-            const card = eligible.find((c) => c.printNo === e.target.value);
+          options={eligible}
+          designs={designs}
+          onChange={(printNo, card) =>
             setF({
               ...f,
-              printNo: e.target.value,
+              printNo,
               cardSource: card?.cardSource || "printing",
-            });
-          }}
-          className="w-full p-2.5 border border-slate-300 rounded-lg"
-        >
-          <option value="">Select…</option>
-          {eligible.map((c) => (
-            <option key={`${c.cardSource}:${c.printNo}`} value={c.printNo}>
-              {c.cardSource === "dyeing" ? "🎨 " : "🖨 "}
-              {c.label}
-            </option>
-          ))}
-        </select>
+            })
+          }
+        />
       </Field>
       {resolveDesignImage(matchedDesign) && (
         <div
@@ -20209,7 +22149,9 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3 text-slate-600 font-medium">Design</th>
+              <th className="text-left p-3 text-slate-600 font-medium">
+                Design
+              </th>
               <th className="text-left p-3 text-slate-600 font-medium">
                 Fabric type
               </th>
@@ -20247,7 +22189,9 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
                 <td className="p-3 text-amber-700">
                   {d.second.toLocaleString()}
                 </td>
-                <td className="p-3 text-red-600">{d.reject.toLocaleString()}</td>
+                <td className="p-3 text-red-600">
+                  {d.reject.toLocaleString()}
+                </td>
                 <td className="p-3 font-bold">
                   {(d.first + d.second + d.reject).toLocaleString()}
                 </td>
@@ -20281,71 +22225,77 @@ function DispatchIncomingPage({ ctx }: CtxProps) {
       </button>
       {showDated && (
         <>
-      <FilterBar
-        filter={filter}
-        setFilter={setFilter}
-        lists={lists}
-        fields={[]}
-      />
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="text-left p-3 text-slate-600 font-medium">Date</th>
-              <th className="text-left p-3 text-slate-600 font-medium">Design</th>
-              <th className="text-left p-3 text-slate-600 font-medium">Fabric</th>
-              <th className="text-right p-3 text-slate-600 font-medium">
-                1st (m)
-              </th>
-              <th className="text-right p-3 text-slate-600 font-medium">
-                2nd (m)
-              </th>
-              <th className="text-right p-3 text-slate-600 font-medium">
-                Reject (m)
-              </th>
-              <th className="text-right p-3 text-slate-600 font-medium">
-                Total (m)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {datedFiltered.map((r) => (
-              <tr key={r.id} className="border-t border-slate-100">
-                <td className="p-3 text-slate-600 whitespace-nowrap">
-                  {r.date || "—"}
-                </td>
-                <td className="p-3">
-                  <DesignTag
-                    designNumber={r.designNumber}
-                    designs={designs}
-                    size={28}
-                  />
-                </td>
-                <td className="p-3 text-slate-600">{r.fabricType}</td>
-                <td className="p-3 text-right tabular-nums text-green-700">
-                  {r.first ? r.first.toLocaleString() : "—"}
-                </td>
-                <td className="p-3 text-right tabular-nums text-amber-700">
-                  {r.second ? r.second.toLocaleString() : "—"}
-                </td>
-                <td className="p-3 text-right tabular-nums text-red-600">
-                  {r.reject ? r.reject.toLocaleString() : "—"}
-                </td>
-                <td className="p-3 text-right tabular-nums font-semibold">
-                  {r.total.toLocaleString()}
-                </td>
-              </tr>
-            ))}
-            {!datedFiltered.length && (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-400">
-                  No arrivals in this date range.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          <FilterBar
+            filter={filter}
+            setFilter={setFilter}
+            lists={lists}
+            fields={[]}
+          />
+          <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left p-3 text-slate-600 font-medium">
+                    Date
+                  </th>
+                  <th className="text-left p-3 text-slate-600 font-medium">
+                    Design
+                  </th>
+                  <th className="text-left p-3 text-slate-600 font-medium">
+                    Fabric
+                  </th>
+                  <th className="text-right p-3 text-slate-600 font-medium">
+                    1st (m)
+                  </th>
+                  <th className="text-right p-3 text-slate-600 font-medium">
+                    2nd (m)
+                  </th>
+                  <th className="text-right p-3 text-slate-600 font-medium">
+                    Reject (m)
+                  </th>
+                  <th className="text-right p-3 text-slate-600 font-medium">
+                    Total (m)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {datedFiltered.map((r) => (
+                  <tr key={r.id} className="border-t border-slate-100">
+                    <td className="p-3 text-slate-600 whitespace-nowrap">
+                      {r.date || "—"}
+                    </td>
+                    <td className="p-3">
+                      <DesignTag
+                        designNumber={r.designNumber}
+                        designs={designs}
+                        size={28}
+                      />
+                    </td>
+                    <td className="p-3 text-slate-600">{r.fabricType}</td>
+                    <td className="p-3 text-right tabular-nums text-green-700">
+                      {r.first ? r.first.toLocaleString() : "—"}
+                    </td>
+                    <td className="p-3 text-right tabular-nums text-amber-700">
+                      {r.second ? r.second.toLocaleString() : "—"}
+                    </td>
+                    <td className="p-3 text-right tabular-nums text-red-600">
+                      {r.reject ? r.reject.toLocaleString() : "—"}
+                    </td>
+                    <td className="p-3 text-right tabular-nums font-semibold">
+                      {r.total.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+                {!datedFiltered.length && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-400">
+                      No arrivals in this date range.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>
@@ -20614,7 +22564,10 @@ function DispatchStockPage({ ctx, canEdit }: CtxEditableProps) {
               ))}
               {!designStock.length && (
                 <tr>
-                  <td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">
+                  <td
+                    colSpan={canEdit ? 10 : 9}
+                    className="p-8 text-center text-slate-400"
+                  >
                     No stock yet
                   </td>
                 </tr>
@@ -21326,7 +23279,10 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
     exportStationXlsx({
       rows: filtered.map((r: any) => ({
         date: r.date || "",
-        source: r.sourceType === "from_dispatch" ? "Dispatch" : r.source || "Freeform",
+        source:
+          r.sourceType === "from_dispatch"
+            ? "Dispatch"
+            : r.source || "Freeform",
         designNumber: r.designNumber || "",
         fabricType: r.fabricType || "",
         sortType: (r.sortType || "1st") === "2nd" ? "2nd" : "1st",
@@ -21357,7 +23313,12 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
 
   return (
     <div className="space-y-3">
-      <FilterBar filter={filter} setFilter={setFilter} lists={lists} fields={[]} />
+      <FilterBar
+        filter={filter}
+        setFilter={setFilter}
+        lists={lists}
+        fields={[]}
+      />
       <div className="flex justify-between items-center gap-2 flex-wrap">
         <div className="flex gap-2 flex-wrap">
           {canEdit && (
@@ -21390,9 +23351,15 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left p-3 font-medium">{t("common.date")}</th>
-              <th className="text-left p-3 font-medium">{t("common.source")}</th>
-              <th className="text-left p-3 font-medium">{t("common.design")}</th>
-              <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("common.source")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("common.design")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("common.fabric")}
+              </th>
               <th className="text-left p-3 font-medium">{t("common.sort")}</th>
               <th className="text-right p-3 font-medium">{`${t("common.qty")} (m)`}</th>
               <th className="text-left p-3 font-medium">{t("common.notes")}</th>
@@ -21435,7 +23402,9 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
                     </span>
                   )}
                 </td>
-                <td className="p-3 text-right tabular-nums">{fmtMoney(r.qty)}</td>
+                <td className="p-3 text-right tabular-nums">
+                  {fmtMoney(r.qty)}
+                </td>
                 <td className="p-3 text-slate-500 text-xs">{r.notes}</td>
                 {canEdit && (
                   <td className="p-3 text-right whitespace-nowrap">
@@ -21491,7 +23460,9 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
               <input
                 type="date"
                 value={editing.date}
-                onChange={(e) => setEditing({ ...editing, date: e.target.value })}
+                onChange={(e) =>
+                  setEditing({ ...editing, date: e.target.value })
+                }
                 className="w-full p-2.5 border border-slate-300 rounded-lg"
               />
             </Field>
@@ -21543,7 +23514,9 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
                 min="0"
                 step="0.01"
                 value={editing.qty}
-                onChange={(e) => setEditing({ ...editing, qty: e.target.value })}
+                onChange={(e) =>
+                  setEditing({ ...editing, qty: e.target.value })
+                }
                 className="w-full p-2.5 border border-slate-300 rounded-lg"
               />
             </Field>
@@ -21562,7 +23535,9 @@ function OmborInputPage({ ctx, canEdit }: CtxEditableProps) {
             <Field label={t("common.notes")}>
               <textarea
                 value={editing.notes}
-                onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+                onChange={(e) =>
+                  setEditing({ ...editing, notes: e.target.value })
+                }
                 rows={2}
                 className="w-full p-2.5 border border-slate-300 rounded-lg"
               />
@@ -21744,12 +23719,20 @@ function OmborDispatchPicker({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600 sticky top-0">
             <tr>
-              <th className="text-left p-2 font-medium">{t("common.design")}</th>
-              <th className="text-left p-2 font-medium">{t("common.fabric")}</th>
+              <th className="text-left p-2 font-medium">
+                {t("common.design")}
+              </th>
+              <th className="text-left p-2 font-medium">
+                {t("common.fabric")}
+              </th>
               <th className="text-right p-2 font-medium">1st avail</th>
-              <th className="text-right p-2 font-medium">{t("ombor.pick1st")}</th>
+              <th className="text-right p-2 font-medium">
+                {t("ombor.pick1st")}
+              </th>
               <th className="text-right p-2 font-medium">2nd avail</th>
-              <th className="text-right p-2 font-medium">{t("ombor.pick2nd")}</th>
+              <th className="text-right p-2 font-medium">
+                {t("ombor.pick2nd")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -21827,7 +23810,10 @@ function OmborDispatchPicker({
             ))}
             {!filtered.length && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-slate-400 text-xs">
+                <td
+                  colSpan={6}
+                  className="p-6 text-center text-slate-400 text-xs"
+                >
                   {available.length === 0
                     ? "No stock available in Dispatch."
                     : "Nothing matches your search."}
@@ -21940,7 +23926,10 @@ function computeOmborStock(records: any) {
     return map[k];
   };
   ins.forEach((r: any) => {
-    const row = touch(r.designNumber || "(unknown)", r.fabricType || "(unknown)");
+    const row = touch(
+      r.designNumber || "(unknown)",
+      r.fabricType || "(unknown)",
+    );
     const q = Number(r.qty) || 0;
     if ((r.sortType || "1st") === "2nd") row.secondIn += q;
     else row.firstIn += q;
@@ -22250,9 +24239,11 @@ function DispatchEditor({
   const t = useT();
   const [rec, setRec] = useState<any>(() => ({
     ...initial,
-    lines: (Array.isArray(initial.lines) ? initial.lines : []).map((l: any) => ({
-      ...l,
-    })),
+    lines: (Array.isArray(initial.lines) ? initial.lines : []).map(
+      (l: any) => ({
+        ...l,
+      }),
+    ),
   }));
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
@@ -22305,9 +24296,21 @@ function DispatchEditor({
       const dn = row.designNumber === "(unknown)" ? "" : row.designNumber;
       const ft = row.fabricType === "(unknown)" ? "" : row.fabricType;
       if (f > 0)
-        picked.push({ id: uid(), designNumber: dn, fabricType: ft, sortType: "1st", qty: f });
+        picked.push({
+          id: uid(),
+          designNumber: dn,
+          fabricType: ft,
+          sortType: "1st",
+          qty: f,
+        });
       if (s > 0)
-        picked.push({ id: uid(), designNumber: dn, fabricType: ft, sortType: "2nd", qty: s });
+        picked.push({
+          id: uid(),
+          designNumber: dn,
+          fabricType: ft,
+          sortType: "2nd",
+          qty: s,
+        });
     });
     const kept = rec.lines
       .map((l: any) => ({ ...l, qty: Number(l.qty) || 0 }))
@@ -22444,11 +24447,17 @@ function DispatchEditor({
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-slate-600 sticky top-0">
               <tr>
-                <th className="text-left p-2 font-medium">{t("common.design")}</th>
+                <th className="text-left p-2 font-medium">
+                  {t("common.design")}
+                </th>
                 <th className="text-right p-2 font-medium">1st free</th>
-                <th className="text-right p-2 font-medium">{t("ombor.take1st")}</th>
+                <th className="text-right p-2 font-medium">
+                  {t("ombor.take1st")}
+                </th>
                 <th className="text-right p-2 font-medium">2nd free</th>
-                <th className="text-right p-2 font-medium">{t("ombor.take2nd")}</th>
+                <th className="text-right p-2 font-medium">
+                  {t("ombor.take2nd")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -22559,9 +24568,7 @@ function DispatchEditor({
       <div className="flex items-center justify-between pt-1">
         <div className="text-sm text-slate-600">
           Total:{" "}
-          <strong>
-            {(includedTotal + pickedTotal).toLocaleString()} m
-          </strong>
+          <strong>{(includedTotal + pickedTotal).toLocaleString()} m</strong>
         </div>
         <div className="flex gap-2">
           <button
@@ -22633,15 +24640,21 @@ function AssignToTruckModal({
       <div className="bg-amber-50 rounded-lg p-3 text-sm">
         <div className="flex items-center gap-2">
           <DesignTag
-            designNumber={row.designNumber === "(unknown)" ? "" : row.designNumber}
+            designNumber={
+              row.designNumber === "(unknown)" ? "" : row.designNumber
+            }
             designs={designs}
             size={40}
           />
         </div>
         <div className="text-slate-600 mt-1">{row.fabricType}</div>
         <div className="text-amber-700 mt-1 flex gap-3">
-          <span>1st free: <strong>{row.firstFree.toLocaleString()}</strong></span>
-          <span>2nd free: <strong>{row.secondFree.toLocaleString()}</strong></span>
+          <span>
+            1st free: <strong>{row.firstFree.toLocaleString()}</strong>
+          </span>
+          <span>
+            2nd free: <strong>{row.secondFree.toLocaleString()}</strong>
+          </span>
         </div>
       </div>
       <Field label={t("ombor.truck")}>
@@ -22694,7 +24707,9 @@ function AssignToTruckModal({
             </option>
           </select>
         </Field>
-        <Field label={`${t("ombor.metersWord")} (${t("ombor.maxWord")} ${cap.toLocaleString()})`}>
+        <Field
+          label={`${t("ombor.metersWord")} (${t("ombor.maxWord")} ${cap.toLocaleString()})`}
+        >
           <input
             type="number"
             min="0"
@@ -22818,7 +24833,8 @@ function OmborStockPage({ ctx, canEdit }: CtxEditableProps) {
 
   async function handleAssign(form: any) {
     const meters = Number(form.meters) || 0;
-    const cap = form.sortType === "2nd" ? assignFor.secondFree : assignFor.firstFree;
+    const cap =
+      form.sortType === "2nd" ? assignFor.secondFree : assignFor.firstFree;
     if (meters <= 0) {
       alert("Enter a positive number of meters.");
       return;
@@ -22901,7 +24917,9 @@ function OmborStockPage({ ctx, canEdit }: CtxEditableProps) {
           </div>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-          <div className="text-sm text-slate-600">{t("ombor.stagedToTrucks")}</div>
+          <div className="text-sm text-slate-600">
+            {t("ombor.stagedToTrucks")}
+          </div>
           <div className="text-2xl font-bold text-slate-800">
             {fmtMoney(totalStaged)}m
           </div>
@@ -23077,15 +25095,21 @@ function OmborStockPage({ ctx, canEdit }: CtxEditableProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">{t("common.design")}</th>
-              <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("common.design")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("common.fabric")}
+              </th>
               <th className="text-right p-3 font-medium">1st in</th>
               <th className="text-right p-3 font-medium">1st out</th>
               <th className="text-right p-3 font-medium">1st avail</th>
               <th className="text-right p-3 font-medium">2nd in</th>
               <th className="text-right p-3 font-medium">2nd out</th>
               <th className="text-right p-3 font-medium">2nd avail</th>
-              <th className="text-right p-3 font-medium">{t("ombor.staged")}</th>
+              <th className="text-right p-3 font-medium">
+                {t("ombor.staged")}
+              </th>
               <th className="text-right p-3 font-medium">{t("ombor.free")}</th>
               {canEdit && <th className="p-3 w-24"></th>}
             </tr>
@@ -23259,9 +25283,11 @@ function TruckInfoForm({
   const t = useT();
   const [rec, setRec] = useState<any>(() => ({
     ...initial,
-    lines: (Array.isArray(initial.lines) ? initial.lines : []).map((l: any) => ({
-      ...l,
-    })),
+    lines: (Array.isArray(initial.lines) ? initial.lines : []).map(
+      (l: any) => ({
+        ...l,
+      }),
+    ),
   }));
   // Which existing lines are kept (ticked). Start all ticked.
   const [kept, setKept] = useState<Record<string, boolean>>(() => {
@@ -23524,15 +25550,16 @@ function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
         </button>
       </div>
       {mode === "design" ? (
-        <div className="text-xs text-slate-500">
-          {t("ombor.byDesignHelp")}
-        </div>
+        <div className="text-xs text-slate-500">{t("ombor.byDesignHelp")}</div>
       ) : (
-        <div className="text-xs text-slate-500">
-          {t("ombor.lettersHelp")}
-        </div>
+        <div className="text-xs text-slate-500">{t("ombor.lettersHelp")}</div>
       )}
-      <FilterBar filter={filter} setFilter={setFilter} lists={lists} fields={[]} />
+      <FilterBar
+        filter={filter}
+        setFilter={setFilter}
+        lists={lists}
+        fields={[]}
+      />
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
           {canEdit && mode === "design" && (
@@ -23558,114 +25585,122 @@ function OmborOutputPage({ ctx, canEdit }: CtxEditableProps) {
       </div>
 
       {mode === "letters" ? (
-      <div className="space-y-2">
-        {filtered.map((r: any) => {
-          const lines = omborOutLines(r);
-          return (
-            <div
-              key={r.id}
-              className="bg-white rounded-2xl shadow-sm overflow-hidden"
-            >
-              <div className="flex items-center justify-between p-3 border-b border-slate-100">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">
-                      {r.letterNo || "—"}
-                    </span>
-                    <span className="text-sm font-medium text-slate-800">
-                      {r.destination || "—"}
-                    </span>
+        <div className="space-y-2">
+          {filtered.map((r: any) => {
+            const lines = omborOutLines(r);
+            return (
+              <div
+                key={r.id}
+                className="bg-white rounded-2xl shadow-sm overflow-hidden"
+              >
+                <div className="flex items-center justify-between p-3 border-b border-slate-100">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">
+                        {r.letterNo || "—"}
+                      </span>
+                      <span className="text-sm font-medium text-slate-800">
+                        {r.destination || "—"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <CalendarDays size={11} /> {r.sentDate || r.date}
+                      </span>
+                      {r.driver && (
+                        <span className="flex items-center gap-1">
+                          <UserCircle size={11} /> {r.driver}
+                        </span>
+                      )}
+                      {r.vehicle && (
+                        <span className="flex items-center gap-1">
+                          <Truck size={11} /> {r.vehicle}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <CalendarDays size={11} /> {r.sentDate || r.date}
-                    </span>
-                    {r.driver && (
-                      <span className="flex items-center gap-1">
-                        <UserCircle size={11} /> {r.driver}
-                      </span>
-                    )}
-                    {r.vehicle && (
-                      <span className="flex items-center gap-1">
-                        <Truck size={11} /> {r.vehicle}
-                      </span>
-                    )}
+                  <div className="text-right">
+                    <div className="font-bold text-slate-800">
+                      {fmtMoney(omborOutTotal(r))} m
+                    </div>
+                    <div className="text-[10px] text-slate-400">
+                      {lines.length} design{lines.length === 1 ? "" : "s"}
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-slate-800">
-                    {fmtMoney(omborOutTotal(r))} m
-                  </div>
-                  <div className="text-[10px] text-slate-400">
-                    {lines.length} design{lines.length === 1 ? "" : "s"}
-                  </div>
+                <div className="p-3 flex items-center gap-1.5 flex-wrap">
+                  {lines.map((l: any) => (
+                    <span
+                      key={l.id}
+                      className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-full pl-1 pr-2 py-0.5 text-xs"
+                    >
+                      <DesignTag
+                        designNumber={l.designNumber}
+                        designs={designs}
+                        size={20}
+                      />
+                      <span className="text-slate-500">
+                        {fmtMoney(l.qty)}m{l.sortType === "2nd" ? " · 2nd" : ""}
+                      </span>
+                    </span>
+                  ))}
                 </div>
-              </div>
-              <div className="p-3 flex items-center gap-1.5 flex-wrap">
-                {lines.map((l: any) => (
-                  <span
-                    key={l.id}
-                    className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-full pl-1 pr-2 py-0.5 text-xs"
+                <div className="flex gap-1 p-2 border-t border-slate-100">
+                  <button
+                    onClick={() => openTransportLetter(r, designs)}
+                    className="flex-1 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 rounded-lg flex items-center justify-center gap-1"
                   >
-                    <DesignTag
-                      designNumber={l.designNumber}
-                      designs={designs}
-                      size={20}
-                    />
-                    <span className="text-slate-500">
-                      {fmtMoney(l.qty)}m{l.sortType === "2nd" ? " · 2nd" : ""}
-                    </span>
-                  </span>
-                ))}
+                    <FileText size={13} /> {t("ombor.printLetter")}
+                  </button>
+                  {canEdit && (
+                    <>
+                      <button
+                        onClick={() => setEditing({ ...r })}
+                        className="py-1.5 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-1"
+                      >
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button
+                        onClick={() =>
+                          askConfirm(
+                            "Delete this shipment? Its meters return to stock.",
+                            () => deleteRecord("ombor_out", r.id),
+                          )
+                        }
+                        className="py-1.5 px-2 text-xs text-slate-400 hover:text-red-600 rounded-lg"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-1 p-2 border-t border-slate-100">
-                <button
-                  onClick={() => openTransportLetter(r, designs)}
-                  className="flex-1 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 rounded-lg flex items-center justify-center gap-1"
-                >
-                  <FileText size={13} /> {t("ombor.printLetter")}
-                </button>
-                {canEdit && (
-                  <>
-                    <button
-                      onClick={() => setEditing({ ...r })}
-                      className="py-1.5 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-1"
-                    >
-                      <Edit2 size={12} /> Edit
-                    </button>
-                    <button
-                      onClick={() =>
-                        askConfirm(
-                          "Delete this shipment? Its meters return to stock.",
-                          () => deleteRecord("ombor_out", r.id),
-                        )
-                      }
-                      className="py-1.5 px-2 text-xs text-slate-400 hover:text-red-600 rounded-lg"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </>
-                )}
-              </div>
+            );
+          })}
+          {!filtered.length && (
+            <div className="bg-white rounded-2xl p-8 text-center text-slate-400 shadow-sm">
+              {t("ombor.noLettersFound")}
             </div>
-          );
-        })}
-        {!filtered.length && (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 shadow-sm">
-            {t("ombor.noLettersFound")}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       ) : (
         <div className="bg-white rounded-2xl overflow-x-auto shadow-sm">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="text-left p-3 font-medium">{t("common.design")}</th>
-                <th className="text-left p-3 font-medium">{t("common.fabric")}</th>
-                <th className="text-left p-3 font-medium">{t("common.sort")}</th>
+                <th className="text-left p-3 font-medium">
+                  {t("common.design")}
+                </th>
+                <th className="text-left p-3 font-medium">
+                  {t("common.fabric")}
+                </th>
+                <th className="text-left p-3 font-medium">
+                  {t("common.sort")}
+                </th>
                 <th className="text-right p-3 font-medium">{`${t("common.total")} (m)`}</th>
-                <th className="text-right p-3 font-medium">{t("ombor.letters")}</th>
+                <th className="text-right p-3 font-medium">
+                  {t("ombor.letters")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -23817,7 +25852,10 @@ function OmborRejectPage({ ctx, canEdit }: CtxEditableProps) {
   const outs = (records.ombor_out || []).filter(isRejectRec);
   const [editing, setEditing] = useState<any>(null);
 
-  const totalIn = ins.reduce((s: number, r: any) => s + (Number(r.qty) || 0), 0);
+  const totalIn = ins.reduce(
+    (s: number, r: any) => s + (Number(r.qty) || 0),
+    0,
+  );
   const totalOut = outs.reduce(
     (s: number, r: any) => s + (Number(r.qty) || 0),
     0,
@@ -23846,7 +25884,8 @@ function OmborRejectPage({ ctx, canEdit }: CtxEditableProps) {
     exportStationXlsx({
       rows: rows.map((r: any) => ({
         date: r.date,
-        direction: r._dir === "in" ? t("ombor.toContainer") : t("ombor.shippedOut"),
+        direction:
+          r._dir === "in" ? t("ombor.toContainer") : t("ombor.shippedOut"),
         qty: Number(r.qty) || 0,
         taker: r.taker || "",
         notes: r.notes || "",
@@ -23922,9 +25961,13 @@ function OmborRejectPage({ ctx, canEdit }: CtxEditableProps) {
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left p-3 font-medium">{t("common.date")}</th>
-              <th className="text-left p-3 font-medium">{t("common.direction")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("common.direction")}
+              </th>
               <th className="text-right p-3 font-medium">Kg</th>
-              <th className="text-left p-3 font-medium">{t("ombor.takenBy")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("ombor.takenBy")}
+              </th>
               <th className="text-left p-3 font-medium">{t("common.notes")}</th>
               {canEdit && <th className="p-3 w-16"></th>}
             </tr>
@@ -25285,7 +27328,9 @@ function fabricCostMap(lists: Lists): Record<string, number> {
 // you'd render a dropdown of fabric types.
 function fabricNames(lists: Lists): string[] {
   const raw = (lists?.stockFabricType as any) || [];
-  return raw.map((e: any) => (typeof e === "string" ? e : e?.name)).filter(Boolean);
+  return raw
+    .map((e: any) => (typeof e === "string" ? e : e?.name))
+    .filter(Boolean);
 }
 
 // `getFabricCost(name, lists, fallback)` returns the cost for a given
@@ -25515,12 +27560,18 @@ function CustomersListView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3 font-medium text-slate-600">{t("customers.code")}</th>
-              <th className="text-left p-3 font-medium text-slate-600">{t("customers.name")}</th>
+              <th className="text-left p-3 font-medium text-slate-600">
+                {t("customers.code")}
+              </th>
+              <th className="text-left p-3 font-medium text-slate-600">
+                {t("customers.name")}
+              </th>
               <th className="text-left p-3 font-medium text-slate-600">
                 {t("customers.phone")}
               </th>
-              <th className="text-left p-3 font-medium text-slate-600">{t("customers.type")}</th>
+              <th className="text-left p-3 font-medium text-slate-600">
+                {t("customers.type")}
+              </th>
               <th className="text-right p-3 font-medium text-slate-600">
                 {t("customers.totalSales")}
               </th>
@@ -26386,7 +28437,9 @@ function StoreStockInView({ ctx }: CtxProps) {
       // Reuse the same image transformers as Current Stock (cover-crop +
       // hex swatch + remainder swatch). Defined locally so this export
       // stays a self-contained unit.
-      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+      async function bufferToCovered(
+        buf: ArrayBuffer,
+      ): Promise<ArrayBuffer | null> {
         try {
           const blob = new Blob([buf]);
           const url = URL.createObjectURL(blob);
@@ -26767,9 +28820,7 @@ function StoreStockInView({ ctx }: CtxProps) {
             <button
               type="button"
               key={ft}
-              onClick={() =>
-                setFabricFilter(fabricFilter === ft ? "" : ft)
-              }
+              onClick={() => setFabricFilter(fabricFilter === ft ? "" : ft)}
               className={`text-xs px-2 py-1 rounded-full ${fabricFilter === ft ? "bg-sky-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
             >
               {ft}
@@ -26831,7 +28882,9 @@ function StoreStockInView({ ctx }: CtxProps) {
                 numeric
                 className="text-right"
               />
-              <th className="text-left p-3 font-medium">{t("stockin.notes")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("stockin.notes")}
+              </th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
           </thead>
@@ -27139,7 +29192,10 @@ function RollLinesEditor({
           min="0"
           value={extraMeters ?? 0}
           onChange={(e) =>
-            onChange({ rollLines: lines, extraMeters: Number(e.target.value) || 0 })
+            onChange({
+              rollLines: lines,
+              extraMeters: Number(e.target.value) || 0,
+            })
           }
           className="w-full p-2.5 border border-slate-300 rounded-lg"
         />
@@ -27179,11 +29235,10 @@ function StockInForm({
     rollLines:
       initial.rollLines && initial.rollLines.length > 0
         ? initial.rollLines
-        : (initial.unit && initial.unit !== "rolls")
+        : initial.unit && initial.unit !== "rolls"
           ? []
           : [{ length: 30, qty: 1 }],
-    extraMeters:
-      initial.extraMeters !== undefined ? initial.extraMeters : 0,
+    extraMeters: initial.extraMeters !== undefined ? initial.extraMeters : 0,
     hexColor: initial.hexColor || "#7E22CE",
     costPerMeter:
       initial.costPerMeter !== undefined
@@ -27199,8 +29254,7 @@ function StockInForm({
   const totalMeters = useMemo(() => {
     if (r.unit === "rolls") {
       const lineSum = (r.rollLines || []).reduce(
-        (s, ln) =>
-          s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
+        (s, ln) => s + (Number(ln.length) || 0) * (Number(ln.qty) || 0),
         0,
       );
       return lineSum + (Number(r.extraMeters) || 0);
@@ -27604,7 +29658,13 @@ function StoreStockView({ ctx }: CtxProps) {
     };
     const m: Record<string, Row> = {};
 
-    function keyFor(r: { fabricState?: string; designId?: string; hexColor?: string; fabricType?: string; stockFabricType?: string }): {
+    function keyFor(r: {
+      fabricState?: string;
+      designId?: string;
+      hexColor?: string;
+      fabricType?: string;
+      stockFabricType?: string;
+    }): {
       key: string;
       kind: "design" | "color" | "fabric" | "remainder";
     } {
@@ -27613,7 +29673,8 @@ function StoreStockView({ ctx }: CtxProps) {
       // + 224 rolls Flanel of the same design number) becomes multiple rows
       // — one per fabric type. Same logic for color groups and the
       // remainder bin. The fabric type is appended to the key.
-      const ft = (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
+      const ft =
+        (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
       if (r.designId === "remainder") {
         return { key: `r:remainder::${ft}`, kind: "remainder" };
       }
@@ -27626,14 +29687,20 @@ function StoreStockView({ ctx }: CtxProps) {
       return { key: `f:${ft}`, kind: "fabric" };
     }
 
-    function ensure(r: any, kind: "design" | "color" | "fabric" | "remainder", key: string): Row {
+    function ensure(
+      r: any,
+      kind: "design" | "color" | "fabric" | "remainder",
+      key: string,
+    ): Row {
       if (!m[key]) {
-        const d = r.designId && kind === "design" ? designById[r.designId] : null;
+        const d =
+          r.designId && kind === "design" ? designById[r.designId] : null;
         // Always pull fabric type from the record's stockFabricType
         // (authoritative for the store) with the legacy `fabricType` as a
         // last-ditch fallback. The grouping key was already built using
         // the same logic, so the row's stored fabricType matches its key.
-        const ft = (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
+        const ft =
+          (r.stockFabricType || r.fabricType || "(none)").trim() || "(none)";
         m[key] = {
           key,
           kind,
@@ -27942,7 +30009,9 @@ function StoreStockView({ ctx }: CtxProps) {
       const IMG_W = 100;
       const IMG_H = 60;
 
-      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+      async function bufferToCovered(
+        buf: ArrayBuffer,
+      ): Promise<ArrayBuffer | null> {
         try {
           const blob = new Blob([buf]);
           const url = URL.createObjectURL(blob);
@@ -28119,7 +30188,8 @@ function StoreStockView({ ctx }: CtxProps) {
           let label = "—";
           if (r.kind === "design") label = r.designNumber || "—";
           else if (r.kind === "color") label = r.colorName || r.hexColor || "";
-          else if (r.kind === "remainder") label = t("stockin.design.remainder");
+          else if (r.kind === "remainder")
+            label = t("stockin.design.remainder");
           else label = "(no variant)";
 
           const rowData: Record<string, any> = {
@@ -28302,14 +30372,11 @@ function StoreStockView({ ctx }: CtxProps) {
 
         // Optional: design name on a second line, smaller. Truncated to
         // fit roughly within the page width at 6pt.
-        const d = designs.find(
-          (dd) => dd.designNumber === lbl.designNumber,
-        );
+        const d = designs.find((dd) => dd.designNumber === lbl.designNumber);
         if (d?.name) {
           pdf.setFontSize(6);
           pdf.setTextColor(120);
-          const name =
-            d.name.length > 28 ? d.name.slice(0, 28) + "…" : d.name;
+          const name = d.name.length > 28 ? d.name.slice(0, 28) + "…" : d.name;
           pdf.text(name, PAGE_W / 2, INSET + BAR_H + 7, {
             align: "center",
           });
@@ -28425,7 +30492,9 @@ function StoreStockView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium w-20">{t("stock.col.image")}</th>
+              <th className="text-left p-3 font-medium w-20">
+                {t("stock.col.image")}
+              </th>
               <SortableTh
                 sortKey="designLabel"
                 label={t("stock.col.design")}
@@ -28444,7 +30513,9 @@ function StoreStockView({ ctx }: CtxProps) {
                 sort={sort}
                 setSort={setSort}
               />
-              <th className="text-left p-3 font-medium">{t("stock.col.rollsOnHand")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("stock.col.rollsOnHand")}
+              </th>
               <SortableTh
                 sortKey="onHand"
                 label={t("stock.col.onHand")}
@@ -28469,7 +30540,9 @@ function StoreStockView({ ctx }: CtxProps) {
                 numeric
                 className="text-right"
               />
-              <th className="text-left p-3 font-medium">{t("stock.col.status")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("stock.col.status")}
+              </th>
               {canEdit && (
                 <th className="text-left p-3 font-medium w-16">
                   {t("stock.col.actions")}
@@ -28553,9 +30626,7 @@ function StoreStockView({ ctx }: CtxProps) {
                       </span>
                     )}
                   </td>
-                  <td className="p-3 text-slate-700">
-                    {r.fabricType || "—"}
-                  </td>
+                  <td className="p-3 text-slate-700">{r.fabricType || "—"}</td>
                   <td className="p-3 text-slate-600">{r.unit}</td>
                   <td className="p-3 text-xs text-slate-600">
                     <div>
@@ -28605,7 +30676,10 @@ function StoreStockView({ ctx }: CtxProps) {
                           // needs to change the ones that are wrong.
                           const lengths = Object.entries(r.rollsByLength || {})
                             .filter(([, q]) => Number(q) > 0)
-                            .map(([len, q]) => [len, String(q)] as [string, string]);
+                            .map(
+                              ([len, q]) =>
+                                [len, String(q)] as [string, string],
+                            );
                           const rollDrafts = lengths.length
                             ? Object.fromEntries(lengths)
                             : null;
@@ -28649,7 +30723,10 @@ function StoreStockView({ ctx }: CtxProps) {
             })}
             {!sortedRows.length && (
               <tr>
-                <td colSpan={canEdit ? 10 : 9} className="p-8 text-center text-slate-400">
+                <td
+                  colSpan={canEdit ? 10 : 9}
+                  className="p-8 text-center text-slate-400"
+                >
                   {stockByDesign.length === 0
                     ? t("stock.empty")
                     : t("stock.searchEmpty")}
@@ -28729,8 +30806,7 @@ function StoreStockView({ ctx }: CtxProps) {
                   return;
                 }
                 const commonVariant = {
-                  fabricState:
-                    row.kind === "color" ? "dyed" : "printed",
+                  fabricState: row.kind === "color" ? "dyed" : "printed",
                   // Preserve mix marker if the row was aggregated from
                   // mixed-design stock-ins. row.kind === "fabric" means
                   // the group has no specific designId; if the original
@@ -28825,8 +30901,7 @@ function StoreStockView({ ctx }: CtxProps) {
                   id: uid(),
                   date: todayISO(),
                   source: t("stock.correct.source"),
-                  fabricState:
-                    row.kind === "color" ? "dyed" : "printed",
+                  fabricState: row.kind === "color" ? "dyed" : "printed",
                   designId:
                     row.kind === "design" || row.kind === "remainder"
                       ? row.designId
@@ -28853,8 +30928,7 @@ function StoreStockView({ ctx }: CtxProps) {
                   date: todayISO(),
                   customerId: "",
                   invoiceNumber: `CORR-${monthCode()}${String(storeSales.length + 1).padStart(4, "0")}`,
-                  fabricState:
-                    row.kind === "color" ? "dyed" : "printed",
+                  fabricState: row.kind === "color" ? "dyed" : "printed",
                   designId:
                     row.kind === "design" || row.kind === "remainder"
                       ? row.designId
@@ -29004,12 +31078,12 @@ function CorrectionForm({
         </div>
         <div>
           <span className="text-slate-500">{t("stock.correct.fabric")}:</span>{" "}
-          <span className="font-semibold">
-            {row.fabricType || "—"}
-          </span>
+          <span className="font-semibold">{row.fabricType || "—"}</span>
         </div>
         <div>
-          <span className="text-slate-500">{t("stock.correct.currentOnHand")}:</span>{" "}
+          <span className="text-slate-500">
+            {t("stock.correct.currentOnHand")}:
+          </span>{" "}
           <span className="font-semibold tabular-nums">
             {Math.round(correcting.currentOnHand).toLocaleString()} m
           </span>
@@ -29043,13 +31117,8 @@ function CorrectionForm({
                     const len = Number(lenStr);
                     const currentQty = Number(row.rollsByLength[len] || 0);
                     return (
-                      <tr
-                        key={lenStr}
-                        className="border-t border-slate-100"
-                      >
-                        <td className="p-2 font-mono text-slate-700">
-                          {len}m
-                        </td>
+                      <tr key={lenStr} className="border-t border-slate-100">
+                        <td className="p-2 font-mono text-slate-700">{len}m</td>
                         <td className="p-2 text-right tabular-nums text-slate-500">
                           {currentQty}
                         </td>
@@ -29344,7 +31413,9 @@ function StoreSalesView({ ctx }: CtxProps) {
       // Image transformers — same shape as elsewhere in the app.
       const IMG_W = 100;
       const IMG_H = 60;
-      async function bufferToCovered(buf: ArrayBuffer): Promise<ArrayBuffer | null> {
+      async function bufferToCovered(
+        buf: ArrayBuffer,
+      ): Promise<ArrayBuffer | null> {
         try {
           const blob = new Blob([buf]);
           const url = URL.createObjectURL(blob);
@@ -29379,7 +31450,9 @@ function StoreSalesView({ ctx }: CtxProps) {
           return null;
         }
       }
-      async function resolveImageBuffer(src: string): Promise<ArrayBuffer | null> {
+      async function resolveImageBuffer(
+        src: string,
+      ): Promise<ArrayBuffer | null> {
         if (!src) return null;
         try {
           if (src.startsWith("data:")) {
@@ -29470,8 +31543,7 @@ function StoreSalesView({ ctx }: CtxProps) {
               key: `d:${did}::${ft}`,
               kind: "design",
               designId: did,
-              designNumber:
-                designByIdLocal[did].designNumber || "—",
+              designNumber: designByIdLocal[did].designNumber || "—",
               fabricType: ft,
               meters: 0,
               amount: 0,
@@ -29528,12 +31600,10 @@ function StoreSalesView({ ctx }: CtxProps) {
             // when a single sale covers multiple variants — same trade
             // off as the previous version.
             const firstLine = lines[0];
-            const ft =
-              firstLine.fabricType || s.stockFabricType || "—";
+            const ft = firstLine.fabricType || s.stockFabricType || "—";
             const seed = classifyExport(firstLine, s, ft);
             if (aggByKey[seed.key]) {
-              aggByKey[seed.key].amount +=
-                Number(s.totalAmount) || 0;
+              aggByKey[seed.key].amount += Number(s.totalAmount) || 0;
             }
           } else {
             // Legacy sale, no per-line data.
@@ -29712,8 +31782,7 @@ function StoreSalesView({ ctx }: CtxProps) {
       // Only when the line itself has neither designId nor hexColor
       // (legacy sales that stored variant on the top-level sale only) do
       // we fall back to sale-level fields.
-      const lineHasVariant =
-        !!ln.designId || !!ln.hexColor || !!ln.colorName;
+      const lineHasVariant = !!ln.designId || !!ln.hexColor || !!ln.colorName;
       const did = lineHasVariant ? ln.designId : s.designId;
       const hex = lineHasVariant ? ln.hexColor : s.hexColor;
       const colorName = lineHasVariant ? ln.colorName : s.colorName;
@@ -30152,15 +32221,33 @@ function StoreSalesView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">{t("sales.col.date")}</th>
-              <th className="text-left p-3 font-medium">{t("sales.col.invoice")}</th>
-              <th className="text-left p-3 font-medium">{t("sales.col.customer")}</th>
-              <th className="text-left p-3 font-medium">{t("sales.col.design")}</th>
-              <th className="text-right p-3 font-medium">{t("sales.col.qty")}</th>
-              <th className="text-right p-3 font-medium">{t("sales.col.total")}</th>
-              <th className="text-right p-3 font-medium">{t("sales.col.paid")}</th>
-              <th className="text-right p-3 font-medium">{t("sales.col.debt")}</th>
-              <th className="text-left p-3 font-medium">{t("payments.method")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("sales.col.date")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("sales.col.invoice")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("sales.col.customer")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("sales.col.design")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("sales.col.qty")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("sales.col.total")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("sales.col.paid")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("sales.col.debt")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.method")}
+              </th>
               {canEdit && <th className="p-3 w-20"></th>}
             </tr>
           </thead>
@@ -30358,11 +32445,9 @@ function SaleForm({
     fabricState: initial.fabricState || "printed",
     hexColor: initial.hexColor || "#7E22CE",
     rollLines: initial.rollLines || [],
-    extraMeters:
-      initial.extraMeters !== undefined ? initial.extraMeters : 0,
+    extraMeters: initial.extraMeters !== undefined ? initial.extraMeters : 0,
   }));
-  const set = (k: string, v: any) =>
-    setS((prev) => ({ ...prev, [k]: v }));
+  const set = (k: string, v: any) => setS((prev) => ({ ...prev, [k]: v }));
 
   // ===== Compute on-hand-per-design-per-length-per-fabricType =====
   //
@@ -30398,7 +32483,9 @@ function SaleForm({
     // design under different fabric types end up as different groups.
     const groups: Record<string, GroupInfo> = {};
 
-    function groupKey(r: any): { key: string; kind: "design" | "color" | "remainder" | "mix" } | null {
+    function groupKey(
+      r: any,
+    ): { key: string; kind: "design" | "color" | "remainder" | "mix" } | null {
       if (r.designId === "remainder") {
         return { key: "r:remainder", kind: "remainder" };
       }
@@ -30430,7 +32517,10 @@ function SaleForm({
     ) {
       const ck = compositeKey(gk, fabricType);
       if (groups[ck]) return groups[ck];
-      const d = r.designId && kind === "design" ? designs.find((x) => x.id === r.designId) : null;
+      const d =
+        r.designId && kind === "design"
+          ? designs.find((x) => x.id === r.designId)
+          : null;
       const g: GroupInfo = {
         key: ck,
         kind,
@@ -30619,7 +32709,11 @@ function SaleForm({
       let baseKey: string | null = null;
       if (s.designId === "remainder") {
         baseKey = `r:remainder::${ft || "(none)"}`;
-      } else if (s.fabricState === "printed" && s.designId && s.designId !== "mix") {
+      } else if (
+        s.fabricState === "printed" &&
+        s.designId &&
+        s.designId !== "mix"
+      ) {
         baseKey = `d:${s.designId}::${ft || "(none)"}`;
       } else if (s.fabricState === "dyed" && s.hexColor) {
         baseKey = `c:${s.hexColor.toLowerCase()}::${ft || "(none)"}`;
@@ -30636,7 +32730,7 @@ function SaleForm({
   }, []);
   const [picks, setPicks] = useState<Record<string, number>>(initialPicks);
 
-  function pickRow(row: typeof onHand[number], qty: number) {
+  function pickRow(row: (typeof onHand)[number], qty: number) {
     const key = `${row.compositeKey}|${row.length}`;
     const clamped = Math.max(0, Math.min(qty, row.available));
     setPicks((prev) => {
@@ -30660,11 +32754,16 @@ function SaleForm({
   // design number + length (even if multiple fabric types exist for that
   // design — the operator can fine-tune after).
   const [scanInput, setScanInput] = useState("");
-  const [scanFeedback, setScanFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [scanFeedback, setScanFeedback] = useState<{
+    msg: string;
+    ok: boolean;
+  } | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
-  function parseBarcode(raw: string): { designNumber: string; length: number } | null {
+  function parseBarcode(
+    raw: string,
+  ): { designNumber: string; length: number } | null {
     const code = raw.trim();
     if (!code) return null;
     // Accept formats:
@@ -30707,8 +32806,9 @@ function SaleForm({
     // Prefer a candidate that already has picks (consistent accumulation
     // when scanning the same code multiple times).
     const target =
-      candidates.find((r) => (picks[`${r.compositeKey}|${r.length}`] || 0) > 0) ||
-      candidates[0];
+      candidates.find(
+        (r) => (picks[`${r.compositeKey}|${r.length}`] || 0) > 0,
+      ) || candidates[0];
     const key = `${target.compositeKey}|${target.length}`;
     const current = picks[key] || 0;
     if (current >= target.available) {
@@ -30759,7 +32859,8 @@ function SaleForm({
       // typing into an input/textarea, those events belong to that input.
       const target = e.target as HTMLElement | null;
       const tag = (target?.tagName || "").toLowerCase();
-      const isFormField = tag === "input" || tag === "textarea" || tag === "select";
+      const isFormField =
+        tag === "input" || tag === "textarea" || tag === "select";
 
       if (e.key === "Enter") {
         if (isFormField) return; // form's own handler deals with Enter
@@ -30883,7 +32984,9 @@ function SaleForm({
   );
   function setDiscountFor(fabricType: string, value: number) {
     setS((prev) => {
-      const cur = { ...(((prev as any).discountsByFabric || {}) as Record<string, number>) };
+      const cur = {
+        ...(((prev as any).discountsByFabric || {}) as Record<string, number>),
+      };
       if (value > 0) cur[fabricType] = value;
       else delete cur[fabricType];
       return { ...prev, discountsByFabric: cur } as any;
@@ -31012,7 +33115,9 @@ function SaleForm({
       totalAmount: total,
       paidAmount: paid,
       // Persisted: per-fabric-type discounts at sale time.
-      ...(Object.keys(discounts).length > 0 ? { discountsByFabric: discounts } : {}),
+      ...(Object.keys(discounts).length > 0
+        ? { discountsByFabric: discounts }
+        : {}),
     } as any);
   }
 
@@ -31153,7 +33258,9 @@ function SaleForm({
 
         {filteredOnHand.length === 0 ? (
           <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-500 text-center">
-            {onHand.length === 0 ? t("sales.outOfStock") : t("common.noResults", "No matching rolls")}
+            {onHand.length === 0
+              ? t("sales.outOfStock")
+              : t("common.noResults", "No matching rolls")}
           </div>
         ) : (
           <div className="border border-slate-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
@@ -31172,9 +33279,7 @@ function SaleForm({
                   <th className="text-right p-2 font-medium">
                     {t("sales.row.available")}
                   </th>
-                  <th className="text-right p-2 font-medium">
-                    Price / m
-                  </th>
+                  <th className="text-right p-2 font-medium">Price / m</th>
                   <th className="text-right p-2 font-medium w-28">
                     {t("sales.row.taking")}
                   </th>
@@ -31249,12 +33354,12 @@ function SaleForm({
                         )}
                       </td>
                       <td className="p-2 text-right text-slate-600">
-                        {row.length === 0
-                          ? `${row.available}m`
-                          : row.available}
+                        {row.length === 0 ? `${row.available}m` : row.available}
                       </td>
                       <td className="p-2 text-right text-slate-700">
-                        {rowPrice > 0 ? fmtMoney(rowPrice) : (
+                        {rowPrice > 0 ? (
+                          fmtMoney(rowPrice)
+                        ) : (
                           <span className="text-amber-600 text-[10px]">
                             no price
                           </span>
@@ -31380,10 +33485,16 @@ function SaleForm({
                     </div>
                     <button
                       type="button"
-                      onClick={() => pickRow(
-                        onHand.find((r) => r.compositeKey === p.compositeKey && r.length === p.length)!,
-                        0,
-                      )}
+                      onClick={() =>
+                        pickRow(
+                          onHand.find(
+                            (r) =>
+                              r.compositeKey === p.compositeKey &&
+                              r.length === p.length,
+                          )!,
+                          0,
+                        )
+                      }
                       className="text-[10px] text-rose-600 hover:text-rose-800"
                     >
                       remove
@@ -31437,7 +33548,9 @@ function SaleForm({
                     {b.meters.toLocaleString()} m
                   </td>
                   <td className="p-2 text-right text-slate-700">
-                    {b.basePrice > 0 ? fmtMoney(b.basePrice) : (
+                    {b.basePrice > 0 ? (
+                      fmtMoney(b.basePrice)
+                    ) : (
                       <span className="text-amber-600 text-[10px]">
                         no price
                       </span>
@@ -31489,9 +33602,7 @@ function SaleForm({
           <div className="relative">
             <NumericFormat
               value={s.paidAmount ?? ""}
-              onValueChange={(values) =>
-                set("paidAmount", values.value)
-              }
+              onValueChange={(values) => set("paidAmount", values.value)}
               thousandSeparator=","
               decimalSeparator="."
               decimalScale={2}
@@ -31597,9 +33708,7 @@ function StorePaymentsView({ ctx }: CtxProps) {
 
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
         <div>
-          <div className="text-sm text-emerald-800">
-            {t("payments.title")}
-          </div>
+          <div className="text-sm text-emerald-800">{t("payments.title")}</div>
           <div className="text-2xl font-bold text-emerald-900">
             {fmtMoney(total)}
           </div>
@@ -31640,12 +33749,24 @@ function StorePaymentsView({ ctx }: CtxProps) {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left p-3 font-medium">{t("payments.col.date")}</th>
-              <th className="text-left p-3 font-medium">{t("payments.col.customer")}</th>
-              <th className="text-right p-3 font-medium">{t("payments.col.amount")}</th>
-              <th className="text-left p-3 font-medium">{t("payments.col.method")}</th>
-              <th className="text-left p-3 font-medium">{t("payments.col.reference")}</th>
-              <th className="text-left p-3 font-medium">{t("payments.col.notes")}</th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.col.date")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.col.customer")}
+              </th>
+              <th className="text-right p-3 font-medium">
+                {t("payments.col.amount")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.col.method")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.col.reference")}
+              </th>
+              <th className="text-left p-3 font-medium">
+                {t("payments.col.notes")}
+              </th>
               {canEdit && <th className="p-3 w-12"></th>}
             </tr>
           </thead>
@@ -32189,10 +34310,14 @@ function Pagination({
 //
 // Inline spinner — small, animates a rotating Loader2 icon.
 // Used inside buttons, beside labels, anywhere a single-line loader is needed.
-function InlineSpinner({ size = 14, className = "" }: { size?: number; className?: string }) {
-  return (
-    <Loader2 size={size} className={`animate-spin ${className}`} />
-  );
+function InlineSpinner({
+  size = 14,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return <Loader2 size={size} className={`animate-spin ${className}`} />;
 }
 
 // Full-table overlay — wraps a table/data area and dims it while loading.
