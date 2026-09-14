@@ -1,34 +1,45 @@
 // ---------------------------------------------------------------------------
 //  Orders & roll labels.
 //
-//  Route: /orders
+//  Route: /orders — reached through Printing → Ombor, the hub where the
+//  shipment actually leaves the factory.
 //
 //  The office side of the QR feature. The loading bay gets /loading; this is
 //  where the order is entered when it arrives, its label set is minted, and
-//  the PDF is printed to go on the rolls.
+//  the labels are printed to go on the rolls.
 //
 //  The one idea this screen has to get across is that ISSUING CODES IS THE
 //  POINT OF NO RETURN. An order for 50 rolls gets exactly 50 codes — that is
 //  what makes a 51st roll impossible to load, because there is nothing to
-//  scan. So `planned_rolls` is freely editable right up until the codes exist,
-//  and immutable afterwards (the database enforces it too). The UI says so
-//  before you press the button rather than explaining it in an error.
+//  scan. So the order is freely editable right up until the codes exist, and
+//  frozen afterwards (the database enforces it too). The UI says so before you
+//  press the button rather than explaining it in an error.
+//
+//  Two ways to take the labels away:
+//    * the sheet — one PDF, every sticker in roll order, for the stack that
+//      goes onto the rolls;
+//    * the ZIP — one PDF per design / fabric / length, for the print room,
+//      which runs one unit at a time and otherwise has to hunt for the page
+//      range where each design starts.
 //
 //  Lives outside App.tsx: the monolith is being broken up, so new pages do not
 //  go back into it.
 // ---------------------------------------------------------------------------
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, ChevronDown, ClipboardList, FileDown, Image as ImageIcon, Loader2,
-  Plus, Printer, QrCode, Trash2, Truck, X,
+  ArrowLeft, ChevronDown, ClipboardList, FileArchive, FileDown,
+  Image as ImageIcon, Loader2, Lock, Pencil, Plus, Printer, QrCode, Trash2,
+  Truck, X,
 } from "lucide-react";
 
 import { useT } from "../i18n/lang";
 import { useThemed } from "../theme/theme";
 import { getToken } from "../lib/storage";
+import { useMe } from "../lib/hooks";
+import { canDeleteQrOrder, canWriteQrOrders } from "../lib/access";
 import {
-  qrApi, type Design, type QrOrder, type QrOrderLineInput,
+  openBlob, qrApi, type Design, type QrOrder, type QrOrderLineInput,
 } from "../lib/qrApi";
 
 // Status → badge styling. Kept here rather than on the server so the wording
@@ -50,10 +61,16 @@ const STATUS_STYLE: Record<string, string> = {
 export default function QrOrdersPage() {
   const t = useT();
   const th = useThemed();
+  // Roles are re-checked on the server for every write; this only decides
+  // which buttons are worth drawing.
+  const me = useMe();
+  const canWrite = canWriteQrOrders(me);
+  const canDelete = canDeleteQrOrder(me);
 
   const [orders, setOrders] = useState<QrOrder[] | null>(null);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<QrOrder | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
@@ -68,6 +85,21 @@ export default function QrOrdersPage() {
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  // Fabric is typed by hand, so the same cloth gets spelled three ways within
+  // a week and the labels stop matching each other. Offering what has already
+  // been used in other orders costs nothing and keeps the spelling stable —
+  // it is a suggestion list, not a closed set: a new fabric is just typed in.
+  const knownFabrics = useMemo(() => {
+    const set = new Set<string>();
+    for (const o of orders || []) {
+      if (o.fabric_type) set.add(o.fabric_type.trim());
+      for (const l of o.lines || []) {
+        if (l.fabric_type) set.add(String(l.fabric_type).trim());
+      }
+    }
+    return [...set].filter(Boolean).sort();
+  }, [orders]);
 
   if (!getToken()) {
     return (
@@ -86,7 +118,7 @@ export default function QrOrdersPage() {
     const ok = window.confirm(
       t("orders.issueConfirm", "Issue labels for this order?") + "\n\n" +
       t("orders.issueWarn",
-        "Exactly {n} codes will be created — one per roll. After this the roll count can no longer be changed.")
+        "Exactly {n} codes will be created — one per roll. After this the designs, quantities and fabric can no longer be changed.")
         .replace("{n}", String(o.planned_rolls)),
     );
     if (!ok) return;
@@ -101,25 +133,51 @@ export default function QrOrdersPage() {
     }
   };
 
-  // Fetch the PDF with the auth header, then hand the browser a blob it can
-  // render. A plain link to the endpoint would arrive without the token.
-  const openLabels = async (o: QrOrder, download: boolean) => {
+  // The sheet and the archive both arrive as blobs fetched with the auth
+  // header — a plain link to either endpoint would arrive without the token.
+  const takeLabels = async (o: QrOrder, kind: "print" | "pdf" | "zip") => {
     setBusyId(o.id);
     try {
-      const blob = await qrApi.labelsPdfBlob(o.id);
-      const url = URL.createObjectURL(blob);
-      if (download) {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `labels-${o.order_no}.pdf`;
-        a.click();
+      if (kind === "zip") {
+        const blob = await qrApi.labelsZipBlob(o.id);
+        openBlob(blob, `labels-${o.order_no}.zip`, true);
       } else {
-        window.open(url, "_blank", "noopener");
+        const blob = await qrApi.labelsPdfBlob(o.id);
+        openBlob(blob, `labels-${o.order_no}.pdf`, kind === "pdf");
       }
-      // Give the tab / download a moment to take the URL before releasing it.
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (e: any) {
-      setError(e.message || "Could not fetch the label sheet");
+      setError(e.message || "Could not fetch the labels");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // Deleting takes the codes and the loading history with it. When labels are
+  // already printed, a confirm box is too easy to click through — so the order
+  // number has to be typed. Every label of that order is out on the floor and
+  // becomes an unknown code the moment this succeeds.
+  const removeOrder = async (o: QrOrder) => {
+    const issued = Number(o.codes_issued) || 0;
+    if (issued > 0) {
+      const typed = window.prompt(
+        t("orders.deleteTypeName",
+          "This order has {n} printed labels. They will stop working and the loading history will be erased.\n\nType the order number to confirm:")
+          .replace("{n}", String(issued)),
+        "",
+      );
+      if (!typed || typed.trim() !== o.order_no) return;
+    } else if (!window.confirm(
+      t("orders.deleteConfirm", "Delete order {no}?").replace("{no}", o.order_no)
+    )) {
+      return;
+    }
+
+    setBusyId(o.id);
+    try {
+      await qrApi.deleteOrder(o.id);
+      await refresh();
+    } catch (e: any) {
+      setError(e.message || "Could not delete the order");
     } finally {
       setBusyId(null);
     }
@@ -140,12 +198,14 @@ export default function QrOrdersPage() {
           >
             <Truck size={18} /> <span className="hidden sm:inline">{t("loading.title", "Truck loading")}</span>
           </a>
-          <button
-            onClick={() => setCreating(true)}
-            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold inline-flex items-center gap-2"
-          >
-            <Plus size={18} /> <span className="hidden sm:inline">{t("orders.new", "New order")}</span>
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => setCreating(true)}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold inline-flex items-center gap-2"
+            >
+              <Plus size={18} /> <span className="hidden sm:inline">{t("orders.new", "New order")}</span>
+            </button>
+          )}
         </div>
 
         {error && (
@@ -189,7 +249,9 @@ export default function QrOrdersPage() {
                       {[o.customer_name, o.fabric_type].filter(Boolean).join(" · ") || "—"}
                     </div>
                     {/* An order spans several designs, so the breakdown is
-                        part of its identity, not a detail behind a click. */}
+                        part of its identity, not a detail behind a click. It
+                        is also exactly how the ZIP is split: one file per
+                        design / fabric / length shown here. */}
                     {!!o.lines?.length && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {o.lines.map((l) => (
@@ -198,6 +260,7 @@ export default function QrOrdersPage() {
                             className={`px-2 py-0.5 rounded-lg text-xs ${th.surfaceAlt} border ${th.border}`}
                           >
                             <b>{l.design_number || t("orders.noDesign", "no design")}</b>
+                            {l.fabric_type ? ` · ${l.fabric_type}` : ""}
                             {l.roll_length ? ` · ${trimNum(l.roll_length)} ${t("orders.m", "m")}` : ""}
                             {" · "}{l.rolls}
                           </span>
@@ -229,7 +292,7 @@ export default function QrOrdersPage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {!hasCodes ? (
+                  {canWrite && !hasCodes && (
                     <button
                       onClick={() => issueCodes(o)}
                       disabled={busy}
@@ -238,10 +301,12 @@ export default function QrOrdersPage() {
                       {busy ? <Loader2 size={16} className="animate-spin" /> : <QrCode size={16} />}
                       {t("orders.issue", "Issue labels")}
                     </button>
-                  ) : (
+                  )}
+
+                  {hasCodes && (
                     <>
                       <button
-                        onClick={() => openLabels(o, false)}
+                        onClick={() => takeLabels(o, "print")}
                         disabled={busy}
                         className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-semibold inline-flex items-center gap-2"
                       >
@@ -249,32 +314,68 @@ export default function QrOrdersPage() {
                         {t("orders.print", "Print labels")}
                       </button>
                       <button
-                        onClick={() => openLabels(o, true)}
+                        onClick={() => takeLabels(o, "pdf")}
                         disabled={busy}
                         className={`px-4 py-2 rounded-xl ${th.surfaceAlt} border ${th.border} ${th.hover} disabled:opacity-50 font-semibold inline-flex items-center gap-2`}
                       >
                         <FileDown size={16} /> {t("orders.download", "Download PDF")}
                       </button>
+                      {/* One file per design / fabric / length — what the
+                          print room actually works from. */}
+                      <button
+                        onClick={() => takeLabels(o, "zip")}
+                        disabled={busy}
+                        className={`px-4 py-2 rounded-xl ${th.surfaceAlt} border ${th.border} ${th.hover} disabled:opacity-50 font-semibold inline-flex items-center gap-2`}
+                        title={t("orders.zipHint", "One PDF per design, fabric and length")}
+                      >
+                        <FileArchive size={16} /> {t("orders.zip", "ZIP by unit")}
+                      </button>
                     </>
+                  )}
+
+                  {canWrite && (
+                    <button
+                      onClick={() => setEditing(o)}
+                      disabled={busy}
+                      className={`px-4 py-2 rounded-xl ${th.surfaceAlt} border ${th.border} ${th.hover} disabled:opacity-50 font-semibold inline-flex items-center gap-2`}
+                    >
+                      <Pencil size={16} /> {t("common.edit", "Edit")}
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => removeOrder(o)}
+                      disabled={busy}
+                      className="px-4 py-2 rounded-xl border border-red-500/50 text-red-500 hover:bg-red-500/10 disabled:opacity-50 font-semibold inline-flex items-center gap-2"
+                    >
+                      <Trash2 size={16} /> {t("common.delete", "Delete")}
+                    </button>
                   )}
                 </div>
 
-                {!hasCodes && (
-                  <p className={`mt-2 text-xs ${th.textMuted}`}>
-                    {t("orders.beforeIssueHint",
-                      "The roll count can still be changed until labels are issued.")}
-                  </p>
-                )}
+                <p className={`mt-2 text-xs ${th.textMuted}`}>
+                  {hasCodes
+                    ? t("orders.afterIssueHint",
+                        "Labels are printed — only the customer and the notes can still be changed.")
+                    : t("orders.beforeIssueHint",
+                        "Designs, fabric, lengths and roll counts can still be changed until labels are issued.")}
+                </p>
               </div>
             );
           })}
         </div>
       </div>
 
-      {creating && (
-        <NewOrderModal
-          onClose={() => setCreating(false)}
-          onCreated={async () => { setCreating(false); await refresh(); }}
+      {(creating || editing) && (
+        <OrderModal
+          order={editing}
+          knownFabrics={knownFabrics}
+          onClose={() => { setCreating(false); setEditing(null); }}
+          onSaved={async () => {
+            setCreating(false);
+            setEditing(null);
+            await refresh();
+          }}
         />
       )}
     </div>
@@ -282,23 +383,57 @@ export default function QrOrdersPage() {
 }
 
 // ---------------------------------------------------------------------------
-//  New order form.
+//  The order form — used for both creating and editing.
 //
-//  An order is a list of LINES: a design picked from the gallery, the roll
-//  length for that design, and how many rolls. The roll count the loading bay
-//  counts against is the SUM of the lines and is never typed directly — it is
-//  shown, prominently, so whoever is entering the order sees the number that
-//  will be printed on every label before they commit to it.
+//  An order is a list of LINES: a design picked from the gallery, the fabric
+//  it is printed on, the roll length, and how many rolls. The roll count the
+//  loading bay counts against is the SUM of the lines and is never typed
+//  directly — it is shown, prominently, so whoever is entering the order sees
+//  the number that will be printed on every label before they commit to it.
+//
+//  WHY ONE COMPONENT FOR BOTH
+//  ──────────────────────────
+//  A separate edit form would validate slightly differently within a month,
+//  and an order edited into a shape the create form would have rejected is
+//  still an order the loading bay has to count.
+//
+//  Editing an order whose labels exist shows the lines READ-ONLY rather than
+//  hiding them: the person editing needs to see what is already committed to
+//  understand why they cannot touch it. The server refuses the change anyway.
 // ---------------------------------------------------------------------------
-function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function OrderModal({
+  order, knownFabrics, onClose, onSaved,
+}: {
+  order: QrOrder | null;
+  knownFabrics: string[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const t = useT();
   const th = useThemed();
   const firstRef = useRef<HTMLInputElement | null>(null);
+  const isEdit = !!order;
+  const frozen = (Number(order?.codes_issued) || 0) > 0;
 
-  const [head, setHead] = useState({ order_no: "", customer_name: "", fabric_type: "", notes: "" });
-  const [lines, setLines] = useState<QrOrderLineInput[]>([
-    { designId: null, designNumber: null, rollLength: "", rolls: 1 },
-  ]);
+  const [head, setHead] = useState({
+    order_no: order?.order_no || "",
+    customer_name: order?.customer_name || "",
+    fabric_type: order?.fabric_type || "",
+    notes: order?.notes || "",
+  });
+  const [lines, setLines] = useState<QrOrderLineInput[]>(
+    order?.lines?.length
+      ? order.lines.map((l) => ({
+          designId: l.design_id,
+          designNumber: l.design_number,
+          rollLength: l.roll_length === null || l.roll_length === undefined
+            ? ""
+            : trimNum(l.roll_length),
+          rolls: l.rolls,
+          fabricType: l.fabric_type || "",
+        }))
+      : [{ designId: null, designNumber: null, rollLength: "", rolls: 1, fabricType: "" }],
+  );
   const [designs, setDesigns] = useState<Design[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -318,7 +453,15 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   const setLine = (i: number, patch: Partial<QrOrderLineInput>) =>
     setLines((ls) => ls.map((l, k) => (k === i ? { ...l, ...patch } : l)));
   const addLine = () =>
-    setLines((ls) => [...ls, { designId: null, designNumber: null, rollLength: "", rolls: 1 }]);
+    setLines((ls) => [
+      ...ls,
+      // The fabric is usually the same across an order, so carry the last
+      // line's down rather than making it be retyped per design.
+      {
+        designId: null, designNumber: null, rollLength: "", rolls: 1,
+        fabricType: ls[ls.length - 1]?.fabricType || "",
+      },
+    ]);
   const removeLine = (i: number) => setLines((ls) => ls.filter((_, k) => k !== i));
 
   const total = lines.reduce((a, l) => a + (Number(l.rolls) || 0), 0);
@@ -336,35 +479,60 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
     }
     return true;
   };
-  const valid = head.order_no.trim() && lines.length > 0 && lines.every(lineOk) && total >= 1;
+  const valid = frozen
+    ? true // only customer/notes are in play; both may be empty
+    : !!head.order_no.trim() && lines.length > 0 && lines.every(lineOk) && total >= 1;
 
   const submit = async (e: any) => {
     e.preventDefault();
     if (!valid || busy) return;
     setBusy(true);
     setError("");
+
+    const payloadLines = lines.map((l) => ({
+      designId: l.designId,
+      designNumber: l.designNumber,
+      rollLength: l.rollLength === "" ? null : Number(l.rollLength),
+      rolls: Number(l.rolls),
+      fabricType: (l.fabricType || "").trim() || null,
+    }));
+
     try {
-      await qrApi.createOrder({
-        order_no: head.order_no.trim(),
-        customer_name: head.customer_name.trim() || null,
-        fabric_type: head.fabric_type.trim() || null,
-        notes: head.notes.trim() || null,
-        lines: lines.map((l) => ({
-          designId: l.designId,
-          designNumber: l.designNumber,
-          rollLength: l.rollLength === "" ? null : Number(l.rollLength),
-          rolls: Number(l.rolls),
-        })),
-      });
-      onCreated();
+      if (isEdit) {
+        // Frozen orders send only what is still editable. Sending the lines
+        // back unchanged would be refused by the server — correctly, since it
+        // cannot tell a no-op edit from an attempt to rewrite the manifest.
+        await qrApi.updateOrder(order!.id, frozen
+          ? {
+              customer_name: head.customer_name.trim() || null,
+              notes: head.notes.trim() || null,
+            }
+          : {
+              order_no: head.order_no.trim(),
+              customer_name: head.customer_name.trim() || null,
+              fabric_type: head.fabric_type.trim() || null,
+              notes: head.notes.trim() || null,
+              lines: payloadLines,
+            });
+      } else {
+        await qrApi.createOrder({
+          order_no: head.order_no.trim(),
+          customer_name: head.customer_name.trim() || null,
+          fabric_type: head.fabric_type.trim() || null,
+          notes: head.notes.trim() || null,
+          lines: payloadLines,
+        });
+      }
+      onSaved();
     } catch (err: any) {
-      setError(err.message || "Could not create the order");
+      setError(err.message || "Could not save the order");
     } finally {
       setBusy(false);
     }
   };
 
   const field = `w-full px-3 py-2.5 rounded-xl border ${th.inputBg} outline-none focus:border-purple-500`;
+  const fabricListId = "qr-fabric-suggestions";
 
   return (
     <div
@@ -377,11 +545,25 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         className={`w-full sm:max-w-2xl ${th.surface} ${th.text} rounded-t-2xl sm:rounded-2xl border ${th.border} p-5 max-h-[92vh] overflow-y-auto`}
       >
         <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-xl font-bold flex-1">{t("orders.new", "New order")}</h2>
+          <h2 className="text-xl font-bold flex-1">
+            {isEdit ? t("orders.edit", "Edit order") : t("orders.new", "New order")}
+          </h2>
           <button type="button" onClick={onClose} className={`p-2 rounded-lg ${th.hover}`}>
             <X size={18} />
           </button>
         </div>
+
+        {/* The reason half this form is disabled, said before it is noticed. */}
+        {frozen && (
+          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500 text-amber-600 text-sm flex gap-2">
+            <Lock size={16} className="shrink-0 mt-0.5" />
+            <span>
+              {t("orders.frozenNote",
+                "{n} labels are already printed and on the rolls. The designs, quantities, fabric and order number are locked — changing them would leave the loading count no longer matching the truck. Customer and notes can still be edited.")
+                .replace("{n}", String(order?.codes_issued ?? 0))}
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="mb-3 p-3 rounded-xl bg-red-900/20 border border-red-500 text-red-500 text-sm">
@@ -389,12 +571,17 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
           </div>
         )}
 
+        {/* Suggestions for every fabric field on the form. */}
+        <datalist id={fabricListId}>
+          {knownFabrics.map((f) => <option key={f} value={f} />)}
+        </datalist>
+
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className={`text-xs ${th.textDim}`}>{t("orders.orderNo", "Order number")} *</span>
-            <input ref={firstRef} value={head.order_no}
+            <input ref={firstRef} value={head.order_no} disabled={frozen}
               onChange={(e) => setHead({ ...head, order_no: e.target.value })}
-              placeholder="ORD-2026-001" className={`mt-1 ${field}`} />
+              placeholder="ORD-2026-001" className={`mt-1 ${field} disabled:opacity-50`} />
           </label>
           <label className="block">
             <span className={`text-xs ${th.textDim}`}>{t("orders.customer", "Customer")}</span>
@@ -408,10 +595,12 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         <div className="mt-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-bold">{t("orders.linesTitle", "Designs in this order")}</span>
-            <button type="button" onClick={addLine}
-              className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold inline-flex items-center gap-1.5">
-              <Plus size={15} /> {t("orders.addLine", "Add design")}
-            </button>
+            {!frozen && (
+              <button type="button" onClick={addLine}
+                className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold inline-flex items-center gap-1.5">
+                <Plus size={15} /> {t("orders.addLine", "Add design")}
+              </button>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -419,14 +608,20 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
               <div key={i} className={`p-3 rounded-xl border ${th.border} ${th.surfaceAlt}`}>
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <DesignPicker
-                      designs={designs}
-                      value={l.designId}
-                      label={l.designNumber}
-                      onPick={(d) => setLine(i, { designId: d?.id ?? null, designNumber: d?.designNumber ?? null })}
-                    />
+                    {frozen ? (
+                      <div className="font-semibold">
+                        {l.designNumber || t("orders.noDesign", "no design")}
+                      </div>
+                    ) : (
+                      <DesignPicker
+                        designs={designs}
+                        value={l.designId}
+                        label={l.designNumber}
+                        onPick={(d) => setLine(i, { designId: d?.id ?? null, designNumber: d?.designNumber ?? null })}
+                      />
+                    )}
                   </div>
-                  {lines.length > 1 && (
+                  {!frozen && lines.length > 1 && (
                     <button type="button" onClick={() => removeLine(i)}
                       className={`p-2 rounded-lg ${th.hover} ${th.textDim}`}
                       aria-label={t("common.delete", "Delete")}>
@@ -435,11 +630,29 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   )}
                 </div>
 
-                {!l.designId && (
+                {!frozen && !l.designId && (
                   <p className="mt-1.5 text-xs text-amber-500">
                     {t("orders.designRequired", "Pick a design — it is printed on every label of this line.")}
                   </p>
                 )}
+
+                {/* Fabric is typed, not picked: the gallery knows the print,
+                    not what it is printed on, and the same design runs on
+                    several fabrics. It goes on the sticker next to the design
+                    and is what the ZIP splits by, together with the length. */}
+                <label className="block mt-2">
+                  <span className={`text-xs ${th.textDim}`}>
+                    {t("orders.lineFabric", "Fabric type")}
+                  </span>
+                  <input
+                    value={l.fabricType ?? ""}
+                    disabled={frozen}
+                    onChange={(e) => setLine(i, { fabricType: e.target.value })}
+                    list={fabricListId}
+                    placeholder={t("orders.lineFabricHint", "e.g. Poplin 100% cotton")}
+                    className={`mt-1 ${field} disabled:opacity-50`}
+                  />
+                </label>
 
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <label className="block">
@@ -448,18 +661,20 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                     </span>
                     <input
                       value={l.rollLength ?? ""}
+                      disabled={frozen}
                       onChange={(e) => setLine(i, { rollLength: e.target.value })}
                       type="number" min="0" step="0.5" inputMode="decimal" placeholder="30"
-                      className={`mt-1 ${field}`}
+                      className={`mt-1 ${field} disabled:opacity-50`}
                     />
                   </label>
                   <label className="block">
                     <span className={`text-xs ${th.textDim}`}>{t("orders.rollsCount", "Rolls")} *</span>
                     <input
                       value={l.rolls}
+                      disabled={frozen}
                       onChange={(e) => setLine(i, { rolls: e.target.value as any })}
                       type="number" min="1" max="10000" inputMode="numeric"
-                      className={`mt-1 ${field} font-bold`}
+                      className={`mt-1 ${field} font-bold disabled:opacity-50`}
                     />
                   </label>
                 </div>
@@ -477,10 +692,16 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         </div>
 
         <label className="block mt-3">
-          <span className={`text-xs ${th.textDim}`}>{t("orders.fabric", "Fabric type")}</span>
-          <input value={head.fabric_type}
+          <span className={`text-xs ${th.textDim}`}>
+            {t("orders.fabric", "Fabric type — whole order")}
+          </span>
+          <input value={head.fabric_type} disabled={frozen}
             onChange={(e) => setHead({ ...head, fabric_type: e.target.value })}
-            className={`mt-1 ${field}`} />
+            list={fabricListId}
+            className={`mt-1 ${field} disabled:opacity-50`} />
+          <span className={`text-xs ${th.textMuted}`}>
+            {t("orders.fabricHint", "Used for lines that do not name their own fabric.")}
+          </span>
         </label>
 
         <label className="block mt-3">

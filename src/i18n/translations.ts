@@ -715,6 +715,10 @@ export const TRANSLATIONS = {
     "hub.desc.sing_des_hub":
       "Gray fabric store + SING&DES input — one operator",
     "hub.desc.stenter_hub": "Batching + finishing (stenter) — one operator",
+    "hub.desc.ombor_hub": "Warehouse, orders and truck loading — one operator",
+    "hub.ombor.ordersDesc": "Write the order and print its roll labels",
+    "hub.ombor.loadingDesc": "Scan the rolls going onto the truck",
+    "home.section": "section",
     "hub.desc.folding_hub":
       "Folding & inspection + dispatch warehouse — one operator",
     "access.noPermission": "You don't have permission to view this department.",
@@ -1565,6 +1569,10 @@ export const TRANSLATIONS = {
       "Gray mato ombori + SING&DES kirimi — bitta operator",
     "hub.desc.stenter_hub":
       "Batchlash + yakuniy ishlov (stenter) — bitta operator",
+    "hub.desc.ombor_hub": "Ombor, buyurtmalar va yuklash — bitta operator",
+    "hub.ombor.ordersDesc": "Buyurtmani kiriting va rulon yorliqlarini chop eting",
+    "hub.ombor.loadingDesc": "Mashinaga ortilayotgan rulonlarni skanerlang",
+    "home.section": "boʻlim",
     "hub.desc.folding_hub": "Saralash + joʻnatma ombori — bitta operator",
     "access.noPermission": "Bu boʻlimni koʻrish uchun sizda ruxsat yoʻq.",
     "common.backTo": "Qaytish:",

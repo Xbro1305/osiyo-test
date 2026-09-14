@@ -51,6 +51,23 @@ export const MERGED_STATION_GROUPS: {
     description: "Folding & inspection + dispatch warehouse — one operator",
     insertAfter: "calendering", // folding's normal pipeline position
   },
+  {
+    // Ombor is where a shipment actually leaves the factory, so the two QR
+    // screens live here rather than in the top bar: the order is written and
+    // its labels printed in the warehouse, and the truck is scanned at its
+    // ramp. The hub has a single member station — the extra cards inside it
+    // are the Orders and Loading pages, which are routes rather than stations
+    // (see StationHubView in App.tsx).
+    id: "ombor_hub",
+    label: "Ombor",
+    members: ["ombor"],
+    icon: Warehouse,
+    color: "bg-amber-500",
+    description: "Warehouse, orders and truck loading — one operator",
+    // Last in the pipeline. Listed after folding_hub so that when both anchor
+    // to calendering the tiles still come out in pipeline order.
+    insertAfter: "calendering",
+  },
 ];
 
 // Given a stationId, returns the hub it belongs to (if any). Used by the
@@ -84,6 +101,16 @@ export const HUB_STATION_IDS: Record<string, string> = {
   sing_des: "sing_des_hub", // maps operator's stationId → matching hub
   stenter: "stenter_hub",
   folding_hub: "folding_hub", // Folding & Inspection + Dispatch + Quality & R&D
+  // `ombor` is a REAL station id as well as a hub key, which none of the
+  // others are. It is listed here so the storekeeper LANDS on the hub rather
+  // than straight in the station's data entry — the hub is the only way to
+  // reach Orders and Truck loading now that they are no longer in the top bar,
+  // and the storekeeper is exactly who needs them.
+  //
+  // Safe because the hub has a single member with the same id: every helper
+  // below resolves `ombor` to the same station it did before. Only the landing
+  // view changes.
+  ombor: "ombor_hub",
 };
 export function isHubStationId(s: string | undefined | null): boolean {
   return !!s && Object.prototype.hasOwnProperty.call(HUB_STATION_IDS, s);

@@ -10,6 +10,38 @@ import { loadPageSize, savePageSize } from "../lib/prefs";
 import { getToken, storage } from "../lib/storage";
 import type { Customer } from "../types/app";
 
+// ===== Signed-in user, for pages outside AppInner =====
+// /orders and /loading are standalone routes declared before AppInner's
+// catch-all, so they never see the `ctx.user` the rest of the app passes
+// around. They still need the role to decide who may edit or delete an order,
+// so they ask the API who this token belongs to.
+//
+// The role is re-checked on the server for every write — this is only about
+// which buttons are worth showing. `null` while the request is in flight, and
+// `null` again if it fails, so a page renders its read-only shape rather than
+// flashing buttons the server would refuse.
+export function useMe() {
+  const [me, setMe] = useState<any | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!getToken()) return;
+    storage
+      .fetchMe()
+      .then((u) => {
+        if (!cancelled) setMe(u);
+      })
+      .catch(() => {
+        /* read-only shape is the safe fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return me;
+}
+
 // ===== Debounced value hook =====
 // Returns the input value after `delay` ms of stillness. Used for free-text
 // search inputs so we don't fire a request on every keystroke.

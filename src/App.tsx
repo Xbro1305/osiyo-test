@@ -163,7 +163,7 @@ import { useAuthReadyEffect, useDebouncedValue, useStationData, useUrlState } fr
 import type { AppContext, CtxEditableProps, CtxProps, CurrentView, Customer, Design, Lists, Machine, NumberingConfig, ProductionRecord, Program, Role, StorePayment, StoreSale, StoreStockIn, User } from "./types/app";
 import type { SortSpec } from "./lib/sortable";
 import { ASSIGNABLE_STATIONS, HUB_STATION_IDS, MERGED_STATION_GROUPS, coversStation, findHubByStationId, findHubForStation, isHubStationId, isMultiStationOperator, membersOfHubId, operatorStationIds, stationDisplayName, userCoversStation } from "./lib/stationHubs";
-import { PAGES, canManageThisUser, canViewPage, getUserDepartments } from "./lib/access";
+import { PAGES, canManageThisUser, canScanLoading, canViewPage, canWriteQrOrders, getUserDepartments } from "./lib/access";
 
 
 // ============================================================================
@@ -2046,29 +2046,16 @@ function TopBar({
 }) {
   const { setCurrentView, currentView } = ctx;
   const t = useT();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const isAdmin = user.role === "admin";
   const isDeptAdmin = user.role === "dept_admin";
   const isGuest = user.role === "guest";
   const isOperator = user.role === "operator";
 
-  // ===== QR module links =====
-  // /orders and /loading are standalone routes declared before AppInner's
-  // catch-all, so they are NOT part of the currentView system — these buttons
-  // navigate by URL and read `active` from the pathname rather than from
-  // currentView.
-  //
-  // Who sees what: creating orders and printing labels is office work, so it
-  // is admin/dept-admin only. Scanning at the truck is the job of whoever is
-  // actually on the dock, so dispatch and ombor operators get the loading
-  // link too. Guests are read-only visitors and get neither.
-  const canSeeOrders = isAdmin || isDeptAdmin;
-  const canSeeLoading =
-    isAdmin ||
-    isDeptAdmin ||
-    (isOperator &&
-      (userCoversStation(user, "dispatch") || userCoversStation(user, "ombor")));
+  // ===== QR module =====
+  // Orders and Loading used to sit here as top-bar buttons. They now live
+  // inside the Ombor hub (Printing -> Ombor), because that is where the work
+  // physically happens: the order is written and its labels printed in the
+  // warehouse, and the truck is scanned at its ramp. See StationHubView.
 
   // Role label for the topbar
   let roleLabel = "";
@@ -2242,22 +2229,6 @@ function TopBar({
                 onClick={() => setCurrentView({ type: "trash" })}
               />
             </>
-          )}
-          {canSeeOrders && (
-            <NavBtn
-              icon={ClipboardList}
-              label={t("top.orders", "Orders")}
-              active={pathname === "/orders"}
-              onClick={() => navigate("/orders")}
-            />
-          )}
-          {canSeeLoading && (
-            <NavBtn
-              icon={QrCode}
-              label={t("top.loading", "Loading")}
-              active={pathname === "/loading"}
-              onClick={() => navigate("/loading")}
-            />
           )}
           <div className="mx-1">
             <LangThemeButtons />
@@ -2543,9 +2514,56 @@ function DepartmentHeader({
 // any of the listed members can access ALL members of the same group.
 // This way a single login covers the adjacent stations the same physical
 // operator handles, with no logout/login churn at shift change.
+// ===== Hub cards that are ROUTES, not stations =====
+//
+// Orders and Loading are standalone pages (/orders, /loading) declared before
+// AppInner's catch-all, so they are not part of the currentView system and
+// cannot be member stations of a hub. They still belong in Ombor: that is
+// where the order is written, its labels printed, and the truck scanned — the
+// one place all three jobs meet.
+//
+// Shared by the hub page and by the dept-home tile, which counts what is
+// inside it. Two copies would have the tile promising a card the page does not
+// draw the moment either gate changed.
+//
+// Gated separately because the two jobs are not the same job: writing an order
+// is the storekeeper's, scanning at the ramp is whoever is standing at it —
+// dispatch operators load trucks too. Both are re-checked on the server; this
+// only decides what is worth drawing.
+function hubRouteCards(hubId: string, user: User | null) {
+  if (hubId !== "ombor_hub") return [];
+  return [
+    canWriteQrOrders(user) && {
+      key: "orders",
+      to: "/orders",
+      icon: ClipboardList,
+      color: "bg-purple-500",
+      labelKey: "top.orders",
+      labelFallback: "Orders & roll labels",
+      descKey: "hub.ombor.ordersDesc",
+      descFallback: "Write the order and print its roll labels",
+    },
+    canScanLoading(user) && {
+      key: "loading",
+      to: "/loading",
+      icon: QrCode,
+      color: "bg-slate-700",
+      labelKey: "top.loading",
+      labelFallback: "Truck loading",
+      descKey: "hub.ombor.loadingDesc",
+      descFallback: "Scan the rolls going onto the truck",
+    },
+  ].filter(Boolean) as {
+    key: string; to: string; icon: any; color: string;
+    labelKey: string; labelFallback: string;
+    descKey: string; descFallback: string;
+  }[];
+}
+
 function StationHubView({ ctx, hubId }: { ctx: AppContext; hubId: string }) {
   const { setCurrentView } = ctx;
   const t = useT();
+  const navigate = useNavigate();
   const hub = MERGED_STATION_GROUPS.find((g) => g.id === hubId);
   if (!hub) {
     return (
@@ -2573,6 +2591,8 @@ function StationHubView({ ctx, hubId }: { ctx: AppContext; hubId: string }) {
     .map((mid) => STAGES.find((s) => s.id === mid))
     .filter(Boolean);
   const hubTitle = hub.id === "folding_hub" ? t("stage.folding") : hub.label;
+
+  const routeCards = hubRouteCards(hub.id, ctx.user);
 
   return (
     <div className="space-y-6">
@@ -2612,6 +2632,29 @@ function StationHubView({ ctx, hubId }: { ctx: AppContext; hubId: string }) {
               </div>
               <div className="text-xs text-slate-500 mt-1">
                 {t("common.tapToOpen")}
+              </div>
+            </button>
+          );
+        })}
+
+        {routeCards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <button
+              key={c.key}
+              onClick={() => navigate(c.to)}
+              className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-2xl p-6 text-left shadow-sm border border-slate-100"
+            >
+              <div
+                className={`w-14 h-14 ${c.color} rounded-xl flex items-center justify-center mb-3`}
+              >
+                <Icon className="text-white" size={28} />
+              </div>
+              <div className="font-bold text-slate-800 text-lg">
+                {t(c.labelKey, c.labelFallback)}
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                {t(c.descKey, c.descFallback)}
               </div>
             </button>
           );
@@ -2900,6 +2943,10 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                     (acc: number, m: string) => acc + (counts[m] || 0),
                     0,
                   );
+                  // What is actually behind the tile: member stations plus the
+                  // route cards (Orders, Loading) the user may open.
+                  const sections =
+                    hub.members.length + hubRouteCards(hub.id, user).length;
                   return (
                     <button
                       key={`hub:${hub.id}`}
@@ -2919,7 +2966,9 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
                           : hub.label}
                       </div>
                       <div className="text-[10px] text-purple-600 mt-0.5">
-                        {hub.members.length} {t("home.sections")}
+                        {sections} {sections === 1
+                          ? t("home.section", "section")
+                          : t("home.sections")}
                       </div>
                       <div className="text-xs text-slate-500 mt-0.5">
                         {count}{" "}

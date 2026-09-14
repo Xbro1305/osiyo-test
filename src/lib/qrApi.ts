@@ -64,6 +64,9 @@ export interface QrOrderLineInput {
   designNumber: string | null;
   rollLength: number | string | null;
   rolls: number;
+  // Typed by hand rather than picked: the gallery knows the print, not what it
+  // is printed on, and the same design runs on several fabrics.
+  fabricType?: string | null;
 }
 
 export interface QrOrder {
@@ -72,11 +75,71 @@ export interface QrOrder {
   customer_name: string | null;
   design_number: string | null;
   fabric_type: string | null;
+  notes?: string | null;
   planned_rolls: number;
   status: string;
   lines?: QrOrderLine[];
   codes_issued?: number;
   rolls_loaded?: number;
+}
+
+// ---------------------------------------------------------------------------
+//  One trip's story: every session opened against the order, every roll with
+//  whether it was scanned, and every rejection. A trip IS an order — one truck
+//  loads one order — so this hangs off the order id, not a session id.
+// ---------------------------------------------------------------------------
+export interface TripRoll {
+  id: number;
+  serial: number;
+  code: string;
+  roll_index: number;
+  status: "issued" | "loaded" | "void";
+  design_number: string | null;
+  roll_length: number | string | null;
+  fabric_type: string | null;
+  scanned_at: string | null;
+  scanned_by: string | null;
+  session_id: number | null;
+  // Status of the session the last scan belongs to. An aborted session keeps
+  // its scans, so a scan alone does not mean the roll is on a truck.
+  session_status: "open" | "closed" | "aborted" | null;
+  // Shipped, or counted by a session that is open right now. The server
+  // decides this so the screen and the export cannot drift apart.
+  on_truck: boolean;
+}
+
+export interface TripSession {
+  id: number;
+  status: "open" | "closed" | "aborted";
+  vehicle: string | null;
+  driver: string | null;
+  opened_at: string;
+  opened_by: string | null;
+  closed_at: string | null;
+  closed_by: string | null;
+  scanned: number;
+}
+
+export interface TripRejection {
+  raw_code: string;
+  reason: string;
+  detail: string | null;
+  rejected_at: string;
+  rejected_by: string | null;
+  session_id: number | null;
+}
+
+export interface TripStatus {
+  order: QrOrder;
+  sessions: TripSession[];
+  rolls: TripRoll[];
+  rejections: TripRejection[];
+  progress: {
+    total: number;
+    loaded: number;    // shipped: a session closed with the roll counted
+    on_truck: number;  // shipped, or scanned by a session that is open now
+    remaining: number; // total - on_truck
+  };
 }
 
 // A gallery entry, as the designs endpoint returns it.
@@ -117,6 +180,33 @@ export const qrApi = {
     lines: QrOrderLineInput[];
   }): Promise<QrOrder> =>
     apiFetch("/qr/orders", { method: "POST", body: JSON.stringify(body) }),
+
+  // Edit. The server decides what is still editable: before labels exist that
+  // is everything, afterwards only the customer and the notes. Sending a
+  // frozen field unchanged is fine — it only rejects an actual change.
+  updateOrder: (
+    id: number,
+    body: {
+      order_no?: string;
+      customer_name?: string | null;
+      fabric_type?: string | null;
+      notes?: string | null;
+      lines?: QrOrderLineInput[];
+    },
+  ): Promise<QrOrder> =>
+    apiFetch(`/qr/orders/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+
+  // Super-admin only, and refused outright while a truck is being loaded
+  // against the order. Takes the codes and the loading history with it.
+  deleteOrder: (
+    id: number,
+  ): Promise<{ deleted: boolean; order_no: string; codes: number; scans: number }> =>
+    apiFetch(`/qr/orders/${id}`, { method: "DELETE" }),
+
+  // Everything that happened to one trip — for the preview on the loading
+  // screen and for the Excel export built from it.
+  orderLoading: (id: number): Promise<TripStatus> =>
+    apiFetch(`/qr/orders/${id}/loading`),
 
   // The gallery, for the design picker. Unpaginated — the list is a few
   // hundred entries and the picker filters client-side, which keeps typing
@@ -173,35 +263,57 @@ export const qrApi = {
   abortSession: (sessionId: number): Promise<{ aborted: boolean }> =>
     apiFetch(`/qr/loading/sessions/${sessionId}/abort`, { method: "POST" }),
 
-  // ---------------------------------------------------------------------
-  //  The label sheet.
-  //
-  //  This CANNOT be a plain window.open() of the endpoint: the route is behind
-  //  `authenticate`, and a browser navigation sends no Authorization header,
-  //  so the tab would just show a 401. Fetch it with the token, then hand the
-  //  browser a blob: URL it can render and print.
-  //
-  //  apiFetch is not usable here either — it parses every response as JSON and
-  //  would choke on the PDF bytes.
-  // ---------------------------------------------------------------------
-  labelsPdfBlob: async (orderId: number): Promise<Blob> => {
-    const token = getToken();
-    const res = await fetch(`${API_BASE_URL}/qr/orders/${orderId}/labels.pdf`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!res.ok) {
-      // The error path DOES return JSON, so surface the server's message.
-      let message = `HTTP ${res.status}`;
-      try {
-        const body = await res.json();
-        if (body?.error) message = body.error;
-      } catch {
-        /* not JSON — keep the status */
-      }
-      throw new Error(message);
-    }
-    return res.blob();
-  },
+  // The label sheet: one sticker per page, in roll order. Fetched as a blob
+  // rather than navigated to — see authedBlob below for why.
+  labelsPdfBlob: (orderId: number): Promise<Blob> =>
+    authedBlob(`/qr/orders/${orderId}/labels.pdf`),
+
+  // The same labels split into one PDF per design / fabric / length, zipped.
+  // The print room runs one unit at a time; the single sheet makes them hunt
+  // for the page range where each design starts.
+  labelsZipBlob: (orderId: number): Promise<Blob> =>
+    authedBlob(`/qr/orders/${orderId}/labels.zip`),
 };
+
+// Fetch a binary response with the auth header.
+//
+// This CANNOT be a plain window.open() of the endpoint: the routes are behind
+// `authenticate`, and a browser navigation sends no Authorization header, so
+// the tab would just show a 401. apiFetch is not usable either — it parses
+// every response as JSON and would choke on the PDF or ZIP bytes.
+async function authedBlob(path: string): Promise<Blob> {
+  const token = getToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    // The error path DOES return JSON, so surface the server's message.
+    let message = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.error) message = body.error;
+    } catch {
+      /* not JSON — keep the status */
+    }
+    throw new Error(message);
+  }
+  return res.blob();
+}
+
+// Hand the browser a blob it can render, download or print. The URL is
+// released on a timer rather than immediately: revoking it before the tab or
+// the download has taken it produces an empty file.
+export function openBlob(blob: Blob, filename: string, download: boolean) {
+  const url = URL.createObjectURL(blob);
+  if (download) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+  } else {
+    window.open(url, "_blank", "noopener");
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
 
 export default qrApi;

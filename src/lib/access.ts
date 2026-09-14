@@ -7,7 +7,7 @@
 import { Store, Users, Warehouse } from "lucide-react";
 import { DEPARTMENTS } from "../config/departments";
 import { STAGES } from "../config/stages";
-import { coversStation, isHubStationId, operatorStationPages } from "../lib/stationHubs";
+import { coversStation, isHubStationId, operatorStationPages, userCoversStation } from "../lib/stationHubs";
 import type { User } from "../types/app";
 
 // ============== ACCESS CONTROL ==============
@@ -111,6 +111,44 @@ export function canViewPage(user: User | null, pageKey: string) {
     return allowedPages.includes(pageKey);
   }
   return false;
+}
+
+// ============== QR ORDERS: WHO MAY CHANGE THEM ==============
+// These mirror the checks in textile-backend/routes/qrOrders.js, deliberately
+// in the same wording. The server is the authority — every write is re-checked
+// there — so this is only about which buttons are worth drawing. A button the
+// server would refuse is worse than no button at all.
+//
+//   write  (create / edit / issue labels)
+//       admin, dept_admin, and the ombor storekeeper — the person actually
+//       holding the paperwork.
+//   delete
+//       super-admin only. Deleting an order destroys its codes and its loading
+//       history with it, and any label already on a roll becomes an unknown
+//       code the scanner will refuse.
+export function isOmborKeeper(user: User | null) {
+  if (user?.role !== "operator") return false;
+  return userCoversStation(user, "ombor");
+}
+
+export function canWriteQrOrders(user: User | null) {
+  if (!user) return false;
+  return user.role === "admin" || user.role === "dept_admin" || isOmborKeeper(user);
+}
+
+export function canDeleteQrOrder(user: User | null) {
+  return user?.role === "admin";
+}
+
+// Scanning at the ramp is the job of whoever is standing at it, so this is
+// wider than the write permission: dispatch operators load trucks too.
+export function canScanLoading(user: User | null) {
+  if (!user) return false;
+  if (user.role === "admin" || user.role === "dept_admin") return true;
+  return (
+    user.role === "operator" &&
+    (userCoversStation(user, "dispatch") || userCoversStation(user, "ombor"))
+  );
 }
 
 export function canViewDepartment(user: User | null, deptId: string) {

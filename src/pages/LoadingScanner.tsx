@@ -22,16 +22,18 @@
 //  are breaking up, and there is no reason for new pages to go back into it.
 // ---------------------------------------------------------------------------
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, Camera, CameraOff, Check, CircleAlert, Loader2, PackageCheck,
-  Truck, X, XCircle,
+  ArrowLeft, Camera, CameraOff, Check, CircleAlert, FileSpreadsheet, Loader2,
+  PackageCheck, Truck, X, XCircle,
 } from "lucide-react";
 
 import { useT } from "../i18n/lang";
 import { getToken } from "../lib/storage";
+import { exportTripXlsx } from "../lib/exportTrip";
 import {
   qrApi, type LoadingSession, type Progress, type QrOrder, type ScanResponse,
+  type TripStatus,
 } from "../lib/qrApi";
 
 // ===== Feedback =============================================================
@@ -259,7 +261,17 @@ export default function LoadingScannerPage() {
 }
 
 // ---------------------------------------------------------------------------
-//  Step 1 — pick the order this truck is loading.
+//  Step 1 — pick the trip.
+//
+//  A trip IS an order: one truck loads one order, which is the rule the whole
+//  feature rests on. So this list is the trips, and tapping one shows where it
+//  stands before anything is scanned — how many rolls have gone, broken down
+//  by design / fabric / length, which sessions were opened against it, and
+//  what was refused at the ramp.
+//
+//  Trips that have already shipped stay in the list. They cannot be started
+//  again, but a finished trip is the one people most often need to look up:
+//  the question after a shipment is always "what actually went on that truck".
 // ---------------------------------------------------------------------------
 function OrderPicker({ onOpened }: { onOpened: (s: LoadingSession) => void }) {
   const t = useT();
@@ -290,12 +302,13 @@ function OrderPicker({ onOpened }: { onOpened: (s: LoadingSession) => void }) {
     }
   };
 
-  // Only orders whose full code set exists can be loaded — the manifest has to
-  // be complete before anyone starts counting against it.
-  const loadable = (orders || []).filter(
-    (o) => o.status !== "shipped" && o.status !== "cancelled"
-      && Number(o.codes_issued) === o.planned_rolls && o.planned_rolls > 0,
+  // Only orders whose full code set exists are trips at all — the manifest has
+  // to be complete before anyone can count against it, and a half-issued order
+  // has nothing meaningful to show either.
+  const trips = (orders || []).filter(
+    (o) => Number(o.codes_issued) === o.planned_rolls && o.planned_rolls > 0,
   );
+  const canStart = (o: QrOrder) => o.status !== "shipped" && o.status !== "cancelled";
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6">
@@ -318,72 +331,258 @@ function OrderPicker({ onOpened }: { onOpened: (s: LoadingSession) => void }) {
           </div>
         )}
 
-        {orders !== null && !loadable.length && (
+        {orders !== null && !trips.length && (
           <p className="text-slate-400">
             {t("loading.noOrders", "No orders are ready to load. Issue the labels for an order first.")}
           </p>
         )}
 
         <div className="space-y-3">
-          {loadable.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => setChosen(o)}
-              className={`w-full text-left p-4 rounded-2xl border-2 transition-colors ${
-                chosen?.id === o.id
-                  ? "border-purple-500 bg-purple-950/40"
-                  : "border-slate-800 bg-slate-900 hover:border-slate-600"
-              }`}
-            >
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="text-lg font-bold">{o.order_no}</span>
-                <span className="text-2xl font-black tabular-nums">{o.planned_rolls}</span>
-              </div>
-              <div className="text-sm text-slate-400 mt-1">
-                {[o.customer_name, o.design_number, o.fabric_type].filter(Boolean).join(" · ") || "—"}
-              </div>
-              {Number(o.rolls_loaded) > 0 && (
-                <div className="text-xs text-amber-400 mt-1">
-                  {t("loading.partiallyShipped", "Already shipped")}: {o.rolls_loaded}
+          {trips.map((o) => {
+            const shipped = o.status === "shipped";
+            const active = chosen?.id === o.id;
+            return (
+              <button
+                key={o.id}
+                onClick={() => setChosen(active ? null : o)}
+                className={`w-full text-left p-4 rounded-2xl border-2 transition-colors ${
+                  active
+                    ? "border-purple-500 bg-purple-950/40"
+                    : "border-slate-800 bg-slate-900 hover:border-slate-600"
+                }`}
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-lg font-bold">{o.order_no}</span>
+                  <span className="text-2xl font-black tabular-nums">{o.planned_rolls}</span>
                 </div>
-              )}
-            </button>
-          ))}
+                <div className="text-sm text-slate-400 mt-1">
+                  {[o.customer_name, o.design_number, o.fabric_type].filter(Boolean).join(" · ") || "—"}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs">
+                  <span className={shipped ? "text-emerald-400" : "text-slate-400"}>
+                    {t("loading.rollsLoaded", "Loaded")}: {Number(o.rolls_loaded) || 0} / {o.planned_rolls}
+                  </span>
+                  {shipped && (
+                    <span className="text-emerald-400 font-semibold">
+                      {t("orders.status.shipped", "shipped")}
+                    </span>
+                  )}
+                  {o.status === "loading" && (
+                    <span className="text-amber-400 font-semibold">
+                      {t("loading.inProgress", "loading in progress")}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         {chosen && (
-          <div className="mt-6 p-4 rounded-2xl bg-slate-900 border border-slate-800">
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <label className="block">
-                <span className="text-xs text-slate-400">{t("loading.vehicle", "Vehicle")}</span>
-                <input
-                  value={vehicle}
-                  onChange={(e) => setVehicle(e.target.value)}
-                  placeholder="01 A 123 BC"
-                  className="mt-1 w-full px-3 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-slate-400">{t("loading.driver", "Driver")}</span>
-                <input
-                  value={driver}
-                  onChange={(e) => setDriver(e.target.value)}
-                  className="mt-1 w-full px-3 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100"
-                />
-              </label>
-            </div>
-            <button
-              onClick={open}
-              disabled={busy}
-              className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-lg font-bold"
-            >
-              {busy
-                ? <Loader2 size={20} className="animate-spin inline" />
-                : t("loading.start", "Start loading")}
-            </button>
+          <div className="mt-4 space-y-4">
+            <TripPreview order={chosen} />
+
+            {canStart(chosen) ? (
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <label className="block">
+                    <span className="text-xs text-slate-400">{t("loading.vehicle", "Vehicle")}</span>
+                    <input
+                      value={vehicle}
+                      onChange={(e) => setVehicle(e.target.value)}
+                      placeholder="01 A 123 BC"
+                      className="mt-1 w-full px-3 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-400">{t("loading.driver", "Driver")}</span>
+                    <input
+                      value={driver}
+                      onChange={(e) => setDriver(e.target.value)}
+                      className="mt-1 w-full px-3 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100"
+                    />
+                  </label>
+                </div>
+                <button
+                  onClick={open}
+                  disabled={busy}
+                  className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-lg font-bold"
+                >
+                  {busy
+                    ? <Loader2 size={20} className="animate-spin inline" />
+                    : t("loading.start", "Start loading")}
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400 px-1">
+                {chosen.status === "shipped"
+                  ? t("loading.alreadyShipped", "This trip has shipped — it can be reviewed and exported, not loaded again.")
+                  : t("loading.cancelledTrip", "This order is cancelled.")}
+              </p>
+            )}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  What has happened to this trip so far.
+//
+//  The breakdown is by design / fabric / length rather than by roll, because
+//  that is the unit the people at the ramp work in: "the 30 m poplin is all
+//  on, the 50 m is short by two" is actionable, "roll 37 is missing" is not
+//  until you know what roll 37 is.
+//
+//  Same grouping as the label ZIP on the orders screen, deliberately — the
+//  pile of stickers, the file in the archive and the line on this screen all
+//  describe the same thing.
+// ---------------------------------------------------------------------------
+function TripPreview({ order }: { order: QrOrder }) {
+  const t = useT();
+  const [trip, setTrip] = useState<TripStatus | null>(null);
+  const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTrip(null);
+    setError("");
+    qrApi.orderLoading(order.id)
+      .then((r) => { if (!cancelled) setTrip(r); })
+      .catch((e) => { if (!cancelled) setError(e.message || "Could not load the trip"); });
+    return () => { cancelled = true; };
+  }, [order.id]);
+
+  const units = useMemo(() => {
+    if (!trip) return [];
+    const map = new Map<string, {
+      design: string; fabric: string; length: string; total: number; loaded: number;
+    }>();
+    for (const r of trip.rolls) {
+      const design = r.design_number || trip.order.design_number || "—";
+      const fabric = r.fabric_type || trip.order.fabric_type || "";
+      const len = r.roll_length == null ? "" : String(Math.round(Number(r.roll_length) * 100) / 100);
+      const key = `${design}|${fabric}|${len}`;
+      if (!map.has(key)) map.set(key, { design, fabric, length: len, total: 0, loaded: 0 });
+      const u = map.get(key)!;
+      u.total += 1;
+      // Same rule as the headline above it, computed by the server: shipped,
+      // or scanned by a session that is open right now. Counting a bare scan
+      // made the two disagree, because an aborted session keeps its scans.
+      if (r.on_truck) u.loaded += 1;
+    }
+    return [...map.values()];
+  }, [trip]);
+
+  const runExport = async () => {
+    if (!trip) return;
+    setExporting(true);
+    const r = await exportTripXlsx(trip);
+    if (!r.ok) setError(r.error);
+    setExporting(false);
+  };
+
+  if (error && !trip) {
+    return <div className="p-4 rounded-2xl bg-red-900/40 border border-red-800 text-red-100">{error}</div>;
+  }
+  if (!trip) {
+    return (
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-slate-400">
+        <Loader2 size={18} className="animate-spin" /> {t("common.loading", "Loading…")}
+      </div>
+    );
+  }
+
+  const p = trip.progress;
+
+  return (
+    <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+      <div className="flex items-center gap-3">
+        <h2 className="font-bold flex-1">{t("loading.tripStatus", "Trip status")}</h2>
+        <button
+          onClick={runExport}
+          disabled={exporting}
+          className="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-500 disabled:opacity-50 text-sm font-semibold inline-flex items-center gap-2"
+        >
+          {exporting
+            ? <Loader2 size={16} className="animate-spin" />
+            : <FileSpreadsheet size={16} />}
+          {t("loading.exportExcel", "Export to Excel")}
+        </button>
+      </div>
+
+      {error && <p className="text-sm text-red-400">{error}</p>}
+
+      <div className="flex items-baseline gap-2">
+        <span className={`text-4xl font-black tabular-nums ${p.remaining === 0 ? "text-emerald-400" : ""}`}>
+          {p.on_truck}
+        </span>
+        <span className="text-2xl font-black tabular-nums text-slate-600">/ {p.total}</span>
+        <span className="text-sm text-slate-400 ml-auto">
+          {t("loading.remaining", "Remaining")}: <b className="text-slate-200">{p.remaining}</b>
+        </span>
+      </div>
+
+      {/* By unit — the way the ramp thinks about the load. */}
+      <div className="space-y-1">
+        {units.map((u) => (
+          <div
+            key={`${u.design}|${u.fabric}|${u.length}`}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-950/60 text-sm"
+          >
+            <span className="min-w-0 flex-1 truncate">
+              <b>{u.design}</b>
+              {u.fabric ? ` · ${u.fabric}` : ""}
+              {u.length ? ` · ${u.length} ${t("orders.m", "m")}` : ""}
+            </span>
+            <span className={`tabular-nums font-bold ${u.loaded === u.total ? "text-emerald-400" : "text-slate-300"}`}>
+              {u.loaded} / {u.total}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Sessions: a trip can take more than one, and "who closed it short"
+          is the question asked afterwards. */}
+      {!!trip.sessions.length && (
+        <div>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+            {t("loading.sessions", "Loading sessions")}
+          </h3>
+          <div className="space-y-1">
+            {trip.sessions.map((s) => (
+              <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-950/60 text-sm">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    s.status === "open"
+                      ? "bg-amber-500 text-slate-950"
+                      : s.status === "closed"
+                        ? "bg-emerald-700"
+                        : "bg-slate-700"
+                  }`}
+                >
+                  {t(`loading.session.${s.status}`, s.status)}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-slate-300">
+                  {[s.vehicle, s.driver].filter(Boolean).join(" · ") || "—"}
+                </span>
+                <span className="tabular-nums text-slate-400">{s.scanned}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!!trip.rejections.length && (
+        <p className="text-sm text-amber-400">
+          {t("loading.rejectedCount", "Refused scans")}: <b>{trip.rejections.length}</b>{" "}
+          <span className="text-slate-400">
+            ({t("loading.rejectedHint", "in the Excel export")})
+          </span>
+        </p>
+      )}
     </div>
   );
 }
