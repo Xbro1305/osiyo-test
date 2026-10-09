@@ -15,7 +15,7 @@ export const DEPARTMENTS = [
     color: "bg-amber-600",
     gradient: "from-amber-500 to-orange-600",
     description: "Yarn → loom → greige fabric",
-    status: "placeholder", // not yet built
+    status: "active",
   },
   {
     id: "printing",

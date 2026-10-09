@@ -156,6 +156,7 @@ import { LangContext, useLang, useT } from "./i18n/lang";
 import { ThemeContext, useTheme, useThemed } from "./theme/theme";
 import LoadingScannerPage from "./pages/LoadingScanner";
 import QrOrdersPage from "./pages/QrOrders";
+import WeavingWarehouse from "./pages/WeavingWarehouse";
 import { TRANSLATIONS } from "./i18n/translations";
 import { defaultDateRange, monthCode, todayISO, uid } from "./lib/dates";
 import { exportToCSV } from "./lib/exportCsv";
@@ -220,6 +221,8 @@ function viewToPath(view: any): string {
       return `/hub/${encodeURIComponent(view.hubId || "")}`;
     case "archive":
       return "/printing/archive";
+    case "weave_warehouse":
+      return "/weaving/warehouse";
     default:
       // Unknown types from older code paths (e.g. tl.id from a top-link button)
       // map to a generic /view/<type> so navigation still works even if the
@@ -263,6 +266,9 @@ function pathToView(pathname: string): any {
   // Records archive admin page.
   if (a === "printing" && b === "archive") {
     return { type: "archive" };
+  }
+  if (a === "weaving" && b === "warehouse") {
+    return { type: "weave_warehouse" };
   }
   if (a === "view" && b) {
     return { type: decodeURIComponent(b) };
@@ -1840,6 +1846,7 @@ function Shell({ ctx }: CtxProps) {
     if (view.type === "station") return "printing";
     if (view.type === "master") return "printing";
     if (view.type?.startsWith("store_")) return "store";
+    if (view.type?.startsWith("weave_")) return "weaving";
     return null;
   }
   function getViewPageKey(view) {
@@ -1855,6 +1862,7 @@ function Shell({ ctx }: CtxProps) {
     if (view.type === "store_stock") return "store.stock";
     if (view.type === "store_sales") return "store.sales";
     if (view.type === "store_payments") return "store.payments";
+    if (view.type === "weave_warehouse") return "weaving.warehouse";
     return null;
   }
   const viewDept = getViewDepartment(safeView);
@@ -1949,6 +1957,10 @@ function Shell({ ctx }: CtxProps) {
         )}
         {safeView.type === "store_payments" && !isOperator && (
           <StorePaymentsView ctx={ctx} />
+        )}
+        {/* ===== Weaving sub-views ===== */}
+        {safeView.type === "weave_warehouse" && !isOperator && (
+          <WeavingWarehouse ctx={ctx} />
         )}
         {/* Records pileup — admin batch archive page. */}
         {safeView.type === "archive" && !isOperator && (
@@ -2444,6 +2456,8 @@ function DepartmentRouter({
     return <PrintingDepartmentHome ctx={ctx} dept={dept} />;
   if (departmentId === "store")
     return <StoreDepartmentHome ctx={ctx} dept={dept} />;
+  if (departmentId === "weaving")
+    return <WeavingDepartmentHome ctx={ctx} dept={dept} />;
   return <PlaceholderDepartmentHome ctx={ctx} dept={dept} />;
 }
 
@@ -3160,7 +3174,7 @@ function PrintingDepartmentHome({ ctx, dept }: { ctx: AppContext; dept: any }) {
 }
 
 // === PLACEHOLDER DEPARTMENT HOME ===
-// Used for Weaving and Stitching until they're built out.
+// Used for Stitching until it is built out.
 function PlaceholderDepartmentHome({
   ctx,
   dept,
@@ -3206,6 +3220,64 @@ function PlaceholderDepartmentHome({
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// === WEAVING DEPARTMENT HOME ===
+// One section so far: the warehouse — the fabric ledger that used to be kept
+// in Market.exe (see pages/WeavingWarehouse.tsx). Further sections are added
+// to the list below.
+function WeavingDepartmentHome({
+  ctx,
+  dept,
+}: {
+  ctx: AppContext;
+  dept: any;
+}) {
+  const { setCurrentView, user } = ctx;
+  const t = useT();
+  const units = [
+    {
+      id: "weave_warehouse",
+      pageKey: "weaving.warehouse",
+      label: t("weaveHome.warehouse"),
+      desc: t("weaveHome.warehouse.desc"),
+      icon: Warehouse,
+      color: "bg-amber-500",
+    },
+  ].filter((u) => canViewPage(user, u.pageKey));
+
+  return (
+    <div className="space-y-6">
+      <DepartmentHeader dept={dept} ctx={ctx} />
+      <div>
+        <h3 className="font-semibold text-slate-700 mb-3">
+          {t("weaveHome.sections")}
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+          {units.map((u) => {
+            const Icon = u.icon;
+            return (
+              <button
+                key={u.id}
+                onClick={() => setCurrentView({ type: u.id })}
+                className="bg-white hover:shadow-lg active:scale-[0.98] transition rounded-xl p-4 text-left shadow-sm"
+              >
+                <div
+                  className={`w-10 h-10 ${u.color} rounded-lg flex items-center justify-center mb-2`}
+                >
+                  <Icon className="text-white" size={20} />
+                </div>
+                <div className="font-bold text-slate-800 text-sm">
+                  {u.label}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">{u.desc}</div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

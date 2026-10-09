@@ -56,7 +56,7 @@ export const PAGES = {
     { key: "store.sales", label: "Sales / Stock Out" },
     { key: "store.payments", label: "Payments Received" },
   ],
-  weaving: [{ key: "weaving.home", label: "Weaving (placeholder)" }],
+  weaving: [{ key: "weaving.warehouse", label: "Warehouse" }],
   stitching: [{ key: "stitching.home", label: "Stitching (placeholder)" }],
 };
 
